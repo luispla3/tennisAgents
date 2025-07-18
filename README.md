@@ -11,24 +11,26 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
 - Utilizar agentes conversacionales con LLM (Gemini o GPT).
 - Aprovechar memoria contextual sobre situaciones financieras pasadas.
 
----
+-- Arquitectura del Sistema - Formato ASCII (README o consola psql)
 
-                          +------------------------+
-                          |     LLM: Gemini        |
-                          |------------------------|
-                          | Players (2 calls)      |
-                          | Social Media (1)       |
-                          | News (1)               |
-                          | Weather (1)            |
-                          | Tournament Context (1) |
-                          | Market Odds (1)        |
-                          +----------+-------------+
+-- Estructura Lógica de Agentes y Flujo de Datos
+
+-- Cada bloque representa un componente del sistema
+
+/*
+                          +----------------------+
+                          |     LLM: Gemini      |
+                          |----------------------|
+                          | Players (2 calls)    |
+                          | Social Media (1)     |
+                          | News (1)             |
+                          +----------+-----------+
                                      |
                                      v
-+------------------+     +------------------+     +------------------+     +------------------
-| Tennis Players   |     | Social Media     |     | News             |     | Weather          
-| API fetch        |     | API fetch        |     | API fetch        |     | API fetch
-+--------+---------+     +--------+---------+     +--------+---------+     +--------+---------
++------------------+     +------------------+     +------------------+     +------------------+
+| Tennis Players   |     | Social Media     |     | News             |     | Weather          |
+| API fetch        |     | API fetch        |     | API fetch        |     | API fetch        |
++--------+---------+     +--------+---------+     +--------+---------+     +--------+---------+
          |                        |                        |                        |
          v                        v                        v                        v
 +-------------------------------------------------------------------------------------------+
@@ -50,7 +52,8 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
                                     | Show Recommendation   |
                                     +-----------------------+
 
-                   [ Todos los módulos compuestos con LangGraph + Gemini ]
+                      [ Orquestado con LangGraph & Gemini ]
+*/
 
 
 ## Estructura del proyecto
