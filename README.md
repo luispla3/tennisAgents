@@ -16,17 +16,22 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
 ### Arquitectura del Sistema
 
 ```text
-+----------------------+     LLM: Gemini      +----------------------+
-|                      |  Players (2 calls)   |                      |
-|                      |  Social Media (1)    |                      |
-|                      |  News (1)            |                      |
-+----------+-----------+                      +----------+-----------+
-           |                                           |
-           v                                           v
-+------------------+     +------------------+     +------------------+     +------------------+
-| Tennis Players   |     | Social Media     |     | News             |     | Weather          |
-| API fetch        |     | API fetch        |     | API fetch        |     | API fetch        |
-+--------+---------+     +--------+---------+     +--------+---------+     +--------+---------+
+                          +------------------------+
+                          |     LLM: Gemini        |
+                          |------------------------|
+                          | Players (2 calls)      |
+                          | Social Media (1)       |
+                          | News (1)               |
+                          | Weather (1)            |
+                          | Tournament Context (1) |
+                          | Market Odds (1)        |
+                          +----------+-------------+
+                                     |
+                                     v
++------------------+     +------------------+     +------------------+     +------------------
+| Tennis Players   |     | Social Media     |     | News             |     | Weather         |
+| API fetch        |     | API fetch        |     | API fetch        |     | API             |
++--------+---------+     +--------+---------+     +--------+---------+     +--------+---------
          |                        |                        |                        |
          v                        v                        v                        v
 +-------------------------------------------------------------------------------------------+
@@ -48,64 +53,5 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
                                     | Show Recommendation   |
                                     +-----------------------+
 
-                     [ Orquestado con LangGraph & Gemini ]
+                   [ Todos los módulos orquestados con LangGraph + Gemini ]
 
-
-
-## Estructura del proyecto
-
-tennis_agents/
-│
-├── agents/                  # Agentes de razonamiento (basados en Gemini)
-│   ├── risk_mgmt/           # Equipo de gestión de riesgos (como en TradingAgents)
-│   │   ├── aggressive_agent.py
-│   │   ├── neutral_agent.py
-│   │   ├── conservative_agent.py
-│   │   └── expected_odds.py
-│   └── manager.py           # Toma la decisión final (decisión + argumentación)
-│
-├── data_fetchers/          # Módulos para obtener datos desde APIs externas
-│   ├── players.py           # Datos de los jugadores
-│   ├── social_media.py      # Opinión pública (Twitter, Reddit…)
-│   ├── news.py              # Noticias relevantes
-│   ├── weather.py           # Tiempo previsto
-│   ├── tournament.py        # Contexto del torneo (fase, historial…)
-│   └── odds.py              # Cuotas (probabilidad implícita)
-│
-├── memory/                 # Memoria vectorial de situaciones pasadas
-│   └── memory.py
-│
-├── utils/                  # Herramientas auxiliares
-│   ├── config.py            # Configuración general (modelos, apis…)
-│   ├── prompts.py           # Plantillas de prompts reutilizables
-│   └── tools.py             # Conversores, parseadores, helpers
-│
-├── core/                   # Núcleo del sistema (grafo y flujo de decisión)
-│   ├── graph.py             # Define el LangGraph del sistema
-│   └── state.py             # Define los estados del sistema (como AgentState)
-│
-├── interface/              # Interfaz de visualización (web, CLI o notebook)
-│   ├── cli.py               # Línea de comandos
-│   └── web.py               # Si decides hacer una web Flask/Streamlit
-│
-├── main.py                 # Script principal para pruebas
-└── requirements.txt        # Dependencias del proyecto
-
-
-## Requisitos
-
-- Python 3.10+
-- LangChain
-- LangGraph
-- OpenAI / Gemini API
-- ChromaDB
-- (Opcional) Gemini SDK
-
-Instalación de dependencias:
-
-```bash
-pip install -r requirements.txt
-
-## Ejecucion
-
-python main.py
