@@ -1,5 +1,4 @@
-# tennisAgents
-# TFG: Sistema Inteligente de Asistencia a Apuestas en Tenis con LLM y LangGraph
+# TennisAgents: Sistema Inteligente de Asistencia a Apuestas en Tenis con LLM y LangGraph
 
 Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Models) y LangGraph para analizar partidos de tenis y generar recomendaciones de apuesta. El sistema toma como entrada múltiples fuentes de información (cuotas, redes sociales, noticias, jugadores, etc.) y produce una recomendación argumentada basada en distintos perfiles de riesgo (Agresivo, Conservador, Neutral) y una predicción objetiva basada en las cuotas de mercado (*Expected from Odds*).
 
