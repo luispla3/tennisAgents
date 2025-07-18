@@ -51,8 +51,8 @@ tennis_agents/
 │   │   ├── aggressive_agent.py
 │   │   ├── neutral_agent.py
 │   │   ├── conservative_agent.py
-│   │   ├── expected_odds.py
-│   ├── manager.py           # Toma la decisión final (decisión + argumentación)
+│   │   └── expected_odds.py
+│   └── manager.py           # Toma la decisión final (decisión + argumentación)
 │
 ├── data_fetchers/          # Módulos para obtener datos desde APIs externas
 │   ├── players.py           # Datos de los jugadores
@@ -60,7 +60,7 @@ tennis_agents/
 │   ├── news.py              # Noticias relevantes
 │   ├── weather.py           # Tiempo previsto
 │   ├── tournament.py        # Contexto del torneo (fase, historial…)
-│   ├── odds.py              # Cuotas (probabilidad implícita)
+│   └── odds.py              # Cuotas (probabilidad implícita)
 │
 ├── memory/                 # Memoria vectorial de situaciones pasadas
 │   └── memory.py
@@ -68,21 +68,19 @@ tennis_agents/
 ├── utils/                  # Herramientas auxiliares
 │   ├── config.py            # Configuración general (modelos, apis…)
 │   ├── prompts.py           # Plantillas de prompts reutilizables
-│   ├── tools.py             # Conversores, parseadores, helpers
+│   └── tools.py             # Conversores, parseadores, helpers
 │
 ├── core/                   # Núcleo del sistema (grafo y flujo de decisión)
 │   ├── graph.py             # Define el LangGraph del sistema
-│   ├── state.py             # Define los estados del sistema (como AgentState)
+│   └── state.py             # Define los estados del sistema (como AgentState)
 │
 ├── interface/              # Interfaz de visualización (web, CLI o notebook)
 │   ├── cli.py               # Línea de comandos
-│   ├── web.py               # Si decides hacer una web Flask/Streamlit
+│   └── web.py               # Si decides hacer una web Flask/Streamlit
 │
 ├── main.py                 # Script principal para pruebas
-└── requirements.txt
+└── requirements.txt        # Dependencias del proyecto
 
-
----
 
 ## Requisitos
 
