@@ -11,22 +11,18 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
 - Utilizar agentes conversacionales con LLM (Gemini o GPT).
 - Aprovechar memoria contextual sobre situaciones financieras pasadas.
 
--- Arquitectura del Sistema - Formato ASCII (README o consola psql)
+-- Arquitectura del Sistema
 
--- Estructura Lógica de Agentes y Flujo de Datos
+### Arquitectura del Sistema
 
--- Cada bloque representa un componente del sistema
-
-/*
-                          +----------------------+
-                          |     LLM: Gemini      |
-                          |----------------------|
-                          | Players (2 calls)    |
-                          | Social Media (1)     |
-                          | News (1)             |
-                          +----------+-----------+
-                                     |
-                                     v
+```text
++----------------------+     LLM: Gemini      +----------------------+
+|                      |  Players (2 calls)   |                      |
+|                      |  Social Media (1)    |                      |
+|                      |  News (1)            |                      |
++----------+-----------+                      +----------+-----------+
+           |                                           |
+           v                                           v
 +------------------+     +------------------+     +------------------+     +------------------+
 | Tennis Players   |     | Social Media     |     | News             |     | Weather          |
 | API fetch        |     | API fetch        |     | API fetch        |     | API fetch        |
@@ -52,8 +48,8 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
                                     | Show Recommendation   |
                                     +-----------------------+
 
-                      [ Orquestado con LangGraph & Gemini ]
-*/
+                     [ Orquestado con LangGraph & Gemini ]
+
 
 
 ## Estructura del proyecto
