@@ -13,34 +13,45 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
 
 ---
 
-## Arquitectura del sistema
+                          +------------------------+
+                          |     LLM: Gemini        |
+                          |------------------------|
+                          | Players (2 calls)      |
+                          | Social Media (1)       |
+                          | News (1)               |
+                          | Weather (1)            |
+                          | Tournament Context (1) |
+                          | Market Odds (1)        |
+                          +----------+-------------+
+                                     |
+                                     v
++------------------+     +------------------+     +------------------+     +------------------
+| Tennis Players   |     | Social Media     |     | News             |     | Weather          
+| API fetch        |     | API fetch        |     | API fetch        |     | API fetch
++--------+---------+     +--------+---------+     +--------+---------+     +--------+---------
+         |                        |                        |                        |
+         v                        v                        v                        v
++-------------------------------------------------------------------------------------------+
+|                                      Risk Management Team                                 |
+|-------------------------------------------------------------------------------------------|
+|  Aggressive Agent        Neutral Agent        Conservative Agent        Expected (Odds)   |
++-------------------------------------------------------------------------------------------+
+                                               |
+                                               v
+                                      +------------------+
+                                      |     Manager      |
+                                      |------------------|
+                                      | Final decision   |
+                                      | Argumentation    |
+                                      +--------+---------+
+                                               |
+                                               v
+                                    +-----------------------+
+                                    | Show Recommendation   |
+                                    +-----------------------+
 
-            +-----------------+
-            |  Tennis Players |
-            +-----------------+
-                    |
-            +------------------+
-            |  Social Media    |
-            +------------------+
-                    |
-            +------------------+          +--------------------------+
-            |      News        |--------->|  Risk Management Team    |
-            +------------------+          | (Aggressive, Neutral,   |
-                    |                    |  Conservative, Expected) |
-            +------------------+          +--------------------------+
-            |     Weather      |
-            +------------------+
-                    |
-            +------------------+                      +-------------+
-            |  Tournament Info |--------------------->|   Manager   |
-            +------------------+                      +-------------+
-                    |                                     |
-            +------------------+                          |
-            |   Market Odds    |---------------------------+
-            +------------------+
+                   [ Todos los módulos compuestos con LangGraph + Gemini ]
 
-
----
 
 ## Estructura del proyecto
 
