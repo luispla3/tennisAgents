@@ -43,8 +43,12 @@ class Propagator:
             }),
             "player_stats_report": "",
             "opponent_stats_report": "",
-            "head2head_report": "",
-            "surface_analysis_report": "",
+            "news_report": "",
+            "sentiment_report": "", # Social media sentiment analysis
+            "odds_report": "", # Betting odds analysis
+            "tournament_report": "",
+            "weather_report": "",
+            "risk_analysis_report": "", # All risk analysis reports
             "final_bet_decision": "",
         }
 
