@@ -42,7 +42,7 @@ def create_odds_analyst(llm, toolkit):
         result = chain.invoke(state["messages"])
 
         report = ""
-        if len(getattr(result, "tool_calls", [])) == 0:
+        if len(result.tool_calls) == 0:
             report = result.content
 
         return {
