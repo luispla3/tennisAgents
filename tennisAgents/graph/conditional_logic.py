@@ -54,10 +54,17 @@ class ConditionalLogic:
 
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determina si la discusión sobre el riesgo debe continuar."""
-        if state["risk_debate_state"]["count"] >= 3 * self.max_risk_discuss_rounds:
+        if state["risk_debate_state"]["count"] >= 4 * self.max_risk_discuss_rounds:
             return "Risk Referee"
-        if state["risk_debate_state"]["latest_speaker"].startswith("Aggressive"):
+
+        last_speaker = state["risk_debate_state"].get("latest_speaker", "")
+
+        if last_speaker.startswith("Aggressive"):
             return "Conservative Analyst"
-        if state["risk_debate_state"]["latest_speaker"].startswith("Conservative"):
+        elif last_speaker.startswith("Conservative"):
             return "Neutral Analyst"
-        return "Aggressive Analyst"
+        elif last_speaker.startswith("Neutral"):
+            return "Expected Analyst"
+        else:
+            return "Aggressive Analyst"
+
