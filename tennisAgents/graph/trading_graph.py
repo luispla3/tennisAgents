@@ -9,14 +9,14 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langgraph.prebuilt import ToolNode
 
-from tennisagents.agents import *
-from tennisagents.default_config import DEFAULT_CONFIG
-from tennisagents.agents.utils.memory import MatchSituationMemory
-from tennisagents.agents.utils.agent_states import AgentState
-from tennisagents.dataflows.interface import set_config
+from tennisAgents.agents import *
+from tennisAgents.default_config import DEFAULT_CONFIG
+#from tennisAgents.agents.utils.memory import MatchSituationMemory
+from tennisAgents.agents.utils.agent_states import AgentState
+from tennisAgents.dataflows.interface import set_config
 
 from .conditional_logic import ConditionalLogic
-from .setup import GraphSetup
+#from .setup import GraphSetup
 from .propagation import Propagator
 from .reflection import Reflector
 from .signal_processing import SignalProcessor

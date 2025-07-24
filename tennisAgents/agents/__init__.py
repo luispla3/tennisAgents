@@ -2,7 +2,7 @@ from .utils.agent_utils import Toolkit, create_msg_delete
 from .utils.agent_states import AgentState, RiskDebateState
 from .utils.memory import BettingMemory
 
-from .analysts.player import create_player_analyst
+from .analysts.players import create_player_analyst
 from .analysts.weather import create_weather_analyst
 from .analysts.tournament import create_tournament_analyst
 from .analysts.odds import create_odds_analyst
@@ -15,8 +15,6 @@ from .risk_mgmt.conservative_debator import create_conservative_debator
 from .risk_mgmt.expected_debator import create_expected_debator
 
 from .managers.manager import create_risk_manager
-
-from .trader.trader import create_trader
 
 __all__ = [
     "BettingMemory",

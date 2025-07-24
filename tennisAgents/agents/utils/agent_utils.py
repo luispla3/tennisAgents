@@ -2,8 +2,8 @@ from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMe
 from typing import Annotated
 from langchain_core.tools import tool
 from datetime import datetime
-from tradingagents.default_config import DEFAULT_CONFIG
-import tradingagents.dataflows.interface as interface
+from tennisAgents.default_config import DEFAULT_CONFIG
+import tennisAgents.dataflows.interface as interface
 
 
 def create_msg_delete():

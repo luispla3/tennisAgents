@@ -1,7 +1,6 @@
 from typing import Dict, Any
 from agents.utils.agent_states import (
     AgentState,
-    InvestDebateState,
     RiskDebateState,
 )
 

@@ -1,6 +1,6 @@
-# tennis_agents/graphs/conditional_logic.py
+# tennisAgents/graphs/conditional_logic.py
 
-from tennis_agents.agents.utils.agent_states import AgentState
+from tennisAgents.agents.utils.agent_states import AgentState
 
 
 class ConditionalLogic:
