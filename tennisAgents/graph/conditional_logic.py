@@ -44,23 +44,13 @@ class ConditionalLogic:
         return "Msg Clear Fundamentals"
 
     def should_continue_debate(self, state: AgentState) -> str:
-        """Determina el siguiente agente del debate estratégico sobre la apuesta."""
+        """Determina si el debate estratégico sobre la apuesta debe continuar."""
 
-        count = state["investment_debate_state"]["count"]
-
-        if count >= 4:  # Antes era 3, ahora debe haber hasta 4 pasos
+        if state["investment_debate_state"]["count"] >= 2 * self.max_debate_rounds:
             return "Match Strategy Manager"
-
-        # Alternancia: 0 → PlayerA, 1 → PlayerB, 2 → ExpectedDebator, 3 → Judge
-        if count == 0:
-            return "PlayerA Analyst"
-        elif count == 1:
+        if state["investment_debate_state"]["current_response"].startswith("PlayerA"):
             return "PlayerB Analyst"
-        elif count == 2:
-            return "ExpectedDebator"
-        else:
-            return "Investment Judge"
-
+        return "PlayerA Analyst"
 
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determina si la discusión sobre el riesgo debe continuar."""
