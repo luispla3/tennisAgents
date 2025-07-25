@@ -6,9 +6,7 @@ def create_expected_debator(llm):
 
         current_aggressive_response = risk_debate_state.get("current_aggressive_response", "")
         current_neutral_response = risk_debate_state.get("current_neutral_response", "")
-        current_conservative_response = risk_debate_state.get("current_conservative_response", "")
-
-        trader_plan = state["trader_plan"]
+        current_safe_response = risk_debate_state.get("current_safe_response", "")
 
         # Informes disponibles
         weather_report = state["weather_report"]
@@ -30,8 +28,7 @@ Tu tarea es calcular o estimar (de forma razonada, no matemática exacta) si el 
 Últimos argumentos de los analistas:
 - Agresivo: {current_aggressive_response}
 - Neutral: {current_neutral_response}
-- Conservador: {current_conservative_response}
-- Trader: {trader_plan}
+- Conservador: {current_safe_response}
 
 Historial de debate: {history}
 
