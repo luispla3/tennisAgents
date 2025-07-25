@@ -1,5 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+from tennisAgents.utils.enumerations import REPORTS
+
 def create_social_media_analyst(llm, toolkit):
     def social_media_analyst_node(state):
         current_date = state["match_date"]
@@ -61,7 +63,7 @@ def create_social_media_analyst(llm, toolkit):
 
         return {
             "messages": [result],
-            "sentiment_report": report,
+            REPORTS.sentiment_report: report,
         }
 
     return social_media_analyst_node

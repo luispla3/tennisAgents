@@ -1,5 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+from tennisAgents.utils.enumerations import REPORTS
+
 def create_player_analyst(llm, toolkit):
     def player_analyst_node(state):
         match_date = state["match_date"]
@@ -69,7 +71,7 @@ def create_player_analyst(llm, toolkit):
 
         return {
             "messages": [result],
-            "player_report": report,
+            REPORTS.players_report: report,
         }
 
     return player_analyst_node

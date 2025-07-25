@@ -1,5 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
+from tennisAgents.utils.enumerations import REPORTS
+
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
         current_date = state["match_date"]
@@ -51,7 +53,7 @@ def create_weather_analyst(llm, toolkit):
 
         return {
             "messages": [result],
-            "weather_report": report,
+            REPORTS.weather_report: report,
         }
 
     return weather_analyst_node

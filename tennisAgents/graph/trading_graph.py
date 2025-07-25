@@ -14,6 +14,7 @@ from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.agents.utils.memory import TennisSituationMemory
 from tennisAgents.agents.utils.agent_states import AgentState
 from tennisAgents.dataflows.interface import set_config
+from tennisAgents.utils.enumerations import *
 
 from .conditional_logic import ConditionalLogic
 #from .setup import GraphSetup
@@ -119,16 +120,25 @@ class TennisAgentsGraph:
 
     def _log_state(self, match_date, final_state):
         self.log_states_dict[str(match_date)] = {
-            "match": final_state["match"],
+            "match": self.match,
+            "state": final_state,
+            "messages": final_state["messages"],
+            "player_name": final_state["player_name"],
+            "opponent_name": final_state["opponent_name"],
             "match_date": final_state["match_date"],
-            "ranking_report": final_state["ranking_report"],
-            "form_report": final_state["form_report"],
-            "weather_report": final_state["weather_report"],
-            "head2head_report": final_state["head2head_report"],
-            "strategy_debate_state": final_state["strategy_debate_state"],
+            "surface": final_state["surface"],
+            "tournament": final_state["tournament"],
             "risk_debate_state": final_state["risk_debate_state"],
-            "bet_strategy": final_state["bet_strategy"],
-            "final_bet_decision": final_state["final_bet_decision"],
+            "reports": {
+                REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
+                REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
+                REPORTS.odds_report: final_state.get(REPORTS.odds_report, ""),
+                REPORTS.sentiment_report: final_state.get(REPORTS.sentiment_report, ""),
+                REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
+                REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
+                REPORTS.risk_analysis_report: final_state.get(REPORTS.risk_analysis_report, ""),
+            },
+            "final_bet_decision": final_state.get("final_bet_decision", ""),
         }
 
         directory = Path(f"eval_results/{self.match}/TennisAgents_logs/")
