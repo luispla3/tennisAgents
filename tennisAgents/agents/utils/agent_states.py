@@ -19,7 +19,6 @@ class RiskDebateState(TypedDict):
     count: Annotated[int, "Length of the current conversation"]
 
 
-# Estado principal del agente
 class AgentState(MessagesState):
     match_of_interest: Annotated[str, "Match we are analyzing for betting"]
     match_date: Annotated[str, "Date of the match"]
@@ -27,15 +26,15 @@ class AgentState(MessagesState):
     sender: Annotated[str, "Agent that sent this message"]
 
     # Informes de los analistas
-    player_report: Annotated[str, "Report from the Player Analyst"]
-    tournament_report: Annotated[str, "Report from the Tournament Analyst"]
-    weather_report: Annotated[str, "Report from the Weather Analyst"]
-    sentiment_report: Annotated[str, "Report from the Social Media Analyst"]
     news_report: Annotated[str, "Report from the News Analyst"]
     odds_report: Annotated[str, "Report from the Odds Analyst"]
-
-    # Plan del trader
-    trader_betting_plan: Annotated[str, "Betting plan proposed by the Trader"]
+    player_report: Annotated[str, "Report from the Player Analyst"]
+    sentiment_report: Annotated[str, "Report from the Social Media Analyst"]
+    tournament_report: Annotated[str, "Report from the Tournament Analyst"]
+    weather_report: Annotated[str, "Report from the Weather Analyst"]
+    
+    # Debate del equipo de analistas
+    betting_plan: Annotated[str, "Betting plan from the Betting Analyst"]
 
     # Estado del debate de gestión de riesgos
     risk_debate_state: Annotated[RiskDebateState, "Current state of the risk debate"]

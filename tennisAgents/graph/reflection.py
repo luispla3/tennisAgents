@@ -47,7 +47,9 @@ Recibirás también información objetiva del contexto del partido (noticias, es
             f"{current_state['player_report']}\n\n"
             f"{current_state['news_report']}\n\n"
             f"{current_state['sentiment_report']}\n\n"
-            f"{current_state['match_metadata']}"
+            f"{current_state['match_metadata']}\n\n"
+            f"{current_state['odds_report']}\n\n"
+            f"{current_state['weather_report']}\n\n"
         )
 
     def _reflect_on_component(
@@ -64,27 +66,7 @@ Recibirás también información objetiva del contexto del partido (noticias, es
         result = self.quick_thinking_llm.invoke(messages).content
         return result
 
-    def reflect_player_analyst(self, current_state, returns_losses, analyst_memory):
-        """Reflexiona sobre el análisis del analista del jugador y actualiza su memoria."""
-        situation = self._extract_current_situation(current_state)
-        player_report = current_state["player_report"]
-
-        result = self._reflect_on_component(
-            "PLAYER ANALYST", player_report, situation, returns_losses
-        )
-        analyst_memory.add_situations([(situation, result)])
-
-    def reflect_strategy_judge(self, current_state, returns_losses, judge_memory):
-        """Reflexiona sobre la decisión del juez de estrategia y actualiza su memoria."""
-        situation = self._extract_current_situation(current_state)
-        judge_decision = current_state["investment_debate_state"]["judge_decision"]
-
-        result = self._reflect_on_component(
-            "STRATEGY JUDGE", judge_decision, situation, returns_losses
-        )
-        judge_memory.add_situations([(situation, result)])
-
-    def reflect_risk_judge(self, current_state, returns_losses, risk_memory):
+    def reflect_risk_manager(self, current_state, returns_losses, risk_memory):
         """Reflexiona sobre la decisión del juez de riesgo y actualiza su memoria."""
         situation = self._extract_current_situation(current_state)
         judge_decision = current_state["risk_debate_state"]["judge_decision"]

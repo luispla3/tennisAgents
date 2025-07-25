@@ -55,8 +55,7 @@ class TennisAgentsGraph:
 
         self.toolkit = Toolkit(config=self.config)
 
-        self.aggressive_memory = TennisSituationMemory("aggressive_memory", self.config)
-        self.defensive_memory = TennisSituationMemory("defensive_memory", self.config)
+        self.players_memory = TennisSituationMemory("aggressive_memory", self.config)
         self.strategy_judge_memory = TennisSituationMemory("strategy_judge_memory", self.config)
         self.risk_analyst_memory = TennisSituationMemory("risk_analyst_memory", self.config)
 
@@ -68,7 +67,7 @@ class TennisAgentsGraph:
             self.deep_thinking_llm,
             self.toolkit,
             self.tool_nodes,
-            self.aggressive_memory,
+            self.players_memory,
             self.defensive_memory,
             self.strategy_judge_memory,
             self.risk_analyst_memory,
@@ -147,16 +146,7 @@ class TennisAgentsGraph:
             json.dump(self.log_states_dict, f, indent=4)
 
     def reflect_and_remember(self, returns):
-        self.reflector.reflect_aggressive(
-            self.curr_state, returns, self.aggressive_memory
-        )
-        self.reflector.reflect_defensive(
-            self.curr_state, returns, self.defensive_memory
-        )
-        self.reflector.reflect_strategy_judge(
-            self.curr_state, returns, self.strategy_judge_memory
-        )
-        self.reflector.reflect_risk_analyst(
+        self.reflector.reflect_risk_judge(
             self.curr_state, returns, self.risk_analyst_memory
         )
 
