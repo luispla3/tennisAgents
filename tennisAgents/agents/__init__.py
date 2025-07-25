@@ -30,7 +30,7 @@ __all__ = [
     "create_social_media_analyst",
     "create_aggressive_debator",
     "create_neutral_debator",
-    "create_conservative_debator",
+    "create_safe_debator",
     "create_expected_debator",
     "create_risk_manager",
     "create_trader",
