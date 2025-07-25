@@ -57,7 +57,6 @@ class TennisAgentsGraph:
 
         self.aggressive_memory = TennisSituationMemory("aggressive_memory", self.config)
         self.defensive_memory = TennisSituationMemory("defensive_memory", self.config)
-        self.bookie_memory = TennisSituationMemory("bookie_memory", self.config)
         self.strategy_judge_memory = TennisSituationMemory("strategy_judge_memory", self.config)
         self.risk_analyst_memory = TennisSituationMemory("risk_analyst_memory", self.config)
 
@@ -71,7 +70,6 @@ class TennisAgentsGraph:
             self.tool_nodes,
             self.aggressive_memory,
             self.defensive_memory,
-            self.bookie_memory,
             self.strategy_judge_memory,
             self.risk_analyst_memory,
             self.conditional_logic,
@@ -134,7 +132,6 @@ class TennisAgentsGraph:
             "weather_report": final_state["weather_report"],
             "head2head_report": final_state["head2head_report"],
             "strategy_debate_state": final_state["strategy_debate_state"],
-            "bookie_plan": final_state["bookie_plan"],
             "risk_debate_state": final_state["risk_debate_state"],
             "bet_strategy": final_state["bet_strategy"],
             "final_bet_decision": final_state["final_bet_decision"],
@@ -155,9 +152,6 @@ class TennisAgentsGraph:
         )
         self.reflector.reflect_defensive(
             self.curr_state, returns, self.defensive_memory
-        )
-        self.reflector.reflect_bookie(
-            self.curr_state, returns, self.bookie_memory
         )
         self.reflector.reflect_strategy_judge(
             self.curr_state, returns, self.strategy_judge_memory
