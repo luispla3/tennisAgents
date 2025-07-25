@@ -33,9 +33,6 @@ class AgentState(MessagesState):
     tournament_report: Annotated[str, "Report from the Tournament Analyst"]
     weather_report: Annotated[str, "Report from the Weather Analyst"]
     
-    # Debate del equipo de analistas
-    betting_plan: Annotated[str, "Betting plan from the Betting Analyst"]
-
     # Estado del debate de gestión de riesgos
     risk_debate_state: Annotated[RiskDebateState, "Current state of the risk debate"]
 
