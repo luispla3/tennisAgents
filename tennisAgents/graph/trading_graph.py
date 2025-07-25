@@ -17,7 +17,7 @@ from tennisAgents.dataflows.interface import set_config
 from tennisAgents.utils.enumerations import *
 
 from .conditional_logic import ConditionalLogic
-#from .setup import GraphSetup
+from .setup import GraphSetup
 from .propagation import Propagator
 from .reflection import Reflector
 from .signal_processing import SignalProcessor
