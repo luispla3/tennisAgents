@@ -11,7 +11,7 @@ from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents import *
 from tennisAgents.default_config import DEFAULT_CONFIG
-#from tennisAgents.agents.utils.memory import MatchSituationMemory
+from tennisAgents.agents.utils.memory import TennisSituationMemory
 from tennisAgents.agents.utils.agent_states import AgentState
 from tennisAgents.dataflows.interface import set_config
 
@@ -55,11 +55,11 @@ class TennisAgentsGraph:
 
         self.toolkit = Toolkit(config=self.config)
 
-        self.aggressive_memory = MatchSituationMemory("aggressive_memory", self.config)
-        self.defensive_memory = MatchSituationMemory("defensive_memory", self.config)
-        self.bookie_memory = MatchSituationMemory("bookie_memory", self.config)
-        self.strategy_judge_memory = MatchSituationMemory("strategy_judge_memory", self.config)
-        self.risk_analyst_memory = MatchSituationMemory("risk_analyst_memory", self.config)
+        self.aggressive_memory = TennisSituationMemory("aggressive_memory", self.config)
+        self.defensive_memory = TennisSituationMemory("defensive_memory", self.config)
+        self.bookie_memory = TennisSituationMemory("bookie_memory", self.config)
+        self.strategy_judge_memory = TennisSituationMemory("strategy_judge_memory", self.config)
+        self.risk_analyst_memory = TennisSituationMemory("risk_analyst_memory", self.config)
 
         self.tool_nodes = self._create_tool_nodes()
 
