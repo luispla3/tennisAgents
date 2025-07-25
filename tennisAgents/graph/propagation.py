@@ -1,8 +1,8 @@
 from typing import Dict, Any
 from agents.utils.agent_states import (
-    AgentState,
     RiskDebateState,
 )
+from tennisAgents.utils.enumerations import *
 
 
 class Propagator:
@@ -28,26 +28,21 @@ class Propagator:
             "match_date": str(match_date),
             "surface": surface,
             "tournament": tournament,
-            "investment_debate_state": InvestDebateState({
-                "history": "",
-                "current_response": "",
-                "count": 0
-            }),
             "risk_debate_state": RiskDebateState({
-                "history": "",
-                "current_risky_response": "",
-                "current_safe_response": "",
-                "current_neutral_response": "",
+                HISTORYS.history: "",
+                RESPONSES.aggressive: "",
+                RESPONSES.safe: "",
+                RESPONSES.neutral: "",
+                RESPONSES.expected: "",
                 "count": 0
             }),
-            "player_stats_report": "",
-            "opponent_stats_report": "",
-            "news_report": "",
-            "sentiment_report": "", # Social media sentiment analysis
-            "odds_report": "", # Betting odds analysis
-            "tournament_report": "",
-            "weather_report": "",
-            "risk_analysis_report": "", # All risk analysis reports
+            REPORTS.players_report: "",
+            REPORTS.news_report: "",
+            REPORTS.odds_report: "",
+            REPORTS.sentiment_report: "",
+            REPORTS.weather_report: "",
+            REPORTS.tournament_report: "",
+            REPORTS.risk_analysis_report: "",
             "final_bet_decision": "",
         }
 

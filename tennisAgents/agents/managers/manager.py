@@ -1,21 +1,20 @@
+from tennisAgents.utils.enumerations import *
+
 def create_risk_manager(llm, memory):
     def risk_manager_node(state) -> dict:
-        match_id = state["match_id"]
-        trader_plan = state["trader_plan"]
-
         risk_debate_state = state["risk_debate_state"]
-        history = risk_debate_state["history"]
+        history = risk_debate_state[HISTORYS.history]
 
         # Informes previos disponibles
-        weather_report = state["weather_report"]
-        odds_report = state["odds_report"]
-        sentiment_report = state["sentiment_report"]
-        news_report = state["news_report"]
-        fundamentals_report = state["fundamentals_report"]
-        tournament_report = state["tournament_report"]
+        weather_report = state[REPORTS.weather_report]
+        odds_report = state[REPORTS.odds_report]
+        sentiment_report = state[REPORTS.sentiment_report]
+        news_report = state[REPORTS.news_report]
+        players_report = state[REPORTS.players_report]
+        tournament_report = state[REPORTS.tournament_report]
 
         # Memorias de errores pasados
-        curr_situation = f"{weather_report}\n\n{odds_report}\n\n{sentiment_report}\n\n{news_report}\n\n{fundamentals_report}\n\n{tournament_report}"
+        curr_situation = f"{weather_report}\n\n{odds_report}\n\n{sentiment_report}\n\n{news_report}\n\n{players_report}\n\n{tournament_report}"
         past_memories = memory.get_memories(curr_situation, n_matches=2)
 
         past_memory_str = ""
@@ -36,9 +35,6 @@ def create_risk_manager(llm, memory):
 ### Debate actual entre analistas:
 {history}
 
-### Plan original del Trader:
-{trader_plan}
-
 ### Lecciones aprendidas de situaciones similares:
 {past_memory_str}
 
@@ -48,16 +44,16 @@ Tu respuesta debe ser clara, razonada y orientada a la toma de decisiones óptim
 
         new_risk_debate_state = {
             "judge_decision": response.content,
-            "history": history,
-            "aggressive_history": risk_debate_state.get("aggressive_history", ""),
-            "conservative_history": risk_debate_state.get("conservative_history", ""),
-            "neutral_history": risk_debate_state.get("neutral_history", ""),
-            "expected_history": risk_debate_state.get("expected_history", ""),
-            "latest_speaker": "Judge",
-            "current_aggressive_response": risk_debate_state.get("current_aggressive_response", ""),
-            "current_conservative_response": risk_debate_state.get("current_conservative_response", ""),
-            "current_neutral_response": risk_debate_state.get("current_neutral_response", ""),
-            "current_expected_response": risk_debate_state.get("current_expected_response", ""),
+            HISTORYS.history: history,
+            HISTORYS.aggressive_history: risk_debate_state.get(HISTORYS.aggressive_history, ""),
+            HISTORYS.safe_history: risk_debate_state.get(HISTORYS.safe_history, ""),
+            HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
+            HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
+            "latest_speaker": SPEAKERS.judge,
+            RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
+            RESPONSES.safe: risk_debate_state.get(RESPONSES.safe, ""),
+            RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
+            RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
             "count": risk_debate_state["count"],
         }
 

@@ -1,21 +1,23 @@
+from tennisAgents.utils.enumerations import *
+
 def create_conservative_debator(llm):
     def conservative_node(state) -> dict:
         risk_debate_state = state["risk_debate_state"]
-        history = risk_debate_state.get("history", "")
-        safe_history = risk_debate_state.get("safe_history", "")
+        history = risk_debate_state.get(HISTORYS.history, "")
+        safe_history = risk_debate_state.get(HISTORYS.safe_history, "")
 
-        current_aggressive_response = risk_debate_state.get("current_aggressive_response", "")
-        current_neutral_response = risk_debate_state.get("current_neutral_response", "")
-        current_expected_response = risk_debate_state.get("current_expected_response", "")
+        current_aggressive_response = risk_debate_state.get(RESPONSES.aggressive, "")
+        current_neutral_response = risk_debate_state.get(RESPONSES.neutral, "")
+        current_expected_response = risk_debate_state.get(RESPONSES.expected, "")
 
         # Informes disponibles
-        news_report = state["news_report"]
-        odds_report = state["odds_report"]
-        players_report = state["players_report"]        
-        sentiment_report = state["sentiment_report"]
-        tournament_report = state["tournament_report"]
-        weather_report = state["weather_report"]
-        
+        news_report = state[REPORTS.news_report]
+        odds_report = state[REPORTS.odds_report]
+        players_report = state[REPORTS.players_report]
+        sentiment_report = state[REPORTS.sentiment_report]
+        tournament_report = state[REPORTS.tournament_report]
+        weather_report = state[REPORTS.weather_report]
+
 
         prompt = f"""
 Como Analista Conservador de Riesgos, tu principal objetivo es **minimizar el riesgo**, proteger los fondos disponibles y evitar apuestas excesivamente arriesgadas. Debes evaluar la propuesta del Trader y argumentar por qué podría ser imprudente o arriesgada en función del contexto actual.
@@ -51,16 +53,16 @@ Muestra por qué una estrategia conservadora protege mejor los intereses a largo
         argument = f"Safe Analyst: {response.content}"
 
         new_risk_debate_state = {
-            "history": history + "\n" + argument,
-            "aggressive_history": risk_debate_state.get("aggressive_history", ""),
-            "safe_history": safe_history + "\n" + argument,
-            "neutral_history": risk_debate_state.get("neutral_history", ""),
-            "expected_history": risk_debate_state.get("expected_history", ""),
-            "latest_speaker": "Safe",
-            "current_aggressive_response": risk_debate_state.get("current_aggressive_response", ""),
-            "current_safe_response": argument,
-            "current_neutral_response": risk_debate_state.get("current_neutral_response", ""),
-            "current_expected_response": risk_debate_state.get("current_expected_response", ""),
+            HISTORYS.history: history + "\n" + argument,
+            HISTORYS.aggressive_history: risk_debate_state.get(HISTORYS.aggressive_history, ""),
+            HISTORYS.safe_history: safe_history + "\n" + argument,
+            HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
+            HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
+            "latest_speaker": SPEAKERS.safe,
+            RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
+            RESPONSES.safe: argument,
+            RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
+            RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
             "count": risk_debate_state.get("count", 0) + 1,
         }
 
