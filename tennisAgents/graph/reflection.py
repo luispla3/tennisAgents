@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from langchain_openai import ChatOpenAI
 
-from tennisAgents.utils.enumerations import ANALYSTS
+from tennisAgents.utils.enumerations import ANALYSTS, REPORTS
 
 
 class Reflector:
@@ -46,13 +46,12 @@ Recibirás también información objetiva del contexto del partido (noticias, es
     def _extract_current_situation(self, current_state: Dict[str, Any]) -> str:
         """Extrae la situación actual del contexto del partido."""
         return (
-            f"{current_state['player_report']}\n\n"
-            
-            f"{current_state['news_report']}\n\n"
-            f"{current_state['sentiment_report']}\n\n"
-            f"{current_state['match_metadata']}\n\n"
-            f"{current_state['odds_report']}\n\n"
-            f"{current_state['weather_report']}\n\n"
+            f"{current_state[REPORTS.players_report]}\n\n"
+            f"{current_state[REPORTS.news_report]}\n\n"
+            f"{current_state[REPORTS.sentiment_report]}\n\n"
+            f"{current_state[REPORTS.tournament_report]}\n\n"
+            f"{current_state[REPORTS.odds_report]}\n\n"
+            f"{current_state[REPORTS.weather_report]}\n\n"
         )
 
     def _reflect_on_component(
