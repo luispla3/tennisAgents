@@ -1,6 +1,7 @@
 # tennisAgents/graphs/conditional_logic.py
 
 from tennisAgents.agents.utils.agent_states import AgentState
+from tennisAgents.utils.enumerations import *
 
 
 class ConditionalLogic:
@@ -46,16 +47,16 @@ class ConditionalLogic:
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determina si la discusión sobre el riesgo debe continuar."""
         if state["risk_debate_state"]["count"] >= 4 * self.max_risk_discuss_rounds:
-            return "Risk Judge"
+            return ANALYSTS.judge
 
         last_speaker = state["risk_debate_state"].get("latest_speaker", "")
 
-        if last_speaker.startswith("Aggressive"):
-            return "Conservative Analyst"
-        elif last_speaker.startswith("Conservative"):
-            return "Neutral Analyst"
-        elif last_speaker.startswith("Neutral"):
-            return "Expected Analyst"
+        if last_speaker == SPEAKERS.aggressive:
+            return ANALYSTS.safe
+        elif last_speaker == SPEAKERS.safe:
+            return ANALYSTS.neutral
+        elif last_speaker == SPEAKERS.neutral:
+            return ANALYSTS.expected
         else:
-            return "Aggressive Analyst"
+            return ANALYSTS.aggressive
 

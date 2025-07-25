@@ -26,3 +26,18 @@ class REPORTS:
     players_report = "players_report"
     tournament_report = "tournament_report"
     risk_analysis_report = "risk_analysis_report"
+
+class ANALYSTS:
+    aggressive = "Aggressive Analyst"
+    neutral = "Neutral Analyst"
+    safe = "Safe Analyst"
+    expected = "Expected Analyst"
+    judge = "Risk Judge"
+
+class ANALYST_NODES:
+    news = "news"
+    odds = "odds"
+    players = "players"
+    social = "social_media"
+    tournament = "tournament"
+    weather = "weather"

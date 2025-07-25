@@ -1,6 +1,8 @@
 from typing import Dict, Any
 from langchain_openai import ChatOpenAI
 
+from tennisAgents.utils.enumerations import ANALYSTS
+
 
 class Reflector:
     """Encargado de reflexionar sobre decisiones y actualizar la memoria."""
@@ -73,6 +75,6 @@ Recibirás también información objetiva del contexto del partido (noticias, es
         judge_decision = current_state["risk_debate_state"]["judge_decision"]
 
         result = self._reflect_on_component(
-            "RISK JUDGE", judge_decision, situation, returns_losses
+            ANALYSTS.judge, judge_decision, situation, returns_losses
         )
         risk_memory.add_situations([(situation, result)])

@@ -18,6 +18,7 @@ from tennisAgents.agents.risk_mgmt.expected_debator import create_expected_debat
 from tennisAgents.agents.risk_mgmt.neutral_debator import create_neutral_debator
 from tennisAgents.agents.utils.agent_states import AgentState
 from tennisAgents.agents.utils.agent_utils import Toolkit, create_msg_delete
+from tennisAgents.utils.enumerations import *
 
 from .conditional_logic import ConditionalLogic
 
@@ -41,7 +42,7 @@ class GraphSetup:
         self.conditional_logic = conditional_logic
 
     def setup_graph(
-        self, selected_analysts=["news", "odds", "players", "social_media", "tournament", "weather"]
+        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.odds, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather]
     ):
         if len(selected_analysts) == 0:
             raise ValueError("Tennis Agents Graph Setup Error: no analysts selected!")
@@ -50,38 +51,38 @@ class GraphSetup:
         delete_nodes = {}
         tool_nodes = {}
 
-        if "news" in selected_analysts:
-            analyst_nodes["news"] = create_news_analyst(self.quick_thinking_llm)
-            delete_nodes["news"] = create_msg_delete()
-            tool_nodes["news"] = self.tool_nodes.get("news")
+        if ANALYST_NODES.news in selected_analysts:
+            analyst_nodes[ANALYST_NODES.news] = create_news_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.news] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.news] = self.tool_nodes.get(ANALYST_NODES.news)
 
-        if "odds" in selected_analysts:
-            analyst_nodes["odds"] = create_odds_analyst(self.quick_thinking_llm)
-            delete_nodes["odds"] = create_msg_delete()
-            tool_nodes["odds"] = self.tool_nodes.get("odds")
+        if ANALYST_NODES.odds in selected_analysts:
+            analyst_nodes[ANALYST_NODES.odds] = create_odds_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.odds] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.odds] = self.tool_nodes.get(ANALYST_NODES.odds)
 
-        if "players" in selected_analysts:
-            analyst_nodes["players"] = create_players_analyst(self.quick_thinking_llm)
-            delete_nodes["players"] = create_msg_delete()
-            tool_nodes["players"] = self.tool_nodes.get("players")
+        if ANALYST_NODES.players in selected_analysts:
+            analyst_nodes[ANALYST_NODES.players] = create_players_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.players] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.players] = self.tool_nodes.get(ANALYST_NODES.players)
 
-        if "social_media" in selected_analysts:
-            analyst_nodes["social_media"] = create_social_media_analyst(self.quick_thinking_llm)
-            delete_nodes["social_media"] = create_msg_delete()
-            tool_nodes["social_media"] = self.tool_nodes.get("social_media")
+        if ANALYST_NODES.social in selected_analysts:
+            analyst_nodes[ANALYST_NODES.social] = create_social_media_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.social] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.social] = self.tool_nodes.get(ANALYST_NODES.social)
 
-        if "tournament" in selected_analysts:
-            analyst_nodes["tournament"] = create_tournament_analyst(self.quick_thinking_llm)
-            delete_nodes["tournament"] = create_msg_delete()
-            tool_nodes["tournament"] = self.tool_nodes.get("tournament")
+        if ANALYST_NODES.tournament in selected_analysts:
+            analyst_nodes[ANALYST_NODES.tournament] = create_tournament_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.tournament] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.tournament] = self.tool_nodes.get(ANALYST_NODES.tournament)
 
-        if "weather" in selected_analysts:
-            analyst_nodes["weather"] = create_weather_analyst(self.quick_thinking_llm)
-            delete_nodes["weather"] = create_msg_delete()
-            tool_nodes["weather"] = self.tool_nodes.get("weather")
+        if ANALYST_NODES.weather in selected_analysts:
+            analyst_nodes[ANALYST_NODES.weather] = create_weather_analyst(self.quick_thinking_llm)
+            delete_nodes[ANALYST_NODES.weather] = create_msg_delete()
+            tool_nodes[ANALYST_NODES.weather] = self.tool_nodes.get(ANALYST_NODES.weather)
 
         aggressive_debator = create_aggressive_debator(self.quick_thinking_llm)
-        conservative_debator = create_conservative_debator(self.quick_thinking_llm)
+        safe_debator = create_conservative_debator(self.quick_thinking_llm)
         expected_debator = create_expected_debator(self.quick_thinking_llm)
         neutral_debator = create_neutral_debator(self.quick_thinking_llm)
         risk_manager_node = create_risk_manager(self.deep_thinking_llm, self.risk_manager_memory)
@@ -93,11 +94,11 @@ class GraphSetup:
             workflow.add_node(f"Msg Clear {analyst_type.capitalize()}", delete_nodes[analyst_type])
             workflow.add_node(f"tools_{analyst_type}", tool_nodes[analyst_type])
 
-        workflow.add_node("Aggressive Debator", aggressive_debator)
-        workflow.add_node("Conservative Debator", conservative_debator)
-        workflow.add_node("Expected Debator", expected_debator)
-        workflow.add_node("Neutral Debator", neutral_debator)
-        workflow.add_node("Risk Judge", risk_manager_node)
+        workflow.add_node(ANALYSTS.aggressive, aggressive_debator)
+        workflow.add_node(ANALYSTS.safe, safe_debator)
+        workflow.add_node(ANALYSTS.expected, expected_debator)
+        workflow.add_node(ANALYSTS.neutral, neutral_debator)
+        workflow.add_node(ANALYSTS.judge, risk_manager_node)
 
         first_analyst = selected_analysts[0]
         workflow.add_edge(START, f"{first_analyst.capitalize()} Analyst")
@@ -118,49 +119,49 @@ class GraphSetup:
                 next_analyst = f"{selected_analysts[i+1].capitalize()} Analyst"
                 workflow.add_edge(current_clear, next_analyst)
             else:
-                workflow.add_edge(current_clear, "Aggressive Debator")
+                workflow.add_edge(current_clear, ANALYSTS.aggressive)
 
         workflow.add_conditional_edges(
-            "Aggressive Debator",
+            ANALYSTS.aggressive,
             self.conditional_logic.should_continue_risk_analysis,
             {
-                "Conservative Debator": "Conservative Debator",
-                "Expected Debator": "Expected Debator",
-                "Neutral Debator": "Neutral Debator",
-                "Risk Judge": "Risk Judge",
+                ANALYSTS.safe: ANALYSTS.safe,
+                ANALYSTS.expected: ANALYSTS.expected,
+                ANALYSTS.neutral: ANALYSTS.neutral,
+                ANALYSTS.judge: ANALYSTS.judge,
             },
         )
         workflow.add_conditional_edges(
-            "Conservative Debator",
+            ANALYSTS.safe,
             self.conditional_logic.should_continue_risk_analysis,
             {
-                "Aggressive Debator": "Aggressive Debator",
-                "Expected Debator": "Expected Debator",
-                "Neutral Debator": "Neutral Debator",
-                "Risk Judge": "Risk Judge",
+                ANALYSTS.aggressive: ANALYSTS.aggressive,
+                ANALYSTS.expected: ANALYSTS.expected,
+                ANALYSTS.neutral: ANALYSTS.neutral,
+                ANALYSTS.judge: ANALYSTS.judge,
             },
         )
         workflow.add_conditional_edges(
-            "Expected Debator",
+            ANALYSTS.expected,
             self.conditional_logic.should_continue_risk_analysis,
             {
-                "Aggressive Debator": "Aggressive Debator",
-                "Conservative Debator": "Conservative Debator",
-                "Neutral Debator": "Neutral Debator",
-                "Risk Judge": "Risk Judge",
+                ANALYSTS.aggressive: ANALYSTS.aggressive,
+                ANALYSTS.safe: ANALYSTS.safe,
+                ANALYSTS.neutral: ANALYSTS.neutral,
+                ANALYSTS.judge: ANALYSTS.judge,
             },
         )
         workflow.add_conditional_edges(
-            "Neutral Debator",
+            ANALYSTS.neutral,
             self.conditional_logic.should_continue_risk_analysis,
             {
-                "Aggressive Debator": "Aggressive Debator",
-                "Conservative Debator": "Conservative Debator",
-                "Expected Debator": "Expected Debator",
-                "Risk Judge": "Risk Judge",
+                ANALYSTS.aggressive: ANALYSTS.aggressive,
+                ANALYSTS.safe: ANALYSTS.safe,
+                ANALYSTS.neutral: ANALYSTS.neutral,
+                ANALYSTS.judge: ANALYSTS.judge,
             },
         )
 
-        workflow.add_edge("Risk Judge", END)
+        workflow.add_edge(ANALYSTS.judge, END)
 
         return workflow.compile()
