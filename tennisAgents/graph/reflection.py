@@ -45,6 +45,7 @@ Recibirás también información objetiva del contexto del partido (noticias, es
         """Extrae la situación actual del contexto del partido."""
         return (
             f"{current_state['player_report']}\n\n"
+            
             f"{current_state['news_report']}\n\n"
             f"{current_state['sentiment_report']}\n\n"
             f"{current_state['match_metadata']}\n\n"
