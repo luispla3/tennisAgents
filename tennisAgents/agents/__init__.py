@@ -17,7 +17,7 @@ from .risk_mgmt.expected_debator import create_expected_debator
 from .managers.manager import create_risk_manager
 
 __all__ = [
-    "BettingMemory",
+    "TennisSituationMemory",
     "Toolkit",
     "AgentState",
     "RiskDebateState",
@@ -33,5 +33,4 @@ __all__ = [
     "create_conservative_debator",
     "create_expected_debator",
     "create_risk_manager",
-    "create_trader",
 ]
