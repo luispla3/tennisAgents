@@ -17,7 +17,6 @@ class Propagator:
         player_name: str,
         opponent_name: str,
         match_date: str,
-        surface: str,
         tournament: str,
     ) -> Dict[str, Any]:
         """Crea el estado inicial para el grafo de agentes deportivos."""
