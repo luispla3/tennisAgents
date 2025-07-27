@@ -31,11 +31,6 @@ class MessageBuffer:
             "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
-            "Aggressive Analyst": "pending",
-            "Safe Analyst": "pending",
-            "Neutral Analyst": "pending",
-            "Expected Analyst": "pending",
-            "Judge Analyst": "pending",
         }
         self.current_agent = None
         self.report_sections = {
@@ -45,7 +40,6 @@ class MessageBuffer:
             "social_report": None,
             "weather_report": None,
             "tournament_report": None,
-            "risk_analysis_report": None,
             "final_bet_decision": None,
         }
         self.current_report = None

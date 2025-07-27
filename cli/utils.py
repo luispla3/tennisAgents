@@ -4,10 +4,12 @@ from typing import List, Optional, Tuple, Dict
 from cli.models import AnalystType
 
 ANALYST_ORDER = [
-    ("Market Analyst", AnalystType.MARKET),
-    ("Social Media Analyst", AnalystType.SOCIAL),
-    ("News Analyst", AnalystType.NEWS),
-    ("Fundamentals Analyst", AnalystType.FUNDAMENTALS),
+    ("News Analyst", AnalystType.news),
+    ("Odds Analyst", AnalystType.odds),
+    ("Players Analyst", AnalystType.players),
+    ("Social Analyst", AnalystType.social),
+    ("Tournament Analyst", AnalystType.tournament),
+    ("Weather Analyst", AnalystType.weather),
 ]
 
 
