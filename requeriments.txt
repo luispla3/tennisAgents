@@ -1,0 +1,48 @@
+# Tipos y utilidades
+typing-extensions
+
+# LLMs y agentes
+langchain-openai
+langchain-anthropic
+langchain-google-genai
+langchain-experimental
+langgraph
+
+# Web scraping y APIs
+requests
+beautifulsoup4
+praw
+feedparser
+
+# Datos y análisis
+pandas
+yfinance
+stockstats
+chromadb
+
+# CLI y visualización
+rich
+questionary
+typer
+
+# Otros (gestión, progreso, fechas, etc.)
+tqdm
+pytz
+
+# Gestión de paquetes y desarrollo
+setuptools
+
+# Opcionales para integración financiera (por si usas ejemplos de trading)
+backtrader
+akshare
+tushare
+finnhub-python
+eodhd
+
+# Otros posibles (según tu código)
+parsel
+redis
+chainlit
+
+# Si usas validación de modelos
+pydantic
