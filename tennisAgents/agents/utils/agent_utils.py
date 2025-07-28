@@ -31,6 +31,22 @@ def create_msg_delete():
     return delete_messages
 
 class Toolkit:
+    _config = DEFAULT_CONFIG.copy()
+
+    @classmethod
+    def update_config(cls, config):
+        """Update the class-level configuration."""
+        cls._config.update(config)
+
+    @property
+    def config(self):
+        """Access the configuration."""
+        return self._config
+
+    def __init__(self, config=None):
+        if config:
+            self.update_config(config)
+            
     # NEWS ANALYST TOOLS
     @tool
     def get_tennis_news_openai(
