@@ -20,20 +20,21 @@ class RiskDebateState(TypedDict):
 
 
 class AgentState(MessagesState):
-    match_of_interest: Annotated[str, "Match we are analyzing for betting"]
-    match_date: Annotated[str, "Date of the match"]
-
-    sender: Annotated[str, "Agent that sent this message"]
-
-    # Informes de los analistas
-    news_report: Annotated[str, "Report from the News Analyst"]
-    odds_report: Annotated[str, "Report from the Odds Analyst"]
-    player_report: Annotated[str, "Report from the Player Analyst"]
-    sentiment_report: Annotated[str, "Report from the Social Media Analyst"]
-    tournament_report: Annotated[str, "Report from the Tournament Analyst"]
-    weather_report: Annotated[str, "Report from the Weather Analyst"]
+    match_date: Annotated[str, "Fecha del partido"]
+    player_of_interest: Annotated[str, "Nombre del jugador principal"]
+    opponent: Annotated[str, "Nombre del oponente"]
+    tournament: Annotated[str, "Nombre del torneo"]
+    # Todos los REPORTS
+    REPORTS.news_report: Annotated[Optional[str], "Informe de noticias"]
+    REPORTS.odds_report: Annotated[Optional[str], "Informe de cuotas"]
+    REPORTS.players_report: Annotated[Optional[str], "Informe de jugadores"]
+    REPORTS.sentiment_report: Annotated[Optional[str], "Informe de redes sociales"]
+    REPORTS.weather_report: Annotated[Optional[str], "Informe de clima"]
+    REPORTS.tournament_report: Annotated[Optional[str], "Informe de torneo"]
+    # Decisión final
+    final_betting_decision: Annotated[Optional[str], "Decisión final de apuesta"]
+    # Estado del debate de riesgo
+    risk_debate_state: Annotated[RiskDebateState, "Estado del debate de gestión de riesgo"]
+    # Historial de mensajes
+    messages: Annotated[List[Any], "Historial de mensajes"]
     
-    # Estado del debate de gestión de riesgos
-    risk_debate_state: Annotated[RiskDebateState, "Current state of the risk debate"]
-
-    final_trade_decision: Annotated[str, "Final betting decision after the risk debate"]
