@@ -1,113 +1,187 @@
-from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMessage, RemoveMessage
+from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMessage
+from typing import List
 from typing import Annotated
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langchain_core.messages import RemoveMessage
 from langchain_core.tools import tool
-from datetime import datetime
-from tennisAgents.default_config import DEFAULT_CONFIG
-import tennisAgents.dataflows.interface as interface
+from datetime import date, timedelta, datetime
+import functools
+import pandas as pd
+import os
+from dateutil.relativedelta import relativedelta
+from langchain_openai import ChatOpenAI
+import tradingagents.dataflows.interface as interface
+from tradingagents.default_config import DEFAULT_CONFIG
+from langchain_core.messages import HumanMessage
 
 
 def create_msg_delete():
     def delete_messages(state):
+        """Clear messages and add placeholder for Anthropic compatibility"""
         messages = state["messages"]
-        removal_ops = [RemoveMessage(id=m.id) for m in messages]
+        
+        # Remove all messages
+        removal_operations = [RemoveMessage(id=m.id) for m in messages]
+        
+        # Add a minimal placeholder message
         placeholder = HumanMessage(content="Continue")
-        return {"messages": removal_ops + [placeholder]}
-
+        
+        return {"messages": removal_operations + [placeholder]}
+    
     return delete_messages
 
-
 class Toolkit:
-    _config = DEFAULT_CONFIG.copy()
-
-    @classmethod
-    def update_config(cls, config):
-        cls._config.update(config)
-
-    @property
-    def config(self):
-        return self._config
-
-    def __init__(self, config=None):
-        if config:
-            self.update_config(config)
-
-    @staticmethod
+    # NEWS ANALYST TOOLS
     @tool
-    def get_reddit_news(curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_reddit_global_news(curr_date, 7, 5)
+    def get_tennis_news_openai(
+        query: Annotated[str, "Consulta de noticias de tenis"],
+        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene las últimas noticias de tenis usando OpenAI."""
+        return interface.get_news_articles(query, curr_date)
 
-    @staticmethod
     @tool
-    def get_finnhub_news(ticker: Annotated[str, "e.g. AAPL"], start_date: Annotated[str, "yyyy-mm-dd"], end_date: Annotated[str, "yyyy-mm-dd"]):
-        look_back_days = (datetime.strptime(end_date, "%Y-%m-%d") - datetime.strptime(start_date, "%Y-%m-%d")).days
-        return interface.get_finnhub_news(ticker, end_date, look_back_days)
+    def get_google_news(
+        query: Annotated[str, "Consulta para buscar en Google News"],
+        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene noticias de Google News sobre tenis."""
+        return interface.get_google_news(query, curr_date)
 
-    @staticmethod
     @tool
-    def get_reddit_stock_info(ticker: Annotated[str, "e.g. AAPL"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_reddit_company_news(ticker, curr_date, 7, 5)
+    def get_atp_news(
+        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene noticias recientes de la web oficial ATP."""
+        return interface.get_atp_news(curr_date)
 
-    @staticmethod
     @tool
-    def get_YFin_data(symbol: Annotated[str, "e.g. AAPL"], start_date: Annotated[str, "yyyy-mm-dd"], end_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_YFin_data(symbol, start_date, end_date)
+    def get_tennisworld_news(
+        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene noticias recientes de TennisWorld."""
+        return interface.get_tennisworld_news(curr_date)
 
-    @staticmethod
+    # ODDS ANALYST TOOLS
     @tool
-    def get_YFin_data_online(symbol: Annotated[str, "e.g. AAPL"], start_date: Annotated[str, "yyyy-mm-dd"], end_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_YFin_data_online(symbol, start_date, end_date)
+    def get_odds_data(
+        player1: Annotated[str, "Nombre del jugador 1"],
+        player2: Annotated[str, "Nombre del jugador 2"],
+        match_date: Annotated[str, "Fecha del partido yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene cuotas reales para el partido."""
+        return interface.get_tennis_odds(player1, player2, match_date)
 
-    @staticmethod
     @tool
-    def get_stockstats_indicators_report(symbol: Annotated[str, "e.g. AAPL"], indicator: Annotated[str, "technical indicator"], curr_date: Annotated[str, "yyyy-mm-dd"], look_back_days: Annotated[int, "default 30"] = 30):
-        return interface.get_stock_stats_indicators_window(symbol, indicator, curr_date, look_back_days, False)
+    def get_mock_odds_data(
+        player1: Annotated[str, "Nombre del jugador 1"],
+        player2: Annotated[str, "Nombre del jugador 2"],
+    ) -> str:
+        """Devuelve cuotas simuladas para pruebas."""
+        return interface.get_mock_odds_data(player1, player2)
 
-    @staticmethod
+    # PLAYERS ANALYST TOOLS
     @tool
-    def get_stockstats_indicators_report_online(symbol: Annotated[str, "e.g. AAPL"], indicator: Annotated[str, "technical indicator"], curr_date: Annotated[str, "yyyy-mm-dd"], look_back_days: Annotated[int, "default 30"] = 30):
-        return interface.get_stock_stats_indicators_window(symbol, indicator, curr_date, look_back_days, True)
+    def get_player_profile_openai(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Obtiene el perfil del jugador usando OpenAI."""
+        return interface.get_player_stats_tennisabstract(player_name)
 
-    @staticmethod
     @tool
-    def get_finnhub_company_insider_sentiment(ticker: Annotated[str, "e.g. AAPL"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_finnhub_company_insider_sentiment(ticker, curr_date, 30)
+    def get_atp_rankings() -> str:
+        """Obtiene el ranking ATP actual."""
+        return interface.get_atp_rankings()
 
-    @staticmethod
     @tool
-    def get_finnhub_company_insider_transactions(ticker: Annotated[str, "e.g. AAPL"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_finnhub_company_insider_transactions(ticker, curr_date, 30)
+    def get_recent_matches(
+        player_name: Annotated[str, "Nombre del jugador"],
+        num_matches: Annotated[int, "Número de partidos recientes"] = 5,
+    ) -> str:
+        """Obtiene los últimos partidos jugados por el jugador."""
+        return interface.get_recent_matches(player_name, num_matches)
 
-    @staticmethod
     @tool
-    def get_simfin_balance_sheet(ticker: Annotated[str, "e.g. AAPL"], freq: Annotated[str, "annual/quarterly"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_simfin_balance_sheet(ticker, freq, curr_date)
+    def get_surface_winrate(
+        player_name: Annotated[str, "Nombre del jugador"],
+        surface: Annotated[str, "Superficie (clay, hard, grass)"],
+    ) -> str:
+        """Obtiene el winrate del jugador en una superficie dada."""
+        return interface.get_surface_winrate(player_name, surface)
 
-    @staticmethod
     @tool
-    def get_simfin_cashflow(ticker: Annotated[str, "e.g. AAPL"], freq: Annotated[str, "annual/quarterly"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_simfin_cashflow(ticker, freq, curr_date)
+    def get_head_to_head(
+        player1: Annotated[str, "Nombre del jugador 1"],
+        player2: Annotated[str, "Nombre del jugador 2"],
+    ) -> str:
+        """Obtiene el historial H2H entre dos jugadores."""
+        return interface.get_head_to_head(player1, player2)
 
-    @staticmethod
     @tool
-    def get_simfin_income_stmt(ticker: Annotated[str, "e.g. AAPL"], freq: Annotated[str, "annual/quarterly"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_simfin_income_statements(ticker, freq, curr_date)
+    def get_injury_reports(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Obtiene reportes de lesiones del jugador."""
+        return interface.get_injury_reports(player_name)
 
-    @staticmethod
+    # SOCIAL MEDIA ANALYST TOOLS
     @tool
-    def get_google_news(query: Annotated[str, "search query"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_google_news(query, curr_date, 7)
+    def get_social_sentiment_openai(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Analiza sentimiento social usando OpenAI."""
+        return interface.get_social_sentiment_openai(player_name)
 
-    @staticmethod
     @tool
-    def get_stock_news_openai(ticker: Annotated[str, "e.g. AAPL"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_stock_news_openai(ticker, curr_date)
+    def get_twitter_sentiment(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Analiza sentimiento en Twitter sobre el jugador."""
+        return interface.get_twitter_posts(player_name)
 
-    @staticmethod
     @tool
-    def get_global_news_openai(curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_global_news_openai(curr_date)
+    def get_tennis_forum_sentiment(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Analiza sentimiento en foros de tenis."""
+        return interface.get_tennis_forum_sentiment(player_name)
 
-    @staticmethod
     @tool
-    def get_fundamentals_openai(ticker: Annotated[str, "e.g. AAPL"], curr_date: Annotated[str, "yyyy-mm-dd"]):
-        return interface.get_fundamentals_openai(ticker, curr_date)
+    def get_reddit_sentiment(
+        player_name: Annotated[str, "Nombre del jugador"],
+    ) -> str:
+        """Analiza sentimiento en Reddit sobre el jugador."""
+        return interface.get_reddit_posts("tennis", player_name)
+
+    # TOURNAMENT ANALYST TOOLS
+    @tool
+    def get_tournament_info(
+        tournament: Annotated[str, "Nombre del torneo"],
+        year: Annotated[int, "Año del torneo"],
+    ) -> str:
+        """Obtiene información y estadísticas del torneo."""
+        return interface.get_tournaments(year)
+
+    @tool
+    def get_mock_tournament_data(
+        tournament: Annotated[str, "Nombre del torneo"],
+    ) -> str:
+        """Devuelve datos simulados de torneo para pruebas."""
+        return interface.get_mock_tournament_data(tournament)
+
+    # WEATHER ANALYST TOOLS
+    @tool
+    def get_weather_forecast(
+        latitude: Annotated[float, "Latitud"],
+        longitude: Annotated[float, "Longitud"],
+        match_date: Annotated[str, "Fecha del partido yyyy-mm-dd"],
+    ) -> str:
+        """Obtiene la previsión meteorológica para el partido."""
+        return interface.get_weather_forecast(latitude, longitude, start_date=match_date, end_date=match_date)
+
+    @tool
+    def get_mock_weather_data(
+        location: Annotated[str, "Ubicación textual o ciudad"],
+    ) -> str:
+        """Devuelve datos meteorológicos simulados para pruebas."""
+        return interface.get_mock_weather_data(location)
