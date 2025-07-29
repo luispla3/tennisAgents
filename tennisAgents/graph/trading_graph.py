@@ -153,24 +153,33 @@ class TennisAgentsGraph:
 
     def _log_state(self, match_date, final_state):
         self.log_states_dict[str(match_date)] = {
-            "match_date": self.match,
-            "messages": final_state["messages"],
-            "player_of_interest": final_state["player_of_interest"],
-            "opponent": final_state["opponent"],
-            "match_date": final_state["match_date"],
-            "tournament": final_state["tournament"],
-            "risk_debate_state": final_state["risk_debate_state"],
-            "reports": {
-                REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
-                REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
-                REPORTS.odds_report: final_state.get(REPORTS.odds_report, ""),
-                REPORTS.sentiment_report: final_state.get(REPORTS.sentiment_report, ""),
-                REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
-                REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
-                REPORTS.risk_analysis_report: final_state.get(REPORTS.risk_analysis_report, ""),
-            },
-            "final_bet_decision": final_state.get("final_bet_decision", ""),
-        }
+        "match_date": final_state["match_date"],
+        "player_of_interest": final_state["player_of_interest"],
+        "opponent": final_state["opponent"],
+        "tournament": final_state["tournament"],
+        "messages": final_state["messages"],
+        "risk_debate_state": {
+            "risky_history": final_state["risk_debate_state"].get("risky_history", ""),
+            "safe_history": final_state["risk_debate_state"].get("safe_history", ""),
+            "neutral_history": final_state["risk_debate_state"].get("neutral_history", ""),
+            "history": final_state["risk_debate_state"].get("history", ""),
+            "latest_speaker": final_state["risk_debate_state"].get("latest_speaker", ""),
+            "current_risky_response": final_state["risk_debate_state"].get("current_risky_response", ""),
+            "current_safe_response": final_state["risk_debate_state"].get("current_safe_response", ""),
+            "current_neutral_response": final_state["risk_debate_state"].get("current_neutral_response", ""),
+            "judge_decision": final_state["risk_debate_state"].get("judge_decision", ""),
+            "count": final_state["risk_debate_state"].get("count", 0),
+        },
+        "reports": {
+            REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
+            REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
+            REPORTS.odds_report: final_state.get(REPORTS.odds_report, ""),
+            REPORTS.sentiment_report: final_state.get(REPORTS.sentiment_report, ""),
+            REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
+            REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
+        },
+        "final_betting_decision": final_state.get("final_betting_decision", ""),
+    }
 
         directory = Path(f"eval_results/{self.match}/TennisAgents_logs/")
         directory.mkdir(parents=True, exist_ok=True)
