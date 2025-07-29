@@ -28,7 +28,7 @@ class TennisAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["ranking", "forma", "clima", "head2head"],
+        selected_analysts=["news", "odds", "players", "social", "tournament", "weather"],
         debug=False,
         config: Dict[str, Any] = None,
     ):
@@ -81,21 +81,54 @@ class TennisAgentsGraph:
         self.graph = self.graph_setup.setup_graph(selected_analysts)
 
     def _create_tool_nodes(self) -> Dict[str, ToolNode]:
-        return {
-            "ranking": ToolNode([
-                self.toolkit.get_atp_ranking,
-                self.toolkit.get_historical_performance,
-            ]),
-            "forma": ToolNode([
-                self.toolkit.get_recent_match_stats,
-            ]),
-            "clima": ToolNode([
-                self.toolkit.get_weather_conditions,
-            ]),
-            "head2head": ToolNode([
-                self.toolkit.get_head2head_stats,
-            ]),
-        }
+    """Crea nodos de herramientas para cada analista especializado en tenis."""
+    return {
+        "news": ToolNode(
+            [
+                self.toolkit.get_tennis_news_openai,
+                self.toolkit.get_google_news,
+                self.toolkit.get_atp_news,
+                self.toolkit.get_tennisworld_news,
+            ]
+        ),
+        "odds": ToolNode(
+            [
+                self.toolkit.get_odds_data,
+                self.toolkit.get_mock_odds_data,
+            ]
+        ),
+        "players": ToolNode(
+            [
+                self.toolkit.get_player_profile_openai,
+                self.toolkit.get_atp_rankings,
+                self.toolkit.get_recent_matches,
+                self.toolkit.get_surface_winrate,
+                self.toolkit.get_head_to_head,
+                self.toolkit.get_injury_reports,
+            ]
+        ),
+        "sentiment": ToolNode(
+            [
+                self.toolkit.get_social_sentiment_openai,
+                self.toolkit.get_twitter_sentiment,
+                self.toolkit.get_tennis_forum_sentiment,
+                self.toolkit.get_reddit_sentiment,
+            ]
+        ),
+        "tournament": ToolNode(
+            [
+                self.toolkit.get_tournament_info,
+                self.toolkit.get_mock_tournament_data,
+            ]
+        ),
+        "weather": ToolNode(
+            [
+                self.toolkit.get_weather_forecast,
+                self.toolkit.get_mock_weather_data,
+            ]
+        ),
+    }
+
 
     def propagate(self, player_pair, match_date):
         self.match = player_pair
@@ -120,13 +153,11 @@ class TennisAgentsGraph:
 
     def _log_state(self, match_date, final_state):
         self.log_states_dict[str(match_date)] = {
-            "match": self.match,
-            "state": final_state,
+            "match_date": self.match,
             "messages": final_state["messages"],
-            "player_name": final_state["player_name"],
-            "opponent_name": final_state["opponent_name"],
+            "player_of_interest": final_state["player_of_interest"],
+            "opponent": final_state["opponent"],
             "match_date": final_state["match_date"],
-            "surface": final_state["surface"],
             "tournament": final_state["tournament"],
             "risk_debate_state": final_state["risk_debate_state"],
             "reports": {

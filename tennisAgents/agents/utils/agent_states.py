@@ -5,36 +5,102 @@ from langgraph.graph import MessagesState
 
 # Estado del debate de gestión de riesgo
 class RiskDebateState(TypedDict):
-    risky_history: Annotated[str, "Risky Analyst's Conversation history"]
-    safe_history: Annotated[str, "Safe Analyst's Conversation history"]
-    neutral_history: Annotated[str, "Neutral Analyst's Conversation history"]
-    expected_history: Annotated[str, "Expected Value Analyst's Conversation history"]
-    history: Annotated[str, "Conversation history"]
-    latest_speaker: Annotated[str, "Analyst that spoke last"]
-    current_risky_response: Annotated[str, "Latest response by the risky analyst"]
-    current_safe_response: Annotated[str, "Latest response by the safe analyst"]
-    current_neutral_response: Annotated[str, "Latest response by the neutral analyst"]
-    current_expected_response: Annotated[str, "Latest response by the expected value analyst"]
-    judge_decision: Annotated[str, "Judge's decision"]
-    count: Annotated[int, "Length of the current conversation"]
+    risky_history: Annotated[
+        str, "Risky Agent's Conversation history"
+    ]  # Conversation history
+
+    safe_history: Annotated[
+        str, "Safe Agent's Conversation history"
+    ]  # Conversation history
+
+    neutral_history: Annotated[
+        str, "Neutral Agent's Conversation history"
+    ]  # Conversation history
+
+    history: Annotated[
+        str, "Conversation history"
+    ]  # Conversation history
+
+    latest_speaker: Annotated[
+        str, "Analyst that spoke last"
+    ]
+
+    current_risky_response: Annotated[
+        str, "Latest response by the risky analyst"
+    ]  # Last response
+
+    current_safe_response: Annotated[
+        str, "Latest response by the safe analyst"
+    ]  # Last response
+
+    current_neutral_response: Annotated[
+        str, "Latest response by the neutral analyst"
+    ]  # Last response
+
+    judge_decision: Annotated[
+        str, "Judge's decision"
+    ]
+
+    count: Annotated[
+        int, "Length of the current conversation"
+    ]  # Conversation length
+
 
 
 class AgentState(MessagesState):
-    match_date: Annotated[str, "Fecha del partido"]
-    player_of_interest: Annotated[str, "Nombre del jugador principal"]
-    opponent: Annotated[str, "Nombre del oponente"]
-    tournament: Annotated[str, "Nombre del torneo"]
+    match_date: Annotated[
+        str, "Fecha del partido"
+    ]
+
+    player_of_interest: Annotated[
+        str, "Nombre del jugador principal"
+    ]
+
+    opponent: Annotated[
+        str, "Nombre del oponente"
+    ]
+
+    tournament: Annotated[
+        str, "Nombre del torneo"
+    ]
+
     # Todos los REPORTS
-    REPORTS.news_report: Annotated[Optional[str], "Informe de noticias"]
-    REPORTS.odds_report: Annotated[Optional[str], "Informe de cuotas"]
-    REPORTS.players_report: Annotated[Optional[str], "Informe de jugadores"]
-    REPORTS.sentiment_report: Annotated[Optional[str], "Informe de redes sociales"]
-    REPORTS.weather_report: Annotated[Optional[str], "Informe de clima"]
-    REPORTS.tournament_report: Annotated[Optional[str], "Informe de torneo"]
+    REPORTS.news_report: Annotated[
+        Optional[str], "Informe de noticias"
+    ]
+
+    REPORTS.odds_report: Annotated[
+        Optional[str], "Informe de cuotas"
+    ]
+
+    REPORTS.players_report: Annotated[
+        Optional[str], "Informe de jugadores"
+    ]
+
+    REPORTS.sentiment_report: Annotated[
+        Optional[str], "Informe de redes sociales"
+    ]
+
+    REPORTS.weather_report: Annotated[
+        Optional[str], "Informe de clima"
+    ]
+
+    REPORTS.tournament_report: Annotated[
+        Optional[str], "Informe de torneo"
+    ]
+
     # Decisión final
-    final_betting_decision: Annotated[Optional[str], "Decisión final de apuesta"]
+    final_betting_decision: Annotated[
+        Optional[str], "Decisión final de apuesta"
+    ]
+
     # Estado del debate de riesgo
-    risk_debate_state: Annotated[RiskDebateState, "Estado del debate de gestión de riesgo"]
+    risk_debate_state: Annotated[
+        RiskDebateState, "Estado del debate de gestión de riesgo"
+    ]
+
     # Historial de mensajes
-    messages: Annotated[List[Any], "Historial de mensajes"]
-    
+    messages: Annotated[
+        List[Any], "Historial de mensajes"
+    ]
+
