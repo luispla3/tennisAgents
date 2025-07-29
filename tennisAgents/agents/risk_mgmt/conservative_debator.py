@@ -2,7 +2,7 @@ from tennisAgents.utils.enumerations import *
 
 def create_conservative_debator(llm):
     def conservative_node(state) -> dict:
-        risk_debate_state = state["risk_debate_state"]
+        risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state.get(HISTORYS.history, "")
         safe_history = risk_debate_state.get(HISTORYS.safe_history, "")
 
@@ -58,14 +58,14 @@ Muestra por qué una estrategia conservadora protege mejor los intereses a largo
             HISTORYS.safe_history: safe_history + "\n" + argument,
             HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
             HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
-            "latest_speaker": SPEAKERS.safe,
+            STATE.latest_speaker: SPEAKERS.safe,
             RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
             RESPONSES.safe: argument,
             RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
             RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
-            "count": risk_debate_state.get("count", 0) + 1,
+            STATE.count: risk_debate_state.get(STATE.count, 0) + 1,
         }
 
-        return {"risk_debate_state": new_risk_debate_state}
+        return {STATE.risk_debate_state: new_risk_debate_state}
 
     return conservative_node

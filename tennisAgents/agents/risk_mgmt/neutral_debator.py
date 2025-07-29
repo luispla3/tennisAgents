@@ -2,7 +2,7 @@ from tennisAgents.utils.enumerations import *
 
 def create_neutral_debator(llm):
     def neutral_node(state) -> dict:
-        risk_debate_state = state["risk_debate_state"]
+        risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state.get(HISTORYS.history, "")
         neutral_history = risk_debate_state.get(HISTORYS.neutral_history, "")
 
@@ -56,14 +56,14 @@ No inventes respuestas si faltan voces en el debate. Céntrate en el análisis c
             HISTORYS.safe_history: risk_debate_state.get(HISTORYS.safe_history, ""),
             HISTORYS.neutral_history: neutral_history + "\n" + argument,
             HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
-            "latest_speaker": SPEAKERS.neutral,
+            STATE.latest_speaker: SPEAKERS.neutral,
             RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
             RESPONSES.safe: risk_debate_state.get(RESPONSES.safe, ""),
             RESPONSES.neutral: argument,
             RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
-            "count": risk_debate_state.get("count", 0) + 1,
+            STATE.count: risk_debate_state.get(STATE.count, 0) + 1,
         }
 
-        return {"risk_debate_state": new_risk_debate_state}
+        return {STATE.risk_debate_state: new_risk_debate_state}
 
     return neutral_node

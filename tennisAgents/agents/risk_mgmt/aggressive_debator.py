@@ -2,7 +2,7 @@ from tennisAgents.utils.enumerations import *
 
 def create_aggressive_debator(llm):
     def aggressive_node(state) -> dict:
-        risk_debate_state = state["risk_debate_state"]
+        risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state.get(HISTORYS.history, "")
         aggressive_history = risk_debate_state.get(HISTORYS.aggressive_history, "")
 
@@ -50,14 +50,14 @@ Tu respuesta debe ser conversacional, directa, sin formato especial. No inventes
             HISTORYS.safe_history: risk_debate_state.get(HISTORYS.safe_history, ""),
             HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
             HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
-            "latest_speaker": SPEAKERS.aggressive,
+            STATE.latest_speaker: SPEAKERS.aggressive,
             RESPONSES.aggressive: argument,
             RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
             RESPONSES.safe: risk_debate_state.get(RESPONSES.safe, ""),
             RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
-            "count": risk_debate_state.get("count", 0) + 1,
+            STATE.count: risk_debate_state.get(STATE.count, 0) + 1,
         }
 
-        return {"risk_debate_state": new_risk_debate_state}
+        return {STATE.risk_debate_state: new_risk_debate_state}
 
     return aggressive_node

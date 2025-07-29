@@ -1,14 +1,14 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from tennisAgents.utils.enumerations import REPORTS
+from tennisAgents.utils.enumerations import *
 
 def create_player_analyst(llm, toolkit):
     def player_analyst_node(state):
-        match_date = state["match_date"]
-        player_name = state["player_of_interest"]
-        opponent_name = state["opponent"]
-        surface = state["surface"]
-        tournament = state["tournament"]
+        match_date = state[STATE.match_date]
+        player_name = state[STATE.player_of_interest]
+        opponent_name = state[STATE.opponent]
+        surface = state[STATE.surface]
+        tournament = state[STATE.tournament]
 
         # Selección dinámica de herramientas
         if toolkit.config["online_tools"]:
@@ -46,7 +46,7 @@ def create_player_analyst(llm, toolkit):
                     "Tienes acceso a: {tool_names}.\n{system_message}\n\n"
                     "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: {surface}, Jugadores: {player_name} vs {opponent_name}",
                 ),
-                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
 
@@ -63,14 +63,14 @@ def create_player_analyst(llm, toolkit):
         chain = prompt | llm.bind_tools(tools)
 
         # Ejecución del modelo con el historial de mensajes
-        result = chain.invoke(state["messages"])
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
         return {
-            "messages": [result],
+            STATE.messages: [result],
             REPORTS.players_report: report,
         }
 

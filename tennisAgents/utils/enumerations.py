@@ -41,3 +41,21 @@ class ANALYST_NODES:
     social = "social_media"
     tournament = "tournament"
     weather = "weather"
+
+class STATE:
+    match_date = "match_date"
+    player_of_interest = "player_of_interest"
+    opponent = "opponent"
+    tournament = "tournament"
+    surface = "surface"
+    location = "location"
+
+    messages = "messages"
+
+    risk_debate_state = "risk_debate_state"
+
+    final_bet_decision = "final_bet_decision"
+    
+    count = "count"
+    latest_speaker = "latest_speaker"
+    judge_decision = "judge_decision"

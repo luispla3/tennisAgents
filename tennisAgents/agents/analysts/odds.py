@@ -1,12 +1,12 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from tennisAgents.utils.enumerations import REPORTS
+from tennisAgents.utils.enumerations import *
 
 def create_odds_analyst(llm, toolkit):
     def odds_analyst_node(state):
-        match_date = state["match_date"]
-        player = state["player_of_interest"]
-        opponent = state["opponent"]
+        match_date = state[STATE.match_date]
+        player = state[STATE.player_of_interest]
+        opponent = state[STATE.opponent]
 
         if toolkit.config["online_tools"]:
             tools = [toolkit.get_odds_data]
@@ -33,7 +33,7 @@ def create_odds_analyst(llm, toolkit):
                     "{tool_names}\n\n"
                     "{system_message}"
                 ),
-                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
 
@@ -41,14 +41,14 @@ def create_odds_analyst(llm, toolkit):
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
 
         chain = prompt | llm.bind_tools(tools)
-        result = chain.invoke(state["messages"])
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
         return {
-            "messages": [result],
+            STATE.messages: [result],
             REPORTS.odds_report: report,
         }
 

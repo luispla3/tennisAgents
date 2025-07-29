@@ -1,4 +1,5 @@
 from tennisAgents.agents.utils.agent_states import AgentState
+from tennisAgents.utils.enumerations import ANALYSTS, SPEAKERS, STATE
 
 class ConditionalLogic:
     """Gestiona la lógica condicional para determinar el flujo del grafo de agentes."""
@@ -58,20 +59,20 @@ class ConditionalLogic:
 
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determina el siguiente paso en el debate de riesgo."""
-        risk_state = state.get("risk_debate_state", {})
-        count = risk_state.get("count", 0)
-        latest_speaker = risk_state.get("latest_speaker", "")
+        risk_state = state.get(STATE.risk_debate_state, {})
+        count = risk_state.get(STATE.count, 0)
+        latest_speaker = risk_state.get(STATE.latest_speaker, "")
 
         # Finaliza el debate si se supera el número de rondas
         if count >= 3 * self.max_risk_discuss_rounds:
-            return "Risk Judge"
+            return ANALYSTS.judge
         # Flujo entre analistas de riesgo según el último hablante
-        if latest_speaker.startswith("Aggressive"):
-            return "Safe Analyst"
-        if latest_speaker.startswith("Safe"):
-            return "Expected Analyst"
-        if latest_speaker.startswith("Expected"):
-            return "Neutral Analyst"
-        if latest_speaker.startswith("Neutral"):
-            return "Aggressive Analyst"
-        return "Aggressive Analyst"
+        if latest_speaker == SPEAKERS.aggressive:
+            return ANALYSTS.safe
+        if latest_speaker == SPEAKERS.safe:
+            return ANALYSTS.expected
+        if latest_speaker == SPEAKERS.expected:
+            return ANALYSTS.neutral
+        if latest_speaker == SPEAKERS.neutral:
+            return ANALYSTS.aggressive
+        return ANALYSTS.aggressive

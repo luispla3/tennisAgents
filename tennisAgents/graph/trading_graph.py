@@ -153,22 +153,22 @@ class TennisAgentsGraph:
 
     def _log_state(self, match_date, final_state):
         self.log_states_dict[str(match_date)] = {
-        "match_date": final_state["match_date"],
-        "player_of_interest": final_state["player_of_interest"],
-        "opponent": final_state["opponent"],
-        "tournament": final_state["tournament"],
-        "messages": final_state["messages"],
-        "risk_debate_state": {
-            "risky_history": final_state["risk_debate_state"].get("risky_history", ""),
-            "safe_history": final_state["risk_debate_state"].get("safe_history", ""),
-            "neutral_history": final_state["risk_debate_state"].get("neutral_history", ""),
-            "history": final_state["risk_debate_state"].get("history", ""),
-            "latest_speaker": final_state["risk_debate_state"].get("latest_speaker", ""),
-            "current_risky_response": final_state["risk_debate_state"].get("current_risky_response", ""),
-            "current_safe_response": final_state["risk_debate_state"].get("current_safe_response", ""),
-            "current_neutral_response": final_state["risk_debate_state"].get("current_neutral_response", ""),
-            "judge_decision": final_state["risk_debate_state"].get("judge_decision", ""),
-            "count": final_state["risk_debate_state"].get("count", 0),
+        STATE.match_date: final_state[STATE.match_date],
+        STATE.player_of_interest: final_state[STATE.player_of_interest],
+        STATE.opponent: final_state[STATE.opponent],
+        STATE.tournament: final_state[STATE.tournament],
+        STATE.messages: final_state[STATE.messages],
+        STATE.risk_debate_state: {
+            HISTORYS.aggressive_history: final_state[STATE.risk_debate_state].get(HISTORYS.aggressive_history, ""),
+            HISTORYS.safe_history: final_state[STATE.risk_debate_state].get(HISTORYS.safe_history, ""),
+            HISTORYS.neutral_history: final_state[STATE.risk_debate_state].get(HISTORYS.neutral_history, ""),
+            HISTORYS.history: final_state[STATE.risk_debate_state].get(HISTORYS.history, ""),
+            STATE.latest_speaker: final_state[STATE.risk_debate_state].get(STATE.latest_speaker, ""),
+            RESPONSES.aggressive: final_state[STATE.risk_debate_state].get(RESPONSES.aggressive, ""),
+            RESPONSES.safe: final_state[STATE.risk_debate_state].get(RESPONSES.safe, ""),
+            RESPONSES.neutral: final_state[STATE.risk_debate_state].get(RESPONSES.neutral, ""),
+            STATE.judge_decision: final_state[STATE.risk_debate_state].get(STATE.judge_decision, ""),
+            STATE.count: final_state[STATE.risk_debate_state].get(STATE.count, 0),
         },
         "reports": {
             REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
@@ -178,7 +178,7 @@ class TennisAgentsGraph:
             REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
             REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
         },
-        "final_betting_decision": final_state.get("final_betting_decision", ""),
+        STATE.final_bet_decision: final_state.get(STATE.final_bet_decision, ""),
     }
 
         directory = Path(f"eval_results/{self.match}/TennisAgents_logs/")

@@ -1,13 +1,13 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from tennisAgents.utils.enumerations import REPORTS
+from tennisAgents.utils.enumerations import *
 
 def create_news_analyst(llm, toolkit):
     def news_analyst_node(state):
-        current_date = state["match_date"]
-        player = state["player_of_interest"]
-        opponent = state["opponent"]
-        tournament = state["tournament"]
+        current_date = state[STATE.match_date]
+        player = state[STATE.player_of_interest]
+        opponent = state[STATE.opponent]
+        tournament = state[STATE.tournament]
 
         # Herramientas según configuración
         if toolkit.config["online_tools"]:

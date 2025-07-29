@@ -1,14 +1,14 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from tennisAgents.utils.enumerations import REPORTS
+from tennisAgents.utils.enumerations import *
 
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
-        current_date = state["match_date"]
-        location = state["location"]
-        player = state["player_of_interest"]
-        opponent = state["opponent"]
-        tournament = state["tournament"]
+        current_date = state[STATE.match_date]
+        location = state[STATE.location]
+        player = state[STATE.player_of_interest]
+        opponent = state[STATE.opponent]
+        tournament = state[STATE.tournament]
 
         # Herramientas de consulta meteorológica
         if toolkit.config["online_tools"]:
@@ -35,7 +35,7 @@ def create_weather_analyst(llm, toolkit):
                     "{tool_names}\n\n"
                     "{system_message}"
                 ),
-                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
 
@@ -45,14 +45,14 @@ def create_weather_analyst(llm, toolkit):
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state["messages"])
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
         return {
-            "messages": [result],
+            STATE.messages: [result],
             REPORTS.weather_report: report,
         }
 

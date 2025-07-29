@@ -1,7 +1,7 @@
 from typing import Dict, Any
 from langchain_openai import ChatOpenAI
 
-from tennisAgents.utils.enumerations import ANALYSTS, REPORTS
+from tennisAgents.utils.enumerations import ANALYSTS, REPORTS, STATE
 
 
 class Reflector:
@@ -71,7 +71,7 @@ Recibirás también información objetiva del contexto del partido (noticias, es
     def reflect_risk_manager(self, current_state, returns_losses, risk_memory):
         """Reflexiona sobre la decisión del juez de riesgo y actualiza su memoria."""
         situation = self._extract_current_situation(current_state)
-        judge_decision = current_state["risk_debate_state"]["judge_decision"]
+        judge_decision = current_state[STATE.risk_debate_state][STATE.judge_decision]
 
         result = self._reflect_on_component(
             ANALYSTS.judge, judge_decision, situation, returns_losses

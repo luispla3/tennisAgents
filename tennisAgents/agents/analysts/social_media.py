@@ -1,13 +1,13 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-from tennisAgents.utils.enumerations import REPORTS
+from tennisAgents.utils.enumerations import *
 
 def create_social_media_analyst(llm, toolkit):
     def social_media_analyst_node(state):
-        current_date = state["match_date"]
-        player = state["player_of_interest"]
-        opponent = state["opponent"]
-        tournament = state["tournament"]
+        match_date = state[STATE.match_date]
+        player = state[STATE.player_of_interest]
+        opponent = state[STATE.opponent]
+        tournament = state[STATE.tournament]
 
         # Herramientas disponibles según configuración
         if toolkit.config["online_tools"]:
@@ -39,14 +39,14 @@ def create_social_media_analyst(llm, toolkit):
                     "Herramientas disponibles: {tool_names}\n{system_message}\n\n"
                     "Fecha: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
                 ),
-                MessagesPlaceholder(variable_name="messages"),
+                MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
 
         # Inyección de variables dinámicas
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
-        prompt = prompt.partial(current_date=current_date)
+        prompt = prompt.partial(current_date=match_date)
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(tournament=tournament)
@@ -55,14 +55,14 @@ def create_social_media_analyst(llm, toolkit):
         chain = prompt | llm.bind_tools(tools)
 
         # Llamada al modelo con historial de conversación
-        result = chain.invoke(state["messages"])
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
         return {
-            "messages": [result],
+            STATE.messages: [result],
             REPORTS.sentiment_report: report,
         }
 

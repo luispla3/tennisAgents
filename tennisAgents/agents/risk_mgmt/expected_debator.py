@@ -2,7 +2,7 @@ from tennisAgents.utils.enumerations import *
 
 def create_expected_debator(llm):
     def expected_node(state) -> dict:
-        risk_debate_state = state["risk_debate_state"]
+        risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state.get(HISTORYS.history, "")
         expected_history = risk_debate_state.get(HISTORYS.expected_history, "")
 
@@ -53,14 +53,14 @@ Apunta a responder si es **matemáticamente rentable o no**, más allá de opini
             HISTORYS.safe_history: risk_debate_state.get(HISTORYS.safe_history, ""),
             HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
             HISTORYS.expected_history: expected_history + "\n" + argument,
-            "latest_speaker": SPEAKERS.expected,
+            STATE.latest_speaker: SPEAKERS.expected,
             RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
             RESPONSES.safe: risk_debate_state.get(RESPONSES.safe, ""),
             RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
             RESPONSES.expected: argument,
-            "count": risk_debate_state.get("count", 0) + 1,
+            STATE.count: risk_debate_state.get(STATE.count, 0) + 1,
         }
 
-        return {"risk_debate_state": new_risk_debate_state}
+        return {STATE.risk_debate_state: new_risk_debate_state}
 
     return expected_node

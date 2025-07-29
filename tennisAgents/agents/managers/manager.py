@@ -2,7 +2,7 @@ from tennisAgents.utils.enumerations import *
 
 def create_risk_manager(llm, memory):
     def risk_manager_node(state) -> dict:
-        risk_debate_state = state["risk_debate_state"]
+        risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state[HISTORYS.history]
 
         # Informes previos disponibles
@@ -43,23 +43,23 @@ Tu respuesta debe ser clara, razonada y orientada a la toma de decisiones óptim
         response = llm.invoke(prompt)
 
         new_risk_debate_state = {
-            "judge_decision": response.content,
+            STATE.judge_decision: response.content,
             HISTORYS.history: history,
             HISTORYS.aggressive_history: risk_debate_state.get(HISTORYS.aggressive_history, ""),
             HISTORYS.safe_history: risk_debate_state.get(HISTORYS.safe_history, ""),
             HISTORYS.neutral_history: risk_debate_state.get(HISTORYS.neutral_history, ""),
             HISTORYS.expected_history: risk_debate_state.get(HISTORYS.expected_history, ""),
-            "latest_speaker": SPEAKERS.judge,
+            STATE.latest_speaker: SPEAKERS.judge,
             RESPONSES.aggressive: risk_debate_state.get(RESPONSES.aggressive, ""),
             RESPONSES.safe: risk_debate_state.get(RESPONSES.safe, ""),
             RESPONSES.neutral: risk_debate_state.get(RESPONSES.neutral, ""),
             RESPONSES.expected: risk_debate_state.get(RESPONSES.expected, ""),
-            "count": risk_debate_state["count"],
+            STATE.count: risk_debate_state[STATE.count],
         }
 
         return {
-            "risk_debate_state": new_risk_debate_state,
-            "final_betting_decision": response.content,
+            STATE.risk_debate_state: new_risk_debate_state,
+            STATE.final_bet_decision: response.content,
         }
 
     return risk_manager_node

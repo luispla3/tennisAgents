@@ -7,8 +7,8 @@ from typing_extensions import Annotated
 
 # Estado del debate de gestión de riesgo
 class RiskDebateState(TypedDict):
-    risky_history: Annotated[
-        str, "Risky Agent's Conversation history"
+    aggressive_history: Annotated[
+        str, "Aggressive Agent's Conversation history"
     ]  # Conversation history
 
     safe_history: Annotated[

@@ -21,19 +21,18 @@ class Propagator:
     ) -> Dict[str, Any]:
         """Crea el estado inicial para el grafo de agentes deportivos."""
         return {
-            "messages": [("human", f"Análisis del partido entre {player_name} y {opponent_name}")],
-            "player_name": player_name,
-            "opponent_name": opponent_name,
-            "match_date": str(match_date),
-            "surface": surface,
-            "tournament": tournament,
-            "risk_debate_state": RiskDebateState({
+            STATE.messages: [("human", f"Análisis del partido entre {player_name} y {opponent_name}")],
+            STATE.player_of_interest: player_name,
+            STATE.opponent: opponent_name,
+            STATE.match_date: str(match_date),
+            STATE.tournament: tournament,
+            STATE.risk_debate_state: RiskDebateState({
                 HISTORYS.history: "",
                 RESPONSES.aggressive: "",
                 RESPONSES.safe: "",
                 RESPONSES.neutral: "",
                 RESPONSES.expected: "",
-                "count": 0
+                STATE.count: 0
             }),
             REPORTS.players_report: "",
             REPORTS.news_report: "",
@@ -42,7 +41,7 @@ class Propagator:
             REPORTS.weather_report: "",
             REPORTS.tournament_report: "",
             REPORTS.risk_analysis_report: "",
-            "final_bet_decision": "",
+            STATE.final_bet_decision: "",
         }
 
     def get_graph_args(self) -> Dict[str, Any]:

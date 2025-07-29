@@ -10,6 +10,7 @@ import pandas as pd
 import os
 from dateutil.relativedelta import relativedelta
 from langchain_openai import ChatOpenAI
+from tennisAgents.utils.enumerations import STATE
 import tradingagents.dataflows.interface as interface
 from tradingagents.default_config import DEFAULT_CONFIG
 from langchain_core.messages import HumanMessage
@@ -18,16 +19,16 @@ from langchain_core.messages import HumanMessage
 def create_msg_delete():
     def delete_messages(state):
         """Clear messages and add placeholder for Anthropic compatibility"""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         
         # Remove all messages
         removal_operations = [RemoveMessage(id=m.id) for m in messages]
         
         # Add a minimal placeholder message
         placeholder = HumanMessage(content="Continue")
-        
-        return {"messages": removal_operations + [placeholder]}
-    
+
+        return {STATE.messages: removal_operations + [placeholder]}
+
     return delete_messages
 
 class Toolkit:
