@@ -1,6 +1,8 @@
 from typing import Annotated
 from typing_extensions import TypedDict
 from langgraph.graph import MessagesState
+from typing import Optional, List, Any
+from typing_extensions import Annotated
 
 
 # Estado del debate de gestión de riesgo
@@ -65,27 +67,27 @@ class AgentState(MessagesState):
     ]
 
     # Todos los REPORTS
-    REPORTS.news_report: Annotated[
+    news_report: Annotated[
         Optional[str], "Informe de noticias"
     ]
 
-    REPORTS.odds_report: Annotated[
+    odds_report: Annotated[
         Optional[str], "Informe de cuotas"
     ]
 
-    REPORTS.players_report: Annotated[
+    players_report: Annotated[
         Optional[str], "Informe de jugadores"
     ]
 
-    REPORTS.sentiment_report: Annotated[
+    sentiment_report: Annotated[
         Optional[str], "Informe de redes sociales"
     ]
 
-    REPORTS.weather_report: Annotated[
+    weather_report: Annotated[
         Optional[str], "Informe de clima"
     ]
 
-    REPORTS.tournament_report: Annotated[
+    tournament_report: Annotated[
         Optional[str], "Informe de torneo"
     ]
 
