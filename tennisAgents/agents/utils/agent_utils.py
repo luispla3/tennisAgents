@@ -183,7 +183,7 @@ class Toolkit:
         tournament: Annotated[str, "Nombre del torneo"],
     ) -> str:
         """Devuelve datos simulados de torneo para pruebas."""
-        return interface.get_mock_tournament_data(tournament)
+        return interface.get_mock_tournament_data(tournament, year=2025 )
 
     # WEATHER ANALYST TOOLS
     @tool
