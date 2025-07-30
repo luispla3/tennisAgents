@@ -1,8 +1,5 @@
 import requests
 from datetime import datetime, timedelta
-from dotenv import load_dotenv
-load_dotenv()  # Carga variables desde .env al entorno
-
 
 
 def fetch_news(query: str, curr_date: str) -> list:

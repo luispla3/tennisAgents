@@ -1,8 +1,6 @@
 import requests
 import os
 import random
-from dotenv import load_dotenv
-load_dotenv()  # Carga variables desde .env al entorno
 
 
 
