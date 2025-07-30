@@ -10,9 +10,10 @@ import pandas as pd
 import os
 from dateutil.relativedelta import relativedelta
 from langchain_openai import ChatOpenAI
+from tennisAgents.dataflows import interface
+from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.utils.enumerations import STATE
-import tradingagents.dataflows.interface as interface
-from tradingagents.default_config import DEFAULT_CONFIG
+
 from langchain_core.messages import HumanMessage
 
 
