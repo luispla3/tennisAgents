@@ -51,12 +51,12 @@ class Toolkit:
             
     # NEWS ANALYST TOOLS
     @tool
-    def get_google_news(
-        query: Annotated[str, "Consulta para buscar en Google News"],
+    def get_news(
+        query: Annotated[str, "Consulta para buscar en Google News noticias relevantes de tenis"],
         curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
     ) -> str:
         """Obtiene noticias de Google News sobre tenis."""
-        return interface.get_google_news(query, curr_date)
+        return interface.get_news(query, curr_date)
 
     @tool
     def get_atp_news(

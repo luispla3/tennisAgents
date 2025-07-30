@@ -1,4 +1,4 @@
-from news_utils import fetch_google_news
+from news_utils import fetch_news
 from odds_utils import fetch_tennis_odds
 from odds_utils import generate_mock_odds
 from player_utils import fetch_atp_rankings
@@ -6,11 +6,11 @@ from player_utils import fetch_recent_matches
 from player_utils import fetch_surface_winrate
 from player_utils import fetch_head_to_head
 
-def get_google_news(query: str, curr_date: str) -> str:
+def get_news(query: str, curr_date: str) -> str:
     """
     Interfaz que prepara y formatea las noticias obtenidas desde Google News.
     """
-    noticias = fetch_google_news(query, curr_date)
+    noticias = fetch_news(query, curr_date)
 
     if not noticias:
         return f"No se encontraron noticias sobre '{query}' para la fecha {curr_date}."
@@ -28,7 +28,7 @@ def get_atp_news(curr_date: str) -> str:
     """
     Obtiene noticias recientes sobre el circuito ATP desde una API (NewsAPI).
     """
-    noticias = fetch_google_news("ATP tennis", curr_date)
+    noticias = fetch_news("ATP tennis", curr_date)
 
     if not noticias:
         return f"No se encontraron noticias sobre ATP en la fecha {curr_date}."
@@ -46,8 +46,7 @@ def get_tennisworld_news(curr_date: str) -> str:
     """
     Busca noticias recientes sobre tenis relacionadas con TennisWorld u otras fuentes relevantes usando NewsAPI.
     """
-    # Aquí usamos una query intencional para imitar el estilo de TennisWorld
-    noticias = fetch_google_news("tennis news", curr_date)
+    noticias = fetch_news("tennis news", curr_date)
 
     if not noticias:
         return f"No se encontraron noticias relevantes en la fecha {curr_date}."

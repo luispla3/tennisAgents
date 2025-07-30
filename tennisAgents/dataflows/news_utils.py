@@ -5,7 +5,7 @@ load_dotenv()  # Carga variables desde .env al entorno
 
 
 
-def fetch_google_news(query: str, curr_date: str) -> list:
+def fetch_news(query: str, curr_date: str) -> list:
     """
     Consulta la API de NewsAPI para obtener noticias sobre un tema específico.
     """
