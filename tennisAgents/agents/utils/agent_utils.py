@@ -51,14 +51,6 @@ class Toolkit:
             
     # NEWS ANALYST TOOLS
     @tool
-    def get_tennis_news_openai(
-        query: Annotated[str, "Consulta de noticias de tenis"],
-        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
-    ) -> str:
-        """Obtiene las últimas noticias de tenis usando OpenAI."""
-        return interface.get_news_articles(query, curr_date)
-
-    @tool
     def get_google_news(
         query: Annotated[str, "Consulta para buscar en Google News"],
         curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
@@ -99,12 +91,6 @@ class Toolkit:
         return interface.get_mock_odds_data(player1, player2)
 
     # PLAYERS ANALYST TOOLS
-    @tool
-    def get_player_profile_openai(
-        player_name: Annotated[str, "Nombre del jugador"],
-    ) -> str:
-        """Obtiene el perfil del jugador usando OpenAI."""
-        return interface.get_player_stats_tennisabstract(player_name)
 
     @tool
     def get_atp_rankings() -> str:
@@ -143,12 +129,6 @@ class Toolkit:
         return interface.get_injury_reports(player_name)
 
     # SOCIAL MEDIA ANALYST TOOLS
-    @tool
-    def get_social_sentiment_openai(
-        player_name: Annotated[str, "Nombre del jugador"],
-    ) -> str:
-        """Analiza sentimiento social usando OpenAI."""
-        return interface.get_social_sentiment_openai(player_name)
 
     @tool
     def get_twitter_sentiment(
