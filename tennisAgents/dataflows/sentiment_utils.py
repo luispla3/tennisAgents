@@ -9,47 +9,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-def analyze_sentiment(text):
-    # Esto se puede reemplazar por algo más avanzado si quieres
-    if any(p in text.lower() for p in ["great", "awesome", "win", "incredible"]):
-        return "positive"
-    elif any(n in text.lower() for n in ["injured", "lost", "bad", "awful"]):
-        return "negative"
-    else:
-        return "neutral"
-
-def fetch_twitter_sentiment(player_name: str, limit: int = 10) -> dict:
-    """
-    Busca tweets recientes sobre un jugador y analiza el sentimiento.
-    """
-    url = "https://api.twitter.com/2/tweets/search/recent"
-    headers = {"Authorization": f"Bearer {TWITTER_BEARER_TOKEN}"}
-    params = {
-        "query": player_name + " lang:en -is:retweet",
-        "max_results": 20,
-        "tweet.fields": "text,created_at"
-    }
-
-    response = requests.get(url, headers=headers, params=params)
-    if response.status_code != 200:
-        print(f"[ERROR] Twitter API: {response.status_code} - {response.text}")
-        return {}
-
-    data = response.json()
-    sentiments = {"positive": 0, "negative": 0, "neutral": 0, "examples": []}
-
-    for tweet in data.get("data", [])[:limit]:
-        text = tweet["text"]
-        sentiment = analyze_sentiment(text)
-        sentiments[sentiment] += 1
-        sentiments["examples"].append({
-            "text": text[:100] + "..." if len(text) > 100 else text,
-            "sentiment": sentiment
-        })
-
-    return sentiments
-
-
 reddit = praw.Reddit(
     client_id=os.getenv("REDDIT_CLIENT_ID"),
     client_secret=os.getenv("REDDIT_CLIENT_SECRET"),

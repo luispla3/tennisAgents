@@ -13,6 +13,9 @@ from tournament_utils import fetch_tournament_info
 from tournament_utils import get_mock_data
 from weather_utils import fetch_weather_forecast
 
+from textblob import TextBlob  # O usa otra librería de sentimiento como transformers si prefieres
+import requests
+
 def get_news(query: str, curr_date: str) -> str:
     """
     Interfaz que prepara y formatea las noticias obtenidas desde Google News.
@@ -177,19 +180,45 @@ def get_injury_reports(player_name: str) -> str:
     ])
     return formatted
 
-def get_twitter_posts(player_name: str) -> str:
-    tweets = fetch_twitter_sentiment(player_name)
-    if not tweets:
-        return f"No se encontraron tweets recientes sobre {player_name}."
 
-    resumen = f"Sentimiento general sobre {player_name}:\n"
-    resumen += f"- Positivos: {tweets['positive']}\n"
-    resumen += f"- Negativos: {tweets['negative']}\n"
-    resumen += f"- Neutros: {tweets['neutral']}\n"
-    resumen += f"\nTweets destacados:\n"
-    for t in tweets["examples"]:
-        resumen += f"• {t['text']} (→ {t['sentiment']})\n"
-    return resumen
+def get_twitter_posts(player_name: str) -> str:
+    """
+    Usa NewsAPI para simular un análisis de sentimiento como si fuese de Twitter.
+    """
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": player_name,
+        "language": "en",
+        "sortBy": "relevancy",
+        "pageSize": 10,
+        "apiKey": NEWS_API_KEY,
+    }
+
+    response = requests.get(url, params=params)
+    if response.status_code != 200:
+        return f"[ERROR] Fallo al obtener noticias: {response.text}"
+
+    articles = response.json().get("articles", [])
+    if not articles:
+        return f"No se encontraron noticias recientes sobre {player_name}."
+
+    sentiments = []
+    for article in articles:
+        text = f"{article.get('title', '')} {article.get('description', '')}"
+        blob = TextBlob(text)
+        sentiments.append(blob.sentiment.polarity)
+
+    average_sentiment = sum(sentiments) / len(sentiments)
+
+    if average_sentiment > 0.2:
+        mood = "positivo"
+    elif average_sentiment < -0.2:
+        mood = "negativo"
+    else:
+        mood = "neutral"
+
+    return f"El sentimiento medio en noticias recientes sobre {player_name} es {mood} (polaridad media: {average_sentiment:.2f})."
+
 
 def get_tennis_forum_sentiment(player_name: str) -> str:
     sentiment_data = fetch_reddit_sentiment(player_name)
