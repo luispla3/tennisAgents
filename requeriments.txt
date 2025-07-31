@@ -16,8 +16,6 @@ feedparser
 
 # Datos y análisis
 pandas
-yfinance
-stockstats
 chromadb
 
 # CLI y visualización
@@ -36,7 +34,6 @@ setuptools
 backtrader
 akshare
 tushare
-finnhub-python
 eodhd
 
 # Otros posibles (según tu código)
