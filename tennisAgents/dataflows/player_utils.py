@@ -1,4 +1,6 @@
 import requests
+from bs4 import BeautifulSoup
+from datetime import datetime
 from config import SPORTDEVS_API_KEY
 
 
@@ -197,3 +199,59 @@ def fetch_head_to_head(player1: str, player2: str) -> dict:
         "wins_p2": wins_p2,
         "recent_matches": recent_matches
     }
+
+
+def parse_injury_table(soup, table_id):
+    rows = soup.select(f"div#injuries > table:nth-of-type({table_id}) tr")
+    data = []
+    for row in rows[1:]:  # saltar encabezado
+        cols = row.find_all("td")
+        if len(cols) < 4:
+            continue
+
+        date_str = cols[0].text.strip()
+        try:
+            date = datetime.strptime(date_str, "%d.%m.%Y")
+        except ValueError:
+            continue
+
+        if date.year < datetime.today().year - 1:
+            continue
+
+        player = cols[1].text.strip()
+        tournament = cols[2].text.strip()
+        reason = cols[3].text.strip()
+        data.append({
+            "date": date.strftime("%Y-%m-%d"),
+            "player": player,
+            "tournament": tournament,
+            "status": "injured" if table_id == 1 else "returning",
+            "reason": reason
+        })
+    return data
+
+
+def fetch_injury_reports(player_name: str) -> list:
+    """
+    Recupera las lesiones o retornos de un jugador específico desde TennisExplorer.
+    """
+    url = "https://www.tennisexplorer.com/injured/"
+    headers = {
+        "User-Agent": "Mozilla/5.0"
+    }
+
+    res = requests.get(url, headers=headers)
+    if res.status_code != 200:
+        print(f"[ERROR] No se pudo acceder a TennisExplorer: {res.status_code}")
+        return []
+
+    soup = BeautifulSoup(res.content, "html.parser")
+    all_entries = parse_injury_table(soup, 1) + parse_injury_table(soup, 2)
+
+    # Filtrar por coincidencia de nombre parcial (ignorando mayúsculas/minúsculas)
+    filtered = [
+        entry for entry in all_entries
+        if player_name.lower() in entry["player"].lower()
+    ]
+
+    return filtered

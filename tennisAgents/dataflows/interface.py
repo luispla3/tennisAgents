@@ -5,6 +5,13 @@ from player_utils import fetch_atp_rankings
 from player_utils import fetch_recent_matches
 from player_utils import fetch_surface_winrate
 from player_utils import fetch_head_to_head
+from player_utils import fetch_injury_reports
+from sentiment_utils import fetch_twitter_sentiment
+from sentiment_utils import fetch_reddit_sentiment
+from sentiment_utils import fetch_reddit_sentiment
+from tournament_utils import fetch_tournament_info
+from tournament_utils import get_mock_data
+from weather_utils import fetch_weather_forecast
 
 def get_news(query: str, curr_date: str) -> str:
     """
@@ -159,3 +166,129 @@ def get_head_to_head(player1: str, player2: str) -> str:
 
     return resumen
 
+def get_injury_reports(player_name: str) -> str:
+    data = fetch_injury_reports(player_name)
+    if not data:
+        return f"No se encontraron registros de lesión o retorno para {player_name}."
+    
+    formatted = "\n".join([
+        f"{entry['date']}: {entry['player']} ({entry['status']}) - {entry['tournament']} - {entry['reason']}"
+        for entry in data
+    ])
+    return formatted
+
+def get_twitter_posts(player_name: str) -> str:
+    tweets = fetch_twitter_sentiment(player_name)
+    if not tweets:
+        return f"No se encontraron tweets recientes sobre {player_name}."
+
+    resumen = f"Sentimiento general sobre {player_name}:\n"
+    resumen += f"- Positivos: {tweets['positive']}\n"
+    resumen += f"- Negativos: {tweets['negative']}\n"
+    resumen += f"- Neutros: {tweets['neutral']}\n"
+    resumen += f"\nTweets destacados:\n"
+    for t in tweets["examples"]:
+        resumen += f"• {t['text']} (→ {t['sentiment']})\n"
+    return resumen
+
+def get_tennis_forum_sentiment(player_name: str) -> str:
+    sentiment_data = fetch_reddit_sentiment(player_name)
+
+    if not sentiment_data:
+        return f"No se encontraron publicaciones recientes sobre {player_name}."
+
+    resumen = f"Sentimiento general en foros sobre {player_name}:\n"
+    resumen += f"- Positivos: {sentiment_data['positive']}\n"
+    resumen += f"- Negativos: {sentiment_data['negative']}\n"
+    resumen += f"- Neutros: {sentiment_data['neutral']}\n"
+    resumen += f"\nComentarios destacados:\n"
+    for post in sentiment_data["examples"]:
+        resumen += f"• {post['text']} (→ {post['sentiment']})\n"
+    return resumen
+
+def get_reddit_posts(subreddit_name: str, player_name: str) -> str:
+
+    sentiment_data = fetch_reddit_sentiment(player_name, subreddit=subreddit_name)
+
+    if not sentiment_data:
+        return f"No se encontraron publicaciones recientes sobre {player_name} en r/{subreddit_name}."
+
+    resumen = f"Sentimiento en Reddit sobre {player_name} (subreddit: r/{subreddit_name}):\n"
+    resumen += f"- Positivos: {sentiment_data['positive']}\n"
+    resumen += f"- Negativos: {sentiment_data['negative']}\n"
+    resumen += f"- Neutros: {sentiment_data['neutral']}\n"
+    resumen += "\nComentarios destacados:\n"
+    for post in sentiment_data["examples"]:
+        resumen += f"• {post['text']} (→ {post['sentiment']})\n"
+
+    return resumen
+
+
+def get_tournaments(tournament: str, year: int) -> str:
+    data = fetch_tournament_info(tournament, year)
+
+    if not data:
+        return f"No se encontró información sobre el torneo '{tournament}' en {year}."
+
+    resumen = f" {data['name']} ({year})\n"
+    resumen += f"- Ubicación: {data['location']}\n"
+    resumen += f"- Superficie: {data['surface']}\n"
+    resumen += f"- Fecha de inicio: {data['start_date']}\n"
+    resumen += f"- Fecha de final: {data['end_date']}\n"
+    resumen += f"- Ganador: {data['winner']}\n"
+    resumen += f"- Finalista: {data['runner_up']}\n"
+    resumen += f"- Participantes destacados: {', '.join(data['notables'])}\n"
+
+    return resumen
+
+
+def get_mock_tournament_data(tournament: str, year: int) -> str:
+    data = get_mock_data(tournament, year)
+
+    resumen = f" {data['name']} ({year})\n"
+    resumen += f"- Ubicación: {data['location']}\n"
+    resumen += f"- Superficie: {data['surface']}\n"
+    resumen += f"- Fecha de inicio: {data['start_date']}\n"
+    resumen += f"- Fecha de final: {data['end_date']}\n"
+    resumen += f"- Ganador: {data['winner']}\n"
+    resumen += f"- Finalista: {data['runner_up']}\n"
+    resumen += f"- Participantes destacados: {', '.join(data['notables'])}\n"
+
+    return resumen
+
+
+def get_weather_forecast(latitude: float, longitude: float, start_date: str, end_date: str) -> str:
+    forecast = fetch_weather_forecast(latitude, longitude, start_date, end_date)
+
+    if not forecast:
+        return "No se pudo obtener el pronóstico del tiempo."
+
+    texto = f"- Pronóstico del {start_date}:\n"
+    texto += f"- Temperatura máxima: {forecast['temp_max']}°C\n"
+    texto += f"- Temperatura mínima: {forecast['temp_min']}°C\n"
+    texto += f"- Precipitación: {forecast['precip']} mm\n"
+    texto += f"- Viento: {forecast['wind']} km/h\n"
+    texto += f"- Cielo: {forecast['description']}\n"
+
+    return texto
+
+import random
+
+def get_mock_weather_data(location: str) -> str:
+    forecast = {
+        "location": location,
+        "temp_max": round(random.uniform(22, 35), 1),
+        "temp_min": round(random.uniform(12, 21), 1),
+        "precip": round(random.uniform(0, 10), 1),
+        "wind": round(random.uniform(5, 25), 1),
+        "description": random.choice(["Despejado", "Parcialmente nublado", "Lluvia ligera", "Tormenta"]),
+    }
+
+    return (
+        f" [SIMULADO] Pronóstico en {forecast['location']}:\n"
+        f"- Temp. Máx: {forecast['temp_max']}°C\n"
+        f"- Temp. Mín: {forecast['temp_min']}°C\n"
+        f"- Precipitación: {forecast['precip']} mm\n"
+        f"- Viento: {forecast['wind']} km/h\n"
+        f"- Cielo: {forecast['description']}"
+    )
