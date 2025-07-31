@@ -18,10 +18,11 @@ class TennisSituationMemory:
                 # Configure Google API
                 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
                 self.model = genai.GenerativeModel('gemini-2.0-flash')
-                # Use Google's embedding model
+                # Use Google's embedding model with sync client
                 self.embedding_model = GoogleGenerativeAIEmbeddings(
                     model="models/embedding-001",
-                    google_api_key=os.getenv("GOOGLE_API_KEY")
+                    google_api_key=os.getenv("GOOGLE_API_KEY"),
+                    transport="rest"  # Use REST transport instead of gRPC to avoid async issues
                 )
                 self.use_openai = False
             else:

@@ -39,6 +39,7 @@ def create_social_media_analyst(llm, toolkit):
                     "Herramientas disponibles: {tool_names}\n{system_message}\n\n"
                     "Fecha: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
                 ),
+                ("user", "Analiza la percepción en redes sociales de {player} y {opponent} para el torneo {tournament}."),
                 MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
@@ -54,8 +55,20 @@ def create_social_media_analyst(llm, toolkit):
         # Construcción de la cadena LLM
         chain = prompt | llm.bind_tools(tools)
 
+        # Convertir los mensajes al formato correcto para LangChain
+        messages = []
+        for msg in state[STATE.messages]:
+            if isinstance(msg, tuple):
+                role, content = msg
+                if role == "human":
+                    messages.append({"role": "user", "content": content})
+                elif role == "ai":
+                    messages.append({"role": "assistant", "content": content})
+            else:
+                messages.append(msg)
+
         # Llamada al modelo con historial de conversación
-        result = chain.invoke(state[STATE.messages])
+        result = chain.invoke({"messages": messages})
 
         report = ""
         if len(result.tool_calls) == 0:

@@ -51,35 +51,35 @@ class GraphSetup:
         delete_nodes = {}
         tool_nodes = {}
 
-        if ANALYST_NODES.news in selected_analysts:
-            analyst_nodes[ANALYST_NODES.news] = create_news_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.news] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.news] = self.tool_nodes.get(ANALYST_NODES.news)
+        if "news" in selected_analysts:
+            analyst_nodes["news"] = create_news_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["news"] = create_msg_delete()
+            tool_nodes["news"] = self.tool_nodes.get("news")
 
-        if ANALYST_NODES.odds in selected_analysts:
-            analyst_nodes[ANALYST_NODES.odds] = create_odds_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.odds] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.odds] = self.tool_nodes.get(ANALYST_NODES.odds)
+        if "odds" in selected_analysts:
+            analyst_nodes["odds"] = create_odds_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["odds"] = create_msg_delete()
+            tool_nodes["odds"] = self.tool_nodes.get("odds")
 
-        if ANALYST_NODES.players in selected_analysts:
-            analyst_nodes[ANALYST_NODES.players] = create_player_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.players] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.players] = self.tool_nodes.get(ANALYST_NODES.players)
+        if "players" in selected_analysts:
+            analyst_nodes["players"] = create_player_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["players"] = create_msg_delete()
+            tool_nodes["players"] = self.tool_nodes.get("players")
 
-        if ANALYST_NODES.social in selected_analysts:
-            analyst_nodes[ANALYST_NODES.social] = create_social_media_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.social] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.social] = self.tool_nodes.get(ANALYST_NODES.social)
+        if "social" in selected_analysts:
+            analyst_nodes["social"] = create_social_media_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["social"] = create_msg_delete()
+            tool_nodes["social"] = self.tool_nodes.get("social")
 
-        if ANALYST_NODES.tournament in selected_analysts:
-            analyst_nodes[ANALYST_NODES.tournament] = create_tournament_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.tournament] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.tournament] = self.tool_nodes.get(ANALYST_NODES.tournament)
+        if "tournament" in selected_analysts:
+            analyst_nodes["tournament"] = create_tournament_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["tournament"] = create_msg_delete()
+            tool_nodes["tournament"] = self.tool_nodes.get("tournament")
 
-        if ANALYST_NODES.weather in selected_analysts:
-            analyst_nodes[ANALYST_NODES.weather] = create_weather_analyst(self.quick_thinking_llm)
-            delete_nodes[ANALYST_NODES.weather] = create_msg_delete()
-            tool_nodes[ANALYST_NODES.weather] = self.tool_nodes.get(ANALYST_NODES.weather)
+        if "weather" in selected_analysts:
+            analyst_nodes["weather"] = create_weather_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["weather"] = create_msg_delete()
+            tool_nodes["weather"] = self.tool_nodes.get("weather")
 
         aggressive_debator = create_aggressive_debator(self.quick_thinking_llm)
         safe_debator = create_conservative_debator(self.quick_thinking_llm)

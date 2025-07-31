@@ -46,6 +46,7 @@ def create_player_analyst(llm, toolkit):
                     "Tienes acceso a: {tool_names}.\n{system_message}\n\n"
                     "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: {surface}, Jugadores: {player_name} vs {opponent_name}",
                 ),
+                ("user", "Analiza el rendimiento de {player_name} contra {opponent_name} en el torneo {tournament}."),
                 MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
@@ -62,8 +63,20 @@ def create_player_analyst(llm, toolkit):
         # Construcción de la cadena LLM con herramientas
         chain = prompt | llm.bind_tools(tools)
 
+        # Convertir los mensajes al formato correcto para LangChain
+        messages = []
+        for msg in state[STATE.messages]:
+            if isinstance(msg, tuple):
+                role, content = msg
+                if role == "human":
+                    messages.append({"role": "user", "content": content})
+                elif role == "ai":
+                    messages.append({"role": "assistant", "content": content})
+            else:
+                messages.append(msg)
+
         # Ejecución del modelo con el historial de mensajes
-        result = chain.invoke(state[STATE.messages])
+        result = chain.invoke({"messages": messages})
 
         report = ""
         if len(result.tool_calls) == 0:

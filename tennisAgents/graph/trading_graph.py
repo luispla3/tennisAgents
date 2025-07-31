@@ -111,6 +111,13 @@ class TennisAgentsGraph:
                     self.toolkit.get_reddit_sentiment,
                 ]
             ),
+            "social": ToolNode(
+                [
+                    self.toolkit.get_twitter_sentiment,
+                    self.toolkit.get_tennis_forum_sentiment,
+                    self.toolkit.get_reddit_sentiment,
+                ]
+            ),
             "tournament": ToolNode(
                 [
                     self.toolkit.get_tournament_info,

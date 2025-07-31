@@ -35,6 +35,7 @@ def create_news_analyst(llm, toolkit):
                     "Usa las siguientes herramientas: {tool_names}.\n{system_message}\n\n"
                     "Fecha actual: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
                 ),
+                ("user", "Analiza las noticias más relevantes sobre {player} y {opponent} para el torneo {tournament}."),
                 MessagesPlaceholder(variable_name="messages"),
             ]
         )
@@ -49,7 +50,19 @@ def create_news_analyst(llm, toolkit):
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state["messages"])
+        # Convertir los mensajes al formato correcto para LangChain
+        messages = []
+        for msg in state["messages"]:
+            if isinstance(msg, tuple):
+                role, content = msg
+                if role == "human":
+                    messages.append({"role": "user", "content": content})
+                elif role == "ai":
+                    messages.append({"role": "assistant", "content": content})
+            else:
+                messages.append(msg)
+
+        result = chain.invoke({"messages": messages})
 
         report = ""
         if len(result.tool_calls) == 0:

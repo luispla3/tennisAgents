@@ -35,6 +35,7 @@ def create_weather_analyst(llm, toolkit):
                     "{tool_names}\n\n"
                     "{system_message}"
                 ),
+                ("user", "Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} en {location}."),
                 MessagesPlaceholder(variable_name=STATE.messages),
             ]
         )
@@ -45,7 +46,19 @@ def create_weather_analyst(llm, toolkit):
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state[STATE.messages])
+        # Convertir los mensajes al formato correcto para LangChain
+        messages = []
+        for msg in state[STATE.messages]:
+            if isinstance(msg, tuple):
+                role, content = msg
+                if role == "human":
+                    messages.append({"role": "user", "content": content})
+                elif role == "ai":
+                    messages.append({"role": "assistant", "content": content})
+            else:
+                messages.append(msg)
+
+        result = chain.invoke({"messages": messages})
 
         report = ""
         if len(result.tool_calls) == 0:
