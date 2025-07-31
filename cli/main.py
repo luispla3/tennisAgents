@@ -271,6 +271,19 @@ def run_analysis():
                         else:
                             message_buffer.add_tool_call(tool_call.name, tool_call.args)
 
-                # Actualiza reportes y estados de agentes según chunk
-                for section in message_buffer.report_sections:
-                    if section in chunk and
+            # Actualiza reportes y estados de agentes según chunk
+            for section in message_buffer.report_sections:
+                if section in chunk and chunk[section] is not None:
+                    message_buffer.report_sections[section] = chunk[section]
+
+            for agent, status in chunk.get("agent_status", {}).items():
+                message_buffer.update_agent_status(agent, status)
+
+            message_buffer.current_report = chunk.get("report", None)
+            update_display(layout)
+            trace.append(chunk)
+
+        # Al final del análisis
+        message_buffer.final_report = trace[-1].get("report", None)
+        update_display(layout, "Análisis completado.")
+
