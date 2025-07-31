@@ -13,7 +13,6 @@ ANALYST_ORDER = [
 ]
 
 
-import questionary
 
 def get_players() -> tuple[str, str]:
     """Solicita los nombres de los dos jugadores."""
@@ -50,7 +49,7 @@ def get_tournament() -> str:
     return tournament.strip()
 
 
-def get_analysis_date() -> str:
+def get_date() -> str:
     """Prompt the user to enter a date in YYYY-MM-DD format."""
     import re
     from datetime import datetime

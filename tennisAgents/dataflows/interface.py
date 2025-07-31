@@ -1,19 +1,17 @@
-from news_utils import fetch_news
-from odds_utils import fetch_tennis_odds
-from odds_utils import generate_mock_odds
-from player_utils import fetch_atp_rankings
-from player_utils import fetch_recent_matches
-from player_utils import fetch_surface_winrate
-from player_utils import fetch_head_to_head
-from player_utils import fetch_injury_reports
-from sentiment_utils import fetch_twitter_sentiment
-from sentiment_utils import fetch_reddit_sentiment
-from sentiment_utils import fetch_reddit_sentiment
-from tournament_utils import fetch_tournament_info
-from tournament_utils import get_mock_data
-from weather_utils import fetch_weather_forecast
+from .news_utils import fetch_news
+from .odds_utils import fetch_tennis_odds
+from .odds_utils import generate_mock_odds
+from .player_utils import fetch_atp_rankings
+from .player_utils import fetch_recent_matches
+from .player_utils import fetch_surface_winrate
+from .player_utils import fetch_head_to_head
+from .player_utils import fetch_injury_reports
+from .sentiment_utils import fetch_reddit_sentiment
+from .sentiment_utils import fetch_reddit_sentiment
+from .tournament_utils import fetch_tournament_info
+from .tournament_utils import get_mock_data
+from .weather_utils import fetch_weather_forecast
 
-from textblob import TextBlob  # O usa otra librería de sentimiento como transformers si prefieres
 import requests
 
 def get_news(query: str, curr_date: str) -> str:
@@ -205,7 +203,6 @@ def get_twitter_posts(player_name: str) -> str:
     sentiments = []
     for article in articles:
         text = f"{article.get('title', '')} {article.get('description', '')}"
-        blob = TextBlob(text)
         sentiments.append(blob.sentiment.polarity)
 
     average_sentiment = sum(sentiments) / len(sentiments)

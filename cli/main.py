@@ -1,4 +1,5 @@
 import datetime
+from tennisAgents.graph.trading_graph import TennisAgentsGraph
 import typer
 from pathlib import Path
 from rich.console import Console
@@ -14,8 +15,13 @@ from rich.align import Align
 
 from cli.models import AnalystType
 from cli.utils import get_players, get_tournament, get_date, select_analysts, select_research_depth, select_llm_provider, select_shallow_thinking_agent, select_deep_thinking_agent
-from tennisAgents.graph.setup import TennisAgentsGraph
+
 from tennisAgents.default_config import DEFAULT_CONFIG
+
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("GOOGLE_API_KEY") 
 
 console = Console()
 app = typer.Typer(name="TennisAgents", help="TennisAgents CLI: Multi-Agents LLM Tennis Analysis Framework", add_completion=True)
@@ -287,3 +293,11 @@ def run_analysis():
         message_buffer.final_report = trace[-1].get("report", None)
         update_display(layout, "Análisis completado.")
 
+
+@app.command()
+def analyze():
+    """Run the tennis match analysis."""
+    run_analysis()
+
+if __name__ == "__main__":
+    app()

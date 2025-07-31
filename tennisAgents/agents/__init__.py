@@ -1,6 +1,6 @@
 from .utils.agent_utils import Toolkit, create_msg_delete
 from .utils.agent_states import AgentState, RiskDebateState
-from .utils.memory import BettingMemory
+from .utils.memory import TennisSituationMemory
 
 from .analysts.players import create_player_analyst
 from .analysts.weather import create_weather_analyst

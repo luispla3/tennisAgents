@@ -11,7 +11,7 @@ def create_news_analyst(llm, toolkit):
 
         # Herramientas según configuración
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_tennis_news_openai, toolkit.get_news]
+            tools = [toolkit.get_news]
         else:
             tools = [
                 toolkit.get_atp_news,

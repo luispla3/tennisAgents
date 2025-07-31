@@ -5,7 +5,7 @@ from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents.analysts.news import create_news_analyst
 from tennisAgents.agents.analysts.odds import create_odds_analyst
-from tennisAgents.agents.analysts.players import create_players_analyst
+from tennisAgents.agents.analysts.players import create_player_analyst
 from tennisAgents.agents.analysts.social_media import create_social_media_analyst
 from tennisAgents.agents.analysts.tournament import create_tournament_analyst
 from tennisAgents.agents.analysts.weather import create_weather_analyst
@@ -62,7 +62,7 @@ class GraphSetup:
             tool_nodes[ANALYST_NODES.odds] = self.tool_nodes.get(ANALYST_NODES.odds)
 
         if ANALYST_NODES.players in selected_analysts:
-            analyst_nodes[ANALYST_NODES.players] = create_players_analyst(self.quick_thinking_llm)
+            analyst_nodes[ANALYST_NODES.players] = create_player_analyst(self.quick_thinking_llm)
             delete_nodes[ANALYST_NODES.players] = create_msg_delete()
             tool_nodes[ANALYST_NODES.players] = self.tool_nodes.get(ANALYST_NODES.players)
 

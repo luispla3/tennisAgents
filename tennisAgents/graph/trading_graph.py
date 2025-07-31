@@ -12,8 +12,7 @@ from langgraph.prebuilt import ToolNode
 from tennisAgents.agents import *
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.agents.utils.memory import TennisSituationMemory
-from tennisAgents.agents.utils.agent_states import AgentState
-from tennisAgents.dataflows.interface import set_config
+from tennisAgents.dataflows.config import set_config
 from tennisAgents.utils.enumerations import *
 
 from .conditional_logic import ConditionalLogic
@@ -85,8 +84,7 @@ class TennisAgentsGraph:
         return {
             "news": ToolNode(
                 [
-                    self.toolkit.get_tennis_news_openai,
-                    self.toolkit.get_google_news,
+                    self.toolkit.get_news,
                     self.toolkit.get_atp_news,
                     self.toolkit.get_tennisworld_news,
                 ]
@@ -99,7 +97,6 @@ class TennisAgentsGraph:
             ),
             "players": ToolNode(
                 [
-                    self.toolkit.get_player_profile_openai,
                     self.toolkit.get_atp_rankings,
                     self.toolkit.get_recent_matches,
                     self.toolkit.get_surface_winrate,
@@ -109,7 +106,6 @@ class TennisAgentsGraph:
             ),
             "sentiment": ToolNode(
                 [
-                    self.toolkit.get_social_sentiment_openai,
                     self.toolkit.get_twitter_sentiment,
                     self.toolkit.get_tennis_forum_sentiment,
                     self.toolkit.get_reddit_sentiment,

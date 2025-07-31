@@ -1,7 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 from datetime import datetime
-from config import SPORTDEVS_API_KEY
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def fetch_atp_rankings() -> list:
