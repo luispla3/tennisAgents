@@ -43,3 +43,4 @@ chainlit
 
 # Si usas validación de modelos
 pydantic
+google-generativeai

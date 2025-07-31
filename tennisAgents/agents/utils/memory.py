@@ -1,24 +1,47 @@
 import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
+import google.generativeai as genai
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
+import os
 
 
 class TennisSituationMemory:
     def __init__(self, name, config):
         if config["backend_url"] == "http://localhost:11434/v1":
             self.embedding = "nomic-embed-text"
+            self.client = OpenAI(base_url=config["backend_url"])
+            self.use_openai = True
         else:
-            self.embedding = "text-embedding-3-small"
-        self.client = OpenAI(base_url=config["backend_url"])
+            # For Google's embedding models, we need to use a different approach
+            if config["llm_provider"].lower() == "google":
+                # Configure Google API
+                genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+                self.model = genai.GenerativeModel('gemini-2.0-flash')
+                # Use Google's embedding model
+                self.embedding_model = GoogleGenerativeAIEmbeddings(
+                    model="models/embedding-001",
+                    google_api_key=os.getenv("GOOGLE_API_KEY")
+                )
+                self.use_openai = False
+            else:
+                self.embedding = "text-embedding-3-small"
+                self.client = OpenAI(base_url=config["backend_url"])
+                self.use_openai = True
+        
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
         self.match_collection = self.chroma_client.create_collection(name=name)
 
     def get_embedding(self, text):
         """Obtener el embedding de una descripción de partido/contexto de apuestas"""
-        response = self.client.embeddings.create(
-            model=self.embedding, input=text
-        )
-        return response.data[0].embedding
+        if self.use_openai:
+            response = self.client.embeddings.create(
+                model=self.embedding, input=text
+            )
+            return response.data[0].embedding
+        else:
+            # Use Google's embedding model
+            return self.embedding_model.embed_query(text)
 
     def add_situations(self, situations_and_advice):
         """

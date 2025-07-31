@@ -21,7 +21,6 @@ from tennisAgents.default_config import DEFAULT_CONFIG
 from dotenv import load_dotenv
 
 load_dotenv()
-api_key = os.getenv("GOOGLE_API_KEY") 
 
 console = Console()
 app = typer.Typer(name="TennisAgents", help="TennisAgents CLI: Multi-Agents LLM Tennis Analysis Framework", add_completion=True)
