@@ -51,12 +51,12 @@ class MessageBuffer:
         }
         self.current_agent = None
         self.report_sections = {
-            "players_report": None,
             "news_report": None,
             "odds_report": None,
-            "social_report": None,
-            "weather_report": None,
+            "players_report": None,
+            "sentiment_report": None,
             "tournament_report": None,
+            "weather_report": None,
             "final_bet_decision": None,
         }
 
@@ -95,7 +95,7 @@ class MessageBuffer:
                 "news_report": "News Analysis",
                 "odds_report": "Odds Analysis",
                 "players_report": "Players Analysis",
-                "social_report": "Social Sentiment",
+                "sentiment_report": "Social Sentiment",
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
                 "final_bet_decision": "Final Bet Decision",
@@ -117,7 +117,7 @@ class MessageBuffer:
                 "news_report",
                 "odds_report",
                 "players_report",
-                "social_report",
+                "sentiment_report",
                 "tournament_report",
                 "weather_report",
             ]
@@ -135,7 +135,7 @@ class MessageBuffer:
                 report_parts.append(
                     f"### Players Analysis\n{self.report_sections['players_report']}"
                 )
-            if self.report_sections["social_report"]:
+            if self.report_sections["sentiment_report"]:
                 report_parts.append(
                     f"### Social Sentiment\n{self.report_sections['social_report']}"
                 )
@@ -531,10 +531,10 @@ def display_complete_report(final_state):
         )
 
     # Social Analyst Report
-    if final_state.get("social_report"):
+    if final_state.get("sentiment_report"):
         analyst_reports.append(
             Panel(
-                Markdown(final_state["social_report"]),
+                Markdown(final_state["sentiment_report"]),
                 title="Social Analyst",
                 border_style="blue",
                 padding=(1, 2),
@@ -801,9 +801,9 @@ def run_analysis():
                             "Social Analyst", "in_progress"
                         )
 
-                if "social_report" in chunk and chunk["social_report"]:
+                if "sentiment_report" in chunk and chunk["sentiment_report"]:
                     message_buffer.update_report_section(
-                        "social_report", chunk["social_report"]
+                        "sentiment_report", chunk["sentiment_report"]
                     )
                     message_buffer.update_agent_status("Social Analyst", "completed")
                     # Set next analyst to in_progress
