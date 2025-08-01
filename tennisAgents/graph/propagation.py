@@ -40,6 +40,7 @@ class Propagator:
             REPORTS.sentiment_report: "",
             REPORTS.weather_report: "",
             REPORTS.tournament_report: "",
+            REPORTS.risk_analysis_report: "",
             STATE.final_bet_decision: "",
         }
 
