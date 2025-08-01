@@ -502,3 +502,14 @@
 00:25:42 [Reasoning] Continue
 00:25:54 [Reasoning] Continue
 00:25:54 [Analysis] Completed analysis for 2025-08-01
+00:28:23 [System] Player 1: Carlos Alcaraz
+00:28:23 [System] Player 2: Novak Djokovic
+00:28:23 [System] Tournament: Windeldon
+00:28:23 [System] Analysis date: 2025-08-01
+00:28:23 [System] Selected analysts: news, odds, players, social, tournament, weather
+00:28:23 [Reasoning] Análisis del partido entre Carlos Alcaraz y Novak Djokovic
+00:28:26 [Reasoning] 
+00:28:26 [Tool Call] get_news(query=Carlos Alcaraz Windeldon 2025, curr_date=2025-08-01)
+00:28:26 [Tool Call] get_news(query=Novak Djokovic Windeldon 2025, curr_date=2025-08-01)
+00:28:26 [Tool Call] get_news(query=ATP WTA news 2025, curr_date=2025-08-01)
+00:28:26 [Reasoning] Noticias de prueba

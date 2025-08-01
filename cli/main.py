@@ -733,13 +733,7 @@ def run_analysis():
 
         # Stream the analysis
         trace = []
-        chunk_count = 0
         for chunk in graph.graph.stream(init_agent_state, **args):
-            chunk_count += 1
-            # Debug: Print chunk keys to understand what's being returned
-            if len(trace) == 0:  # Only print for first chunk
-                console.print(f"[yellow]Debug: Chunk keys: {list(chunk.keys())}[/yellow]")
-            
             if len(chunk["messages"]) > 0:
                 # Get the last message from the chunk
                 last_message = chunk["messages"][-1]
@@ -774,7 +768,7 @@ def run_analysis():
                     )
                     message_buffer.update_agent_status("News Analyst", "completed")
                     # Set next analyst to in_progress
-                    if AnalystType.odds in selections["analysts"]:
+                    if "odds" in selections["analysts"]:
                         message_buffer.update_agent_status(
                             "Odds Analyst", "in_progress"
                         )
@@ -839,11 +833,6 @@ def run_analysis():
                 update_display(layout)
 
             trace.append(chunk)
-            
-            # Debug: Show progress every 10 chunks
-            if chunk_count % 10 == 0:
-                console.print(f"[yellow]Debug: Processed {chunk_count} chunks[/yellow]")
-
         # Get final state and decision
         final_state = trace[-1]
         decision = graph.process_signal(final_state["final_bet_decision"])
