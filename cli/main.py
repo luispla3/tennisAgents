@@ -774,7 +774,7 @@ def run_analysis():
                     )
                     message_buffer.update_agent_status("News Analyst", "completed")
                     # Set next analyst to in_progress
-                    if "odds" in selections["analysts"]:
+                    if AnalystType.odds in selections["analysts"]:
                         message_buffer.update_agent_status(
                             "Odds Analyst", "in_progress"
                         )

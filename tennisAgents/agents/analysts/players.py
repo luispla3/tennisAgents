@@ -71,7 +71,7 @@ def create_player_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.news_report: report,
+            REPORTS.players_report: report,
         }
 
     return player_analyst_node

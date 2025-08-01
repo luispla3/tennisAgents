@@ -53,7 +53,7 @@ def create_odds_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.news_report: report,
+            REPORTS.odds_report: report,
         }
 
     return odds_analyst_node

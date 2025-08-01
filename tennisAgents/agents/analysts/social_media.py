@@ -63,7 +63,7 @@ def create_social_media_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.news_report: report,
+            REPORTS.sentiment_report: report,
         }
 
     return social_media_analyst_node

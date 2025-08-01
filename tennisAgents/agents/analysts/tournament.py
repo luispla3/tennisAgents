@@ -58,7 +58,7 @@ def create_tournament_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.news_report: report,
+            REPORTS.tournament_report: report,
         }
 
     return tournament_analyst_node

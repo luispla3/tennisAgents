@@ -57,7 +57,7 @@ def create_weather_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.news_report: report,
+            REPORTS.weather_report: report,
         }
 
     return weather_analyst_node
