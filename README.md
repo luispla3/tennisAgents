@@ -54,3 +54,34 @@ Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Mo
 
                    [ Todos los módulos orquestados con LangGraph + Gemini ]
 
+
+```
+
+## Configuración de Variables de Entorno
+
+Para que el sistema funcione correctamente, necesitas configurar las siguientes variables de entorno:
+
+### Variables Opcionales (para funcionalidad completa)
+
+- `NEWS_API_KEY`: Clave de API para NewsAPI (https://newsapi.org/)
+  - Si no está configurada, el sistema usará datos simulados para las noticias
+  - Para obtener una clave gratuita: https://newsapi.org/register
+
+### Variables del Sistema
+
+- `TENNISAGENTS_RESULTS_DIR`: Directorio donde se guardan los resultados (por defecto: `./results`)
+
+### Ejemplo de configuración
+
+```bash
+# En Windows (PowerShell)
+$env:NEWS_API_KEY="tu_clave_api_aqui"
+$env:TENNISAGENTS_RESULTS_DIR="./results"
+
+# En Linux/Mac
+export NEWS_API_KEY="tu_clave_api_aqui"
+export TENNISAGENTS_RESULTS_DIR="./results"
+```
+
+**Nota**: Si no configuras `NEWS_API_KEY`, el sistema seguirá funcionando pero usará datos simulados para las noticias.
+

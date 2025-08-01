@@ -13,6 +13,7 @@ from .tournament_utils import get_mock_data
 from .weather_utils import fetch_weather_forecast
 
 import requests
+import os
 
 def get_news(query: str, curr_date: str) -> str:
     """
@@ -183,18 +184,25 @@ def get_twitter_posts(player_name: str) -> str:
     """
     Usa NewsAPI para simular un análisis de sentimiento como si fuese de Twitter.
     """
+    newsapi_key = os.getenv("NEWS_API_KEY")
+    if not newsapi_key:
+        return "La clave de API de NewsAPI no está configurada. No se puede obtener el sentimiento de Twitter."
+
     url = "https://newsapi.org/v2/everything"
     params = {
         "q": player_name,
         "language": "en",
         "sortBy": "relevancy",
         "pageSize": 10,
-        "apiKey": NEWS_API_KEY,
+        "apiKey": newsapi_key,
     }
 
-    response = requests.get(url, params=params)
-    if response.status_code != 200:
-        return f"[ERROR] Fallo al obtener noticias: {response.text}"
+    try:
+        response = requests.get(url, params=params)
+        if response.status_code != 200:
+            return f"[ERROR] Fallo al obtener noticias: {response.text}"
+    except Exception as e:
+        return f"[ERROR] Error al conectar con la API de noticias: {e}"
 
     articles = response.json().get("articles", [])
     if not articles:
@@ -203,7 +211,22 @@ def get_twitter_posts(player_name: str) -> str:
     sentiments = []
     for article in articles:
         text = f"{article.get('title', '')} {article.get('description', '')}"
-        sentiments.append(blob.sentiment.polarity)
+        # Simple sentiment analysis based on positive/negative keywords
+        positive_words = ['victory', 'win', 'success', 'great', 'excellent', 'amazing', 'outstanding']
+        negative_words = ['defeat', 'loss', 'injury', 'poor', 'bad', 'terrible', 'disappointing']
+        
+        text_lower = text.lower()
+        positive_count = sum(1 for word in positive_words if word in text_lower)
+        negative_count = sum(1 for word in negative_words if word in text_lower)
+        
+        if positive_count > negative_count:
+            sentiment = 0.3
+        elif negative_count > positive_count:
+            sentiment = -0.3
+        else:
+            sentiment = 0.0
+            
+        sentiments.append(sentiment)
 
     average_sentiment = sum(sentiments) / len(sentiments)
 
