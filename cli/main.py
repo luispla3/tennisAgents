@@ -48,6 +48,10 @@ class MessageBuffer:
             "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
+            "Aggressive Analyst": "pending",
+            "Safe Analyst": "pending",
+            "Neutral Analyst": "pending",
+            "Expected Analyst": "pending",
         }
         self.current_agent = None
         self.report_sections = {
@@ -57,6 +61,7 @@ class MessageBuffer:
             "sentiment_report": None,
             "tournament_report": None,
             "weather_report": None,
+            "risk_analysis_report": None,
             "final_bet_decision": None,
         }
 
@@ -98,6 +103,7 @@ class MessageBuffer:
                 "sentiment_report": "Social Sentiment",
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
+                "risk_analysis_report": "Risk Analysis",
                 "final_bet_decision": "Final Bet Decision",
             }
             self.current_report = (
@@ -147,6 +153,11 @@ class MessageBuffer:
                 report_parts.append(
                     f"### Weather Analysis\n{self.report_sections['weather_report']}"
                 )
+
+        # Risk Management Team Report
+        if self.report_sections["risk_analysis_report"]:
+            report_parts.append("## Risk Management Analysis")
+            report_parts.append(f"{self.report_sections['risk_analysis_report']}")
 
         # Final Bet Decision
         if self.report_sections["final_bet_decision"]:
@@ -211,6 +222,12 @@ def update_display(layout, spinner_text=None):
             "Social Analyst",
             "Tournament Analyst",
             "Weather Analyst",
+        ],
+        "Risk Management": [
+            "Aggressive Analyst",
+            "Safe Analyst",
+            "Neutral Analyst",
+            "Expected Analyst",
         ],
     }
 
@@ -389,7 +406,7 @@ def get_user_selections():
     """
     welcome_content += "[bold green]TennisAgents: Multi-Agents LLM Tennis Betting Framework - CLI[/bold green]\n\n"
     welcome_content += "[bold]Workflow Steps:[/bold]\n"
-    welcome_content += "I. Analyst Team → II. Final Bet Decision\n\n"
+    welcome_content += "I. Analyst Team → II. Risk Management → III. Final Bet Decision\n\n"
     welcome_content += (
         "[dim]Built by [Tauric Research](https://github.com/TauricResearch)[/dim]"
     )
@@ -573,7 +590,66 @@ def display_complete_report(final_state):
             )
         )
 
-    # II. Final Bet Decision
+    # II. Risk Management Team Reports
+    if final_state.get("risk_debate_state"):
+        risk_reports = []
+        risk_state = final_state["risk_debate_state"]
+
+        # Aggressive Analyst Analysis
+        if risk_state.get("aggressive_history"):
+            risk_reports.append(
+                Panel(
+                    Markdown(risk_state["aggressive_history"]),
+                    title="Aggressive Analyst",
+                    border_style="blue",
+                    padding=(1, 2),
+                )
+            )
+
+        # Safe Analyst Analysis
+        if risk_state.get("safe_history"):
+            risk_reports.append(
+                Panel(
+                    Markdown(risk_state["safe_history"]),
+                    title="Safe Analyst",
+                    border_style="blue",
+                    padding=(1, 2),
+                )
+            )
+
+        # Neutral Analyst Analysis
+        if risk_state.get("neutral_history"):
+            risk_reports.append(
+                Panel(
+                    Markdown(risk_state["neutral_history"]),
+                    title="Neutral Analyst",
+                    border_style="blue",
+                    padding=(1, 2),
+                )
+            )
+
+        # Expected Analyst Analysis
+        if risk_state.get("expected_history"):
+            risk_reports.append(
+                Panel(
+                    Markdown(risk_state["expected_history"]),
+                    title="Expected Analyst",
+                    border_style="blue",
+                    padding=(1, 2),
+                )
+            )
+
+        if risk_reports:
+            console.print(
+                Panel(
+                    Columns(risk_reports, equal=True, expand=True),
+                    title="II. Risk Management Team Analysis",
+                    border_style="red",
+                    padding=(1, 2),
+                )
+            )
+
+    # III. Final Bet Decision
     if final_state.get("final_bet_decision"):
         console.print(
             Panel(
@@ -583,7 +659,7 @@ def display_complete_report(final_state):
                     border_style="blue",
                     padding=(1, 2),
                 ),
-                title="II. Final Bet Decision",
+                title="III. Final Bet Decision",
                 border_style="green",
                 padding=(1, 2),
             )
@@ -822,6 +898,69 @@ def run_analysis():
                         "weather_report", chunk["weather_report"]
                     )
                     message_buffer.update_agent_status("Weather Analyst", "completed")
+                    # Set first risk management analyst to in_progress
+                    message_buffer.update_agent_status("Aggressive Analyst", "in_progress")
+
+                # Risk Management Team - Handle Risk Debate State
+                if "risk_debate_state" in chunk and chunk["risk_debate_state"]:
+                    risk_state = chunk["risk_debate_state"]
+
+                    # Update Aggressive Analyst status and report
+                    if "aggressive_history" in risk_state and risk_state["aggressive_history"]:
+                        message_buffer.update_agent_status("Aggressive Analyst", "in_progress")
+                        # Extract latest aggressive response
+                        aggressive_responses = risk_state["aggressive_history"].split("\n")
+                        latest_aggressive = aggressive_responses[-1] if aggressive_responses else ""
+                        if latest_aggressive:
+                            message_buffer.add_message("Reasoning", f"Aggressive Analyst: {latest_aggressive}")
+
+                    # Update Safe Analyst status and report
+                    if "safe_history" in risk_state and risk_state["safe_history"]:
+                        message_buffer.update_agent_status("Safe Analyst", "in_progress")
+                        # Extract latest safe response
+                        safe_responses = risk_state["safe_history"].split("\n")
+                        latest_safe = safe_responses[-1] if safe_responses else ""
+                        if latest_safe:
+                            message_buffer.add_message("Reasoning", f"Safe Analyst: {latest_safe}")
+
+                    # Update Neutral Analyst status and report
+                    if "neutral_history" in risk_state and risk_state["neutral_history"]:
+                        message_buffer.update_agent_status("Neutral Analyst", "in_progress")
+                        # Extract latest neutral response
+                        neutral_responses = risk_state["neutral_history"].split("\n")
+                        latest_neutral = neutral_responses[-1] if neutral_responses else ""
+                        if latest_neutral:
+                            message_buffer.add_message("Reasoning", f"Neutral Analyst: {latest_neutral}")
+
+                    # Update Expected Analyst status and report
+                    if "expected_history" in risk_state and risk_state["expected_history"]:
+                        message_buffer.update_agent_status("Expected Analyst", "in_progress")
+                        # Extract latest expected response
+                        expected_responses = risk_state["expected_history"].split("\n")
+                        latest_expected = expected_responses[-1] if expected_responses else ""
+                        if latest_expected:
+                            message_buffer.add_message("Reasoning", f"Expected Analyst: {latest_expected}")
+
+                    # Update risk analysis report with all analysts' input
+                    risk_report_parts = []
+                    if risk_state.get("aggressive_history"):
+                        risk_report_parts.append(f"### Aggressive Analyst Analysis\n{risk_state['aggressive_history']}")
+                    if risk_state.get("safe_history"):
+                        risk_report_parts.append(f"### Safe Analyst Analysis\n{risk_state['safe_history']}")
+                    if risk_state.get("neutral_history"):
+                        risk_report_parts.append(f"### Neutral Analyst Analysis\n{risk_state['neutral_history']}")
+                    if risk_state.get("expected_history"):
+                        risk_report_parts.append(f"### Expected Analyst Analysis\n{risk_state['expected_history']}")
+                    
+                    if risk_report_parts:
+                        message_buffer.update_report_section("risk_analysis_report", "\n\n".join(risk_report_parts))
+
+                    # If all risk analysts have provided input, mark them as completed
+                    if all(key in risk_state for key in ["aggressive_history", "safe_history", "neutral_history", "expected_history"]):
+                        message_buffer.update_agent_status("Aggressive Analyst", "completed")
+                        message_buffer.update_agent_status("Safe Analyst", "completed")
+                        message_buffer.update_agent_status("Neutral Analyst", "completed")
+                        message_buffer.update_agent_status("Expected Analyst", "completed")
 
                 # Final Bet Decision
                 if "final_bet_decision" in chunk and chunk["final_bet_decision"]:

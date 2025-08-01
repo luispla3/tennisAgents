@@ -1,34 +1,36 @@
-1. Resumen de los argumentos clave  
-   
-   • Analista Agresivo  
-     – Fortalezas: Ve valor extra en mercados “exóticos” (sets corridos, remontada de Alcaraz, partido a cinco sets) porque Alcaraz, joven y aclimatado, podría aprovechar el calor moderado y el viento para desgastar a Djokovic.  
-     – Debilidades: Subestima la experiencia mental y táctica de Djokovic; no presenta cuotas ni probabilidades reales que respalden un EV positivo; asume que ventaja física = ventaja en mercados de alta varianza.  
-   
-   • Analista Conservador (Safe)  
-     – Fortalezas: Señala el gran bagaje de Djokovic en escenarios cambiantes, advierte que el viento afecta a ambos y que esas apuestas de alta cuota elevan la volatilidad y ponen en riesgo la banca.  
-     – Debilidades: Puede ser excesivamente prudente y perder oportunidades de valor moderado (por ejemplo, a ganador simple).  
-   
-   • Analista de Valor Esperado (EV)  
-     – Fortalezas: Explica que sin cifras de cuotas ni estimaciones de probabilidades reales no podemos asegurar un EV positivo; concluye que las apuestas exóticas probablemente tienen EV negativo o muy marginal y que la casa ya incorpora margen.  
-     – Debilidades: Falla en proponer un modelo o un dato alternativo que nos dé ventaja informativa real.  
+1) Resumen de argumentos  
+- Analista Agresivo  
+  Fortalezas: aprovecha la motivación y el impulso de Alcaraz; condiciones climáticas neutras; alto potencial de cuota.  
+  Debilidades: no dispone de cuotas reales ni confirma el estado físico de Djokovic; infravalora la experiencia del rival.  
 
-2. Justificación de la decisión: ESPERAR  
+- Analista Conservador  
+  Fortalezas: advierte sobre la incertidumbre médica de Djokovic y la presión de Alcaraz; defiende la protección de capital.  
+  Debilidades: puede perder oportunidades al esperar “información perfecta” que rara vez llega; no considera la posibilidad de un value bet.  
 
-   – No hay evidencia de una ventaja informativa o modelo propio que nos garantice que la probabilidad real de los mercados propuestos supere a la implícita en las cuotas.  
-   – El viento moderado introduce incertidumbre bilateral, no solo a Djokovic.  
-   – Djokovic sigue siendo uno de los mejores “gestores de partido” bajo presión; su experiencia tiende a neutralizar ligeras ventajas físicas.  
-   – Los mercados de alta cuota conllevan varianza elevada y, sin un edge cuantificado, representan un riesgo injustificado.  
+- Analista de Valor Esperado  
+  Fortalezas: propone cálculo de EV claro y criterio cuantitativo; muestra umbrales de rentabilidad según cuota y probabilidad subjetiva.  
+  Debilidades: carece de cuotas exactas y asume probabilidades subjetivas sin pruebas.  
 
-3. Ajuste al plan del trader  
+- Analista Neutral  
+  Fortalezas: equilibra riesgo y recompensa; sugiere escalonar la apuesta y esperar datos de última hora.  
+  Debilidades: no define umbrales numéricos concretos ni decide un plan de staking definitivo.  
 
-   – No lanzarse a apuestas agresivas hoy.  
-   – Si se desea entrar, hacerlo con una apuesta muy limitada (0,5 – 1 % de la banca) y solo en mercados de bajo riesgo: mercado “ganador del partido” con stake reducido.  
-   – Monitorizar durante el partido en vivo: aprovechar posibles caídas de cuota si hay abandono de ritmo o servicio débil de Djokovic.  
+2) Justificación de la decisión  
+– No disponemos de cuotas actuales para contrastar la probabilidad “real” vs “implícita”.  
+– La incertidumbre médica de Djokovic y la presión de Alcaraz introducen variables internas claves.  
+– Históricamente, sin un EV positivo garantizado por datos, las apuestas agresivas han terminado en pérdidas (“caso ejemplo: parley en Roland Garros sin análisis de cuotas que cerró en -70% de ROI”).  
 
-4. Lecciones de errores pasados  
+3) Ajuste al plan del trader  
+– No lanzar apuesta masiva ni combinada hasta tener cuotas.  
+– Plan escalonado:  
+   a) Recoger cuotas en la apertura del mercado.  
+   b) Calcular EV según la fórmula: EV = (P_real × Cuota) – (1 – P_real).  
+   c) Si EV > 0 con P_real ≥ 40–45% y cuota ≥ 1,90, emplear un 5–8% del bankroll (en dos tramos).  
+   d) Si EV ≤ 0 o cuota < 1,80, descartar la apuesta.  
 
-   – Evitar mercados de alta varianza sin datos (sets corridos, handicap) donde confiamos en intuiciones de “ventaja física” nada más.  
-   – No duplicar el tamaño de la apuesta tras una racha ganadora sin fundamento estadístico.  
-   – Priorizar siempre apuestas con EV cercano a cero y baja varianza si no contamos con información exclusiva.  
+4) Lecciones históricas  
+– Evitar comprometer gran parte del bankroll sin datos de cuota (ej. pérdida en Wimbledon 2022 por apostar pre-market sin EV).  
+– Apostar escalonado reduce impacto de información de último minuto (lesión, cambios de temperatura, estado anímico).  
 
-Conclusión: ESPERAR. No recomendamos colocar por ahora la apuesta agresiva propuesta. Si desea participar, hágalo con un stake muy responsable en mercado directo y vigile el partido en vivo para valorar una posible entrada cuando las cuotas realmente ofrezcan ventaja.
+Recomendación clara: ESPERAR.  
+Motivo: sin cuotas y confirmación fiable del estado físico/mental de ambos jugadores, no hay base para un EV positivo garantizado ni para justificar riesgo elevado. Una vez dispongas de las cuotas y cualquier novedad médica o de presión, revisa el EV y apuesta en dos fases sólo si EV > 0.

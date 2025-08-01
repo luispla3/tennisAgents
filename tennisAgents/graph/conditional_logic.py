@@ -64,7 +64,7 @@ class ConditionalLogic:
         latest_speaker = risk_state.get(STATE.latest_speaker, "")
 
         # Finaliza el debate si se supera el número de rondas
-        if count >= 3 * self.max_risk_discuss_rounds:
+        if count >= 4 * self.max_risk_discuss_rounds:
             return ANALYSTS.judge
         # Flujo entre analistas de riesgo según el último hablante
         if latest_speaker == SPEAKERS.aggressive:

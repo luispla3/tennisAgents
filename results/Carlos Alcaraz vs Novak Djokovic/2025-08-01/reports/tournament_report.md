@@ -1,0 +1,3 @@
+Parece que hubo un error en la obtención de información del torneo Windeldon 2025 en Valencia. Necesito confirmar las especificaciones exactas del torneo para continuar con el análisis, tales como tipo de superficie, condiciones ambientales y características específicas, junto con datos históricos de Carlos Alcaraz y Novak Djokovic en este u otros torneos con condiciones similares.
+
+Por favor, confirma si tienes detalles adicionales o si quieres que realice el análisis basado en información general de torneos similares en Valencia o con estas características.
