@@ -25,7 +25,6 @@ class REPORTS:
     news_report = "news_report"
     players_report = "players_report"
     tournament_report = "tournament_report"
-    risk_analysis_report = "risk_analysis_report"
 
 class ANALYSTS:
     aggressive = "Aggressive Analyst"
