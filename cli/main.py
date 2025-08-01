@@ -137,7 +137,7 @@ class MessageBuffer:
                 )
             if self.report_sections["sentiment_report"]:
                 report_parts.append(
-                    f"### Social Sentiment\n{self.report_sections['social_report']}"
+                    f"### Social Sentiment\n{self.report_sections['sentiment_report']}"
                 )
             if self.report_sections["tournament_report"]:
                 report_parts.append(
