@@ -7,12 +7,12 @@ def create_player_analyst(llm, toolkit):
         match_date = state[STATE.match_date]
         player_name = state[STATE.player_of_interest]
         opponent_name = state[STATE.opponent]
-        surface = state[STATE.surface]
+        surface = state.get(STATE.surface, "hard")
         tournament = state[STATE.tournament]
 
         # Selección dinámica de herramientas
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_player_profile_openai]
+            tools = [toolkit.get_atp_rankings]
         else:
             tools = [
                 toolkit.get_atp_rankings,
@@ -63,20 +63,7 @@ def create_player_analyst(llm, toolkit):
         # Construcción de la cadena LLM con herramientas
         chain = prompt | llm.bind_tools(tools)
 
-        # Convertir los mensajes al formato correcto para LangChain
-        messages = []
-        for msg in state[STATE.messages]:
-            if isinstance(msg, tuple):
-                role, content = msg
-                if role == "human":
-                    messages.append({"role": "user", "content": content})
-                elif role == "ai":
-                    messages.append({"role": "assistant", "content": content})
-            else:
-                messages.append(msg)
-
-        # Ejecución del modelo con el historial de mensajes
-        result = chain.invoke({"messages": messages})
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
@@ -84,7 +71,7 @@ def create_player_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.players_report: report,
+            REPORTS.news_report: report,
         }
 
     return player_analyst_node

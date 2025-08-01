@@ -19,18 +19,18 @@ def get_news(query: str, curr_date: str) -> str:
     """
     Interfaz que prepara y formatea las noticias obtenidas desde Google News.
     """
-    noticias = fetch_news(query, curr_date)
+    noticias = "Noticias de prueba" #fetch_news(query, curr_date)
 
-    if not noticias:
-        return f"No se encontraron noticias sobre '{query}' para la fecha {curr_date}."
+   #if not noticias:
+   #    return f"No se encontraron noticias sobre '{query}' para la fecha {curr_date}."
 
-    noticias_str = f"## Noticias sobre '{query}' para el {curr_date}:\n\n"
-    for noticia in noticias:
-        noticias_str += f"### {noticia['title']}\n"
-        noticias_str += f"{noticia['description']}\n"
-        noticias_str += f"[Enlace]({noticia['url']})\n\n"
+   #noticias_str = f"## Noticias sobre '{query}' para el {curr_date}:\n\n"
+   #for noticia in noticias:
+   #    noticias_str += f"### {noticia['title']}\n"
+   #    noticias_str += f"{noticia['description']}\n"
+   #    noticias_str += f"[Enlace]({noticia['url']})\n\n"
 
-    return noticias_str
+    return noticias
 
 
 def get_atp_news(curr_date: str) -> str:
@@ -73,15 +73,15 @@ def get_tennis_odds(player1: str, player2: str, match_date: str) -> str:
     """
     Consulta las cuotas de apuestas reales para un partido de tenis usando una API.
     """
-    odds_data = fetch_tennis_odds(player1, player2, match_date)
+    odds_data = "Cuotas de prueba" #fetch_tennis_odds(player1, player2, match_date)
 
-    if not odds_data:
-        return f"No se encontraron cuotas para el partido {player1} vs {player2} el {match_date}."
-
-    result = f"## Cuotas para {player1} vs {player2} ({match_date}):\n\n"
-    for bookmaker, cuota in odds_data.items():
-        result += f"- **{bookmaker}**: {player1} → {cuota['player1']}, {player2} → {cuota['player2']}\n"
-    return result
+    #if not odds_data:
+    #    return f"No se encontraron cuotas para el partido {player1} vs {player2} el {match_date}."
+#
+    #result = f"## Cuotas para {player1} vs {player2} ({match_date}):\n\n"
+    #for bookmaker, cuota in odds_data.items():
+    #    result += f"- **{bookmaker}**: {player1} → {cuota['player1']}, {player2} → {cuota['player2']}\n"
+    return odds_data
 
 
 

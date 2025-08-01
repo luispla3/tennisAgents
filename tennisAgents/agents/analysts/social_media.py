@@ -11,7 +11,7 @@ def create_social_media_analyst(llm, toolkit):
 
         # Herramientas disponibles según configuración
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_social_sentiment_openai]
+            tools = [toolkit.get_twitter_sentiment]
         else:
             tools = [
                 toolkit.get_twitter_sentiment,
@@ -55,28 +55,16 @@ def create_social_media_analyst(llm, toolkit):
         # Construcción de la cadena LLM
         chain = prompt | llm.bind_tools(tools)
 
-        # Convertir los mensajes al formato correcto para LangChain
-        messages = []
-        for msg in state[STATE.messages]:
-            if isinstance(msg, tuple):
-                role, content = msg
-                if role == "human":
-                    messages.append({"role": "user", "content": content})
-                elif role == "ai":
-                    messages.append({"role": "assistant", "content": content})
-            else:
-                messages.append(msg)
-
-        # Llamada al modelo con historial de conversación
-        result = chain.invoke({"messages": messages})
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
-        return {
+        return 
+        {
             STATE.messages: [result],
-            REPORTS.sentiment_report: report,
+            REPORTS.news_report: report,
         }
 
     return social_media_analyst_node

@@ -110,7 +110,7 @@ class GraphSetup:
 
             workflow.add_conditional_edges(
                 current_analyst,
-                getattr(self.conditional_logic, f"should_continue_{analyst_type}", lambda x: True),
+                getattr(self.conditional_logic, f"should_continue_{analyst_type}"),
                 [current_tools, current_clear],
             )
             workflow.add_edge(current_tools, current_analyst)

@@ -50,26 +50,15 @@ def create_news_analyst(llm, toolkit):
 
         chain = prompt | llm.bind_tools(tools)
 
-        # Convertir los mensajes al formato correcto para LangChain
-        messages = []
-        for msg in state["messages"]:
-            if isinstance(msg, tuple):
-                role, content = msg
-                if role == "human":
-                    messages.append({"role": "user", "content": content})
-                elif role == "ai":
-                    messages.append({"role": "assistant", "content": content})
-            else:
-                messages.append(msg)
-
-        result = chain.invoke({"messages": messages})
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
             report = result.content
 
-        return {
-            "messages": [result],
+        return 
+        {
+            STATE.messages: [result],
             REPORTS.news_report: report,
         }
 

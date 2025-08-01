@@ -11,7 +11,7 @@ class ConditionalLogic:
 
     def should_continue_news(self, state: AgentState):
         """Determina si el análisis de noticias debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_news"

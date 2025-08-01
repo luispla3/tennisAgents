@@ -92,7 +92,7 @@ class AgentState(MessagesState):
     ]
 
     # Decisión final
-    final_betting_decision: Annotated[
+    final_bet_decision: Annotated[
         Optional[str], "Decisión final de apuesta"
     ]
 
@@ -101,8 +101,4 @@ class AgentState(MessagesState):
         RiskDebateState, "Estado del debate de gestión de riesgo"
     ]
 
-    # Historial de mensajes
-    messages: Annotated[
-        List[Any], "Historial de mensajes"
-    ]
 

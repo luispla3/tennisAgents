@@ -6,7 +6,7 @@ def create_tournament_analyst(llm, toolkit):
     def tournament_analyst_node(state):
         match_date = state[STATE.match_date]
         tournament = state[STATE.tournament]
-        location = state[STATE.location]
+        location = state.get(STATE.location, "Valencia")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
 
@@ -43,21 +43,14 @@ def create_tournament_analyst(llm, toolkit):
 
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
+        prompt = prompt.partial(tournament=tournament)
+        prompt = prompt.partial(location=location)
+        prompt = prompt.partial(player=player)
+        prompt = prompt.partial(opponent=opponent)
 
         chain = prompt | llm.bind_tools(tools)
-        # Convertir los mensajes al formato correcto para LangChain
-        messages = []
-        for msg in state[STATE.messages]:
-            if isinstance(msg, tuple):
-                role, content = msg
-                if role == "human":
-                    messages.append({"role": "user", "content": content})
-                elif role == "ai":
-                    messages.append({"role": "assistant", "content": content})
-            else:
-                messages.append(msg)
 
-        result = chain.invoke({"messages": messages})
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
@@ -65,7 +58,7 @@ def create_tournament_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.tournament_report: report,
+            REPORTS.news_report: report,
         }
 
     return tournament_analyst_node

@@ -5,7 +5,7 @@ from tennisAgents.utils.enumerations import *
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
         current_date = state[STATE.match_date]
-        location = state[STATE.location]
+        location = state.get(STATE.location, "Valencia")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
@@ -43,22 +43,13 @@ def create_weather_analyst(llm, toolkit):
         # Rellenar con valores reales del estado
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
+        prompt = prompt.partial(player=player)
+        prompt = prompt.partial(opponent=opponent)
+        prompt = prompt.partial(location=location)
 
         chain = prompt | llm.bind_tools(tools)
 
-        # Convertir los mensajes al formato correcto para LangChain
-        messages = []
-        for msg in state[STATE.messages]:
-            if isinstance(msg, tuple):
-                role, content = msg
-                if role == "human":
-                    messages.append({"role": "user", "content": content})
-                elif role == "ai":
-                    messages.append({"role": "assistant", "content": content})
-            else:
-                messages.append(msg)
-
-        result = chain.invoke({"messages": messages})
+        result = chain.invoke(state[STATE.messages])
 
         report = ""
         if len(result.tool_calls) == 0:
@@ -66,7 +57,7 @@ def create_weather_analyst(llm, toolkit):
 
         return {
             STATE.messages: [result],
-            REPORTS.weather_report: report,
+            REPORTS.news_report: report,
         }
 
     return weather_analyst_node
