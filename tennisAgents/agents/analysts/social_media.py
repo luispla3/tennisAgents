@@ -61,8 +61,7 @@ def create_social_media_analyst(llm, toolkit):
         if len(result.tool_calls) == 0:
             report = result.content
 
-        return 
-        {
+        return {
             STATE.messages: [result],
             REPORTS.news_report: report,
         }
