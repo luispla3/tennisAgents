@@ -1,77 +1,80 @@
+import random
 import requests
-import os
+import time
 from datetime import datetime, timedelta
+from bs4 import BeautifulSoup
+from langchain_openai import OpenAI
+from matplotlib.dates import relativedelta
+from tennisAgents.dataflows.config import get_config
 
 
-def fetch_news(query: str, curr_date: str) -> list:
+def fetch_news(query: str, curr_date: str) -> str:
     """
-    Consulta la API de NewsAPI para obtener noticias sobre un tema específico.
+    Consulta el feed RSS de Google News para obtener noticias sobre un tema específico.
     """
-    # Get API key from environment variable
-    NEWS_API_KEY = os.getenv("NEWS_API_KEY")
+    query_encoded = query.replace(" ", "+")
+
+    start_date = datetime.strptime(curr_date, "%Y-%m-%d")
+    before = start_date - relativedelta(days=7)
+    before_str = before.strftime("%Y-%m-%d")
+
+    # Obtener resultados del feed RSS
+    news_results = getNewsData(query_encoded)
+
+    if not news_results:
+        return ""
+
+    # Construir texto de salida
+    news_str = ""
+    for news in news_results:
+        news_str += (
+            f"### {news['title']} (source: {news['source']})\n\n"
+            f"{news['snippet']}\n\n"
+            f"Link: {news['link']}\n\n"
+        )
+
+    result = f"## {query} Google News RSS, desde {before_str} hasta {curr_date}:\n\n{news_str}"
+    return result
+
+
+def getNewsData(query: str) -> list:
+    """
+    Obtiene noticias desde el feed RSS de Google News para una query dada.
+    """
     
-    if not NEWS_API_KEY:
-        # Return mock data if API key is not available
-        return _get_mock_news(query, curr_date)
+    rss_url = f"https://news.google.com/rss/search?q={query}&hl=es&gl=ES&ceid=ES:es"
     
-    base_url = "https://newsapi.org/v2/everything"
-
-    # Configura rango de fechas
-    from_date = curr_date
-    to_date = curr_date
-
-    params = {
-        "q": query,
-        "from": from_date,
-        "to": to_date,
-        "language": "es",
-        "sortBy": "relevancy",
-        "pageSize": 5,
-        "apiKey": NEWS_API_KEY,
-    }
-
     try:
-        response = requests.get(base_url, params=params)
-        data = response.json()
+        time.sleep(random.uniform(1, 3))  # retraso aleatorio para evitar bloqueos
+        response = requests.get(rss_url, headers={"User-Agent": "Mozilla/5.0"})
 
-        if response.status_code != 200 or data.get("status") != "ok":
-            print(f"[ERROR] No se pudo obtener noticias: {data}")
-            return _get_mock_news(query, curr_date)
+        if response.status_code != 200:
+            return []
+        
+        soup = BeautifulSoup(response.content, "xml")
+        items = soup.find_all("item")
 
-        noticias = []
-        for article in data["articles"]:
-            noticias.append({
-                "title": article["title"],
-                "description": article.get("description", ""),
-                "url": article["url"]
-            })
+        
+        news_results = []
+        for i, item in enumerate(items):
+            try:
+                title = item.title.text
+                link = item.link.text
+                snippet = item.description.text
+                source = item.source.text if item.source else "Desconocido"
+                pub_date = item.pubDate.text if item.pubDate else "Sin fecha"
 
-        return noticias
-    except Exception as e:
-        print(f"[ERROR] Error al obtener noticias: {e}")
-        return _get_mock_news(query, curr_date)
+                news_results.append({
+                    "title": title,
+                    "link": link,
+                    "snippet": snippet,
+                    "date": pub_date,
+                    "source": source
+                })
+            except Exception as e:
+                continue
 
-
-def _get_mock_news(query: str, curr_date: str) -> list:
-    """
-    Genera noticias simuladas cuando la API no está disponible.
-    """
-    mock_news = [
-        {
-            "title": f"Noticias simuladas sobre {query}",
-            "description": f"Información simulada sobre {query} para la fecha {curr_date}. Esta es una respuesta de prueba cuando la API de noticias no está disponible.",
-            "url": "https://example.com/mock-news"
-        },
-        {
-            "title": f"Análisis de tenis - {query}",
-            "description": f"Análisis detallado sobre {query} y su rendimiento reciente. Datos simulados para propósitos de prueba.",
-            "url": "https://example.com/tennis-analysis"
-        },
-        {
-            "title": f"Actualizaciones del circuito - {query}",
-            "description": f"Últimas actualizaciones sobre {query} en el circuito profesional. Información simulada.",
-            "url": "https://example.com/circuit-updates"
-        }
-    ]
+        return news_results
     
-    return mock_news
+    except Exception as e:
+        return []

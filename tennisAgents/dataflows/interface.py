@@ -19,17 +19,12 @@ def get_news(query: str, curr_date: str) -> str:
     """
     Interfaz que prepara y formatea las noticias obtenidas desde Google News.
     """
-    noticias = "Noticias de prueba" #fetch_news(query, curr_date)
+    noticias = fetch_news(query, curr_date)
 
-   #if not noticias:
-   #    return f"No se encontraron noticias sobre '{query}' para la fecha {curr_date}."
-
-   #noticias_str = f"## Noticias sobre '{query}' para el {curr_date}:\n\n"
-   #for noticia in noticias:
-   #    noticias_str += f"### {noticia['title']}\n"
-   #    noticias_str += f"{noticia['description']}\n"
-   #    noticias_str += f"[Enlace]({noticia['url']})\n\n"
-
+    if not noticias:
+        result = f"No se encontraron noticias sobre '{query}' para la fecha {curr_date}."
+        return result
+    
     return noticias
 
 

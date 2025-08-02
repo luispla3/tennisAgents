@@ -23,6 +23,7 @@ def create_news_analyst(llm, toolkit):
             f"Eres un analista de noticias especializado en tenis profesional. Tu misión es investigar y generar un informe detallado sobre las noticias más relevantes "
             f"de los últimos días relacionadas con el torneo {tournament}, en especial sobre los jugadores {player} y {opponent}. "
             "Debes identificar cualquier información crítica como lesiones, cambios de entrenador, declaraciones polémicas, presión mediática, etc., que puedan influir en su rendimiento.\n\n"
+            "IMPORTANTE: Para las búsquedas de noticias con get_news, usa ÚNICAMENTE el nombre del jugador en el query. No incluyas el año ni el nombre del torneo. Por ejemplo, usa 'Christopher O'Connell' en lugar de 'Christopher O'Connell 2025 Motorola razr Grandstand Court'.\n\n"
             "Incluye noticias generales del circuito ATP/WTA si son relevantes para la lectura del partido. Finaliza con una tabla Markdown que resuma los puntos clave para facilitar la lectura."
         )
 
@@ -33,6 +34,7 @@ def create_news_analyst(llm, toolkit):
                     "Eres un asistente experto en analizar noticias deportivas y colaborar con otros agentes de IA. "
                     "Tu objetivo es reunir información que pueda ser útil para predecir el desempeño de los jugadores.\n\n"
                     "Usa las siguientes herramientas: {tool_names}.\n{system_message}\n\n"
+                    "REGLA IMPORTANTE: Cuando uses get_news, el parámetro 'query' debe contener SOLO el nombre del jugador. No incluyas años, nombres de torneos u otra información adicional.\n\n"
                     "Fecha actual: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
                 ),
                 ("user", "Analiza las noticias más relevantes sobre {player} y {opponent} para el torneo {tournament}."),
