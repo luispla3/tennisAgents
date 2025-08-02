@@ -75,12 +75,10 @@ class Toolkit:
     # ODDS ANALYST TOOLS
     @tool
     def get_odds_data(
-        player1: Annotated[str, "Nombre del jugador 1"],
-        player2: Annotated[str, "Nombre del jugador 2"],
-        match_date: Annotated[str, "Fecha del partido yyyy-mm-dd"],
+        tournament_key: Annotated[str, "Clave del torneo de The Odds API (ej: 'tennis_atp_canadian_open', 'tennis_wta_us_open')"]
     ) -> str:
-        """Obtiene cuotas reales para el partido."""
-        return interface.get_tennis_odds(player1, player2, match_date)
+        """Obtiene las cuotas de apuestas para un torneo específico usando su clave de API."""
+        return interface.get_tennis_odds(tournament_key)
 
     @tool
     def get_mock_odds_data(

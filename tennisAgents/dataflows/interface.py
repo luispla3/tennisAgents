@@ -1,5 +1,5 @@
 from .news_utils import fetch_news
-from .odds_utils import fetch_tennis_odds
+from .odds_utils import fetch_tennis_odds, generate_mock_odds
 from .odds_utils import generate_mock_odds
 from .player_utils import fetch_atp_rankings
 from .player_utils import fetch_recent_matches
@@ -64,21 +64,14 @@ def get_tennisworld_news(curr_date: str) -> str:
     return noticias_str
 
 
-def get_tennis_odds(player1: str, player2: str, match_date: str) -> str:
+def get_tennis_odds(tournament_key: str) -> str:
     """
-    Consulta las cuotas de apuestas reales para un partido de tenis usando una API.
+    Consulta las cuotas de apuestas reales para un torneo específico usando una API.
     """
-    odds_data = "Cuotas de prueba" #fetch_tennis_odds(player1, player2, match_date)
-
-    #if not odds_data:
-    #    return f"No se encontraron cuotas para el partido {player1} vs {player2} el {match_date}."
-#
-    #result = f"## Cuotas para {player1} vs {player2} ({match_date}):\n\n"
-    #for bookmaker, cuota in odds_data.items():
-    #    result += f"- **{bookmaker}**: {player1} → {cuota['player1']}, {player2} → {cuota['player2']}\n"
-    return odds_data
-
-
+    import json
+    
+    odds_data = fetch_tennis_odds(tournament_key)
+    return json.dumps(odds_data, indent=2)
 
 def get_mock_odds_data(player1: str, player2: str) -> str:
     """
