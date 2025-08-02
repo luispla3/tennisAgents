@@ -7,12 +7,18 @@ def create_player_analyst(llm, toolkit):
         match_date = state[STATE.match_date]
         player_name = state[STATE.player_of_interest]
         opponent_name = state[STATE.opponent]
-        surface = state.get(STATE.surface, "hard")
+        surface = state.get(STATE.surface, "grass")
         tournament = state[STATE.tournament]
 
-        # Selección dinámica de herramientas
+        # Selección dinámica de herramientas - usar todas las disponibles
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_atp_rankings]
+            tools = [
+                toolkit.get_atp_rankings,
+                #toolkit.get_recent_matches,
+                #toolkit.get_surface_winrate,
+                #toolkit.get_head_to_head,
+                #toolkit.get_injury_reports,
+            ]
         else:
             tools = [
                 toolkit.get_atp_rankings,
@@ -32,6 +38,7 @@ def create_player_analyst(llm, toolkit):
             "- Eficiencia sobre superficie actual ({surface})\n"
             "- Historial de enfrentamientos directos contra {opponent_name}\n"
             "- Posibles lesiones o signos de fatiga\n\n"
+            "IMPORTANTE: Si alguna herramienta falla, continúa con las demás y menciona qué datos no se pudieron obtener. "
             "Asegúrate de incluir una tabla Markdown al final con los datos clave, organizada y fácil de leer."
         )
 

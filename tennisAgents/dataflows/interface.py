@@ -97,6 +97,7 @@ def get_atp_rankings() -> str:
     result = "## Ranking ATP actual:\n\n"
     for jugador in rankings:
         result += f"{jugador['rank']}. {jugador['name']} ({jugador['country']}) - {jugador['points']} pts\n"
+    
     return result
 
 

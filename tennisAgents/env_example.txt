@@ -1,0 +1,17 @@
+# Configuración de APIs para TennisAgents
+# Copia este archivo como .env y configura tus API keys
+
+# API Key para RapidAPI Tennis (para datos de jugadores y rankings)
+# Obtén tu API key en: https://rapidapi.com/
+RAPIDAPI_KEY=e47e647360msh7b6d0f12f311228p185d94jsn5313c2cba578
+
+# API Key para The Odds API (para cuotas de apuestas)
+# Obtén tu API key en: https://the-odds-api.com/
+THE_ODDS_API_KEY=tu_api_key_de_odds_aqui
+
+# API Key para NewsAPI (opcional, para análisis de sentimiento)
+# Obtén tu API key en: https://newsapi.org/
+NEWS_API_KEY=tu_api_key_de_news_aqui
+
+# Configuración del sistema
+TENNISAGENTS_RESULTS_DIR=./results 

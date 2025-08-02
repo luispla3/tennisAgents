@@ -73,6 +73,7 @@ class Toolkit:
         return interface.get_tennisworld_news(curr_date)
 
     # ODDS ANALYST TOOLS
+    
     @tool
     def get_odds_data(
         tournament_key: Annotated[str, "Clave del torneo de The Odds API (ej: 'tennis_atp_canadian_open', 'tennis_wta_us_open')"]
