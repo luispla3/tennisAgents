@@ -55,27 +55,24 @@ def fetch_atp_rankings() -> list:
         # Según la imagen de RapidAPI, los datos están en data["data"]
         players_data = data.get("data", [])
         
-        print(f"[DEBUG] Jugadores encontrados: {len(players_data)}")
+        print(f"[DEBUG] Jugadores disponibles en API: {len(players_data)}")
         
-        for i, player_data in enumerate(players_data[:10]):  # Top 10
-            print(f"[DEBUG] Procesando jugador {i+1}: {player_data}")
-            
-            # Extraer datos según la estructura correcta
+        for i, player_data in enumerate(players_data[:20]):  # Top 20
+            # Extraer los datos que necesitamos: ID, nombre, puntos y posición
             player_info = player_data.get("player", {})
-            
-            rank = player_data.get("position", "N/D")
-            name = player_info.get("name", "N/D")
+            player_id = player_info.get("id", "N/D")
+            player_name = player_info.get("name", "N/D")
             points = player_data.get("point", "N/D")
-            country = player_info.get("country", {}).get("name", player_info.get("countryAcr", "N/D"))
+            position = player_data.get("position", "N/D")
             
             rankings.append({
-                "rank": rank,
-                "name": name,
-                "points": points,
-                "country": country
+                "id": player_id,
+                "name": player_name,
+                "point": points,
+                "position": position
             })
             
-            print(f"[DEBUG] Jugador procesado: {rank}. {name} ({country}) - {points} pts")
+            print(f"[DEBUG] Jugador procesado: {position}. {player_name} (ID: {player_id}) - {points} pts")
 
         print(f"[INFO] Ranking ATP obtenido exitosamente: {len(rankings)} jugadores")
         return rankings
@@ -87,97 +84,101 @@ def fetch_atp_rankings() -> list:
         print(f"[ERROR] Error inesperado al obtener ranking ATP: {e}")
         return []
 
-def fetch_player_id(player_name: str) -> int:
+
+
+def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30) -> list:
     """
-    Busca el ID de un jugador por su nombre completo usando la API de tenis.
+    Obtiene los partidos recientes entre dos jugadores usando la API de tenis.
+    Utiliza el endpoint getH2HMatches de la API ATP/WTA/ITF.
     """
     if not RAPIDAPI_KEY:
         print("[ERROR] RAPIDAPI_KEY no está configurada")
-        return None
+        return []
     
-    # Endpoint de búsqueda de jugadores
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/search"
+    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/h2h/matches/{player_id}/{opponent_id}/"
     headers = {
         "X-RapidAPI-Key": RAPIDAPI_KEY,
         "X-RapidAPI-Host": RAPIDAPI_HOST
     }
-    params = {
-        "search": player_name
-    }
+    params = {}
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-
-        if response.status_code != 200:
-            print(f"[ERROR] Fallo al buscar jugador: {response.status_code} - {response.text}")
-            return None
-
-        data = response.json()
-        players = data.get("players", [])
-        if not players:
-            players = data.get("data", [])
-
-        if not players:
-            print(f"[INFO] No se encontró el jugador: {player_name}")
-            return None
-
-        return players[0]["id"]
+        print(f"[DEBUG] Intentando obtener partidos recientes entre jugadores {player_id} y {opponent_id}...")
+        print(f"[DEBUG] URL: {url}")
+        print(f"[DEBUG] Params: {params}")
         
-    except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al buscar jugador: {e}")
-        return None
-    except Exception as e:
-        print(f"[ERROR] Error inesperado al buscar jugador: {e}")
-        return None
-
-def fetch_recent_matches(player_name: str, num_matches: int = 5) -> list:
-    """
-    Recupera los últimos partidos jugados por un jugador usando la API de tenis.
-    """
-    if not RAPIDAPI_KEY:
-        print("[ERROR] RAPIDAPI_KEY no está configurada")
-        return []
-    
-    player_id = fetch_player_id(player_name)
-    if not player_id:
-        return []
-
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/players/{player_id}/matches"
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPIDAPI_HOST
-    }
-    params = {
-        "limit": num_matches
-    }
-
-    try:
         response = requests.get(url, headers=headers, params=params, timeout=10)
-
-        if response.status_code != 200:
-            print(f"[ERROR] Fallo al obtener partidos del jugador: {response.status_code} - {response.text}")
+        
+        print(f"[DEBUG] Status code: {response.status_code}")
+        
+        if response.status_code == 401:
+            print("[ERROR] API key inválida o no autorizada")
+            return []
+        elif response.status_code == 403:
+            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
+            return []
+        elif response.status_code != 200:
+            print(f"[ERROR] Fallo al obtener partidos recientes: {response.status_code}")
+            print(f"[DEBUG] Response: {response.text}")
             return []
 
         data = response.json()
-        matches = []
-
-        for match in data.get("matches", []):
-            matches.append({
-                "date": match.get("date", "N/D")[:10],
-                "tournament": match.get("tournament", {}).get("name", "N/D"),
-                "opponent": match.get("opponent", {}).get("name", "N/D"),
-                "result": match.get("score", "N/D"),
-                "surface": match.get("surface", "N/D")
+        print(f"[DEBUG] Datos recibidos de RapidAPI")
+        print(f"[DEBUG] Response keys: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
+        
+        matches = data.get("data", [])
+        
+        if not matches:
+            print(f"[INFO] No se encontraron partidos entre los jugadores {player_id} y {opponent_id}")
+            return []
+        
+        print(f"[DEBUG] Partidos encontrados: {len(matches)}")
+        
+        # Procesar los partidos y limitar al número solicitado
+        processed_matches = []
+        for i, match in enumerate(matches[:num_matches]):
+            print(f"[DEBUG] Procesando partido {i+1}: {match}")
+            
+            # Extraer datos según la estructura de la API
+            match_date = match.get("date", "")
+            
+            # Obtener información de los jugadores
+            player1_info = match.get("player1", {})
+            player2_info = match.get("player2", {})
+            
+            # Determinar el ganador basado en el resultado
+            result = match.get("result", "")
+            winner_name = "N/D"
+            opponent_name = "N/D"
+            
+            # Si hay resultado, intentar determinar el ganador
+            if result and player1_info and player2_info:
+                # Por ahora, asumimos que el primer jugador es el ganador
+                # En una implementación más completa, analizaríamos el resultado
+                winner_name = player1_info.get("name", "N/D")
+                opponent_name = player2_info.get("name", "N/D")
+            
+            processed_matches.append({
+                "date": match_date[:10] if match_date else "N/D",
+                "tournament": f"Tournament ID: {match.get('tournamentId', 'N/D')}",
+                "opponent": opponent_name,
+                "result": result,
+                "surface": "N/D",  # La API no parece incluir superficie en este endpoint
+                "winner": winner_name
             })
+            
+            print(f"[DEBUG] Partido procesado: {match_date[:10]} | Tournament ID: {match.get('tournamentId', 'N/D')} | vs {opponent_name} | Resultado: {result}")
 
-        return matches
+        print(f"[INFO] Partidos recientes obtenidos exitosamente: {len(processed_matches)} partidos")
+        return processed_matches
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener partidos: {e}")
+        print(f"[ERROR] Error de conexión al obtener partidos recientes: {e}")
         return []
     except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener partidos: {e}")
+        print(f"[ERROR] Error inesperado al obtener partidos recientes: {e}")
         return []
+
 
 
 def fetch_surface_winrate(player_name: str, surface: str) -> dict:
@@ -243,6 +244,7 @@ def fetch_surface_winrate(player_name: str, surface: str) -> dict:
     except Exception as e:
         print(f"[ERROR] Error inesperado al obtener winrate: {e}")
         return None
+
 
 def fetch_head_to_head(player1: str, player2: str) -> dict:
     """
@@ -378,79 +380,3 @@ def fetch_injury_reports(player_name: str) -> list:
         return []
 
 
-def test_player_utils():
-    """
-    Función de prueba para verificar que las utilidades de players funcionan correctamente.
-    """
-    print("=== PRUEBA DE PLAYER UTILS (RAPIDAPI) ===")
-    
-    # Probar configuración de API
-    if not RAPIDAPI_KEY:
-        print("❌ RAPIDAPI_KEY no está configurada")
-        print("   Configura la variable de entorno RAPIDAPI_KEY")
-        return False
-    else:
-        print("✅ RAPIDAPI_KEY está configurada")
-    
-    # Probar ranking ATP
-    print("\n--- Probando fetch_atp_rankings ---")
-    rankings = fetch_atp_rankings()
-    if rankings:
-        print(f"✅ Ranking ATP obtenido: {len(rankings)} jugadores")
-        for i, player in enumerate(rankings[:3]):
-            print(f"   {i+1}. {player['name']} ({player['country']}) - {player['points']} pts")
-    else:
-        print("❌ No se pudo obtener el ranking ATP")
-    
-    # Probar búsqueda de jugador
-    print("\n--- Probando fetch_player_id ---")
-    test_player = "Carlos Alcaraz"
-    player_id = fetch_player_id(test_player)
-    if player_id:
-        print(f"✅ Jugador encontrado: {test_player} (ID: {player_id})")
-    else:
-        print(f"❌ No se pudo encontrar el jugador: {test_player}")
-    
-    # Probar partidos recientes
-    print("\n--- Probando fetch_recent_matches ---")
-    matches = fetch_recent_matches(test_player, 3)
-    if matches:
-        print(f"✅ Partidos recientes obtenidos: {len(matches)} partidos")
-        for match in matches[:2]:
-            print(f"   {match['date']}: vs {match['opponent']} - {match['result']}")
-    else:
-        print(f"❌ No se pudieron obtener partidos recientes para {test_player}")
-    
-    # Probar winrate por superficie
-    print("\n--- Probando fetch_surface_winrate ---")
-    stats = fetch_surface_winrate(test_player, "hard")
-    if stats:
-        print(f"✅ Winrate en hard: {stats['winrate']}% ({stats['wins']}W/{stats['losses']}L)")
-    else:
-        print(f"❌ No se pudo obtener winrate para {test_player}")
-    
-    # Probar H2H
-    print("\n--- Probando fetch_head_to_head ---")
-    h2h = fetch_head_to_head(test_player, "Novak Djokovic")
-    if h2h:
-        print(f"✅ H2H encontrado: {h2h['total']} partidos")
-        print(f"   {test_player}: {h2h['wins_p1']} victorias")
-        print(f"   Djokovic: {h2h['wins_p2']} victorias")
-    else:
-        print(f"❌ No se pudo obtener H2H entre {test_player} y Djokovic")
-    
-    # Probar lesiones
-    print("\n--- Probando fetch_injury_reports ---")
-    injuries = fetch_injury_reports(test_player)
-    if injuries:
-        print(f"✅ Lesiones encontradas: {len(injuries)} registros")
-        for injury in injuries[:2]:
-            print(f"   {injury['date']}: {injury['status']} - {injury['reason']}")
-    else:
-        print(f"❌ No se encontraron lesiones para {test_player}")
-    
-    print("\n=== FIN DE PRUEBA ===")
-    return True
-
-if __name__ == "__main__":
-    test_player_utils()

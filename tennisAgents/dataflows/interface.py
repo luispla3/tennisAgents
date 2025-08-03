@@ -87,33 +87,37 @@ def get_mock_odds_data(player1: str, player2: str) -> str:
 
 def get_atp_rankings() -> str:
     """
-    Consulta el ranking ATP actual y lo devuelve formateado.
+    Consulta el ranking ATP actual y lo devuelve formateado con los IDs de los jugadores.
     """
     rankings = fetch_atp_rankings()
 
     if not rankings:
         return "No se pudo obtener el ranking ATP."
 
-    result = "## Ranking ATP actual:\n\n"
+    result = "## Ranking ATP actual (con IDs de jugadores):\n\n"
     for jugador in rankings:
-        result += f"{jugador['rank']}. {jugador['name']} ({jugador['country']}) - {jugador['points']} pts\n"
+        player_id = jugador.get('id', 'N/D')
+        result += f"{jugador['position']}. {jugador['name']} (ID: {player_id}) - {jugador['point']} pts\n"
     
+    result += "\n**Nota**: Usa estos IDs para llamar a get_recent_matches con los IDs correctos de los jugadores."
     return result
 
 
-def get_recent_matches(player_name: str, num_matches: int = 5) -> str:
+def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) -> str:
     """
-    Devuelve los últimos partidos jugados por el jugador especificado.
+    Devuelve los últimos partidos jugados entre dos jugadores específicos.
+    Utiliza el endpoint getH2HMatches de la API de tenis.
     """
-    matches = fetch_recent_matches(player_name, num_matches)
+    matches = fetch_recent_matches(player_id, opponent_id, num_matches)
 
     if not matches:
-        return f"No se encontraron partidos recientes para {player_name}."
+        return f"No se encontraron partidos recientes entre los jugadores con IDs {player_id} y {opponent_id}."
 
-    result = f"## Últimos {num_matches} partidos de {player_name}:\n\n"
+    result = f"## Últimos {len(matches)} partidos entre jugadores (IDs: {player_id} vs {opponent_id}):\n\n"
     for m in matches:
-        result += f"- {m['date']} | {m['tournament']} | vs {m['opponent']} | Resultado: {m['result']} | Superficie: {m['surface']}\n"
+        result += f"- **{m['date']}** | {m['tournament']} | vs {m['opponent']} | **Resultado: {m['result']}** | Superficie: {m['surface']} | Ganador: {m['winner']}\n"
 
+    
     return result
 
 

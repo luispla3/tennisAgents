@@ -93,16 +93,18 @@ class Toolkit:
 
     @tool
     def get_atp_rankings() -> str:
-        """Obtiene el ranking ATP actual."""
+        """Obtiene el ranking ATP actual con los IDs de los jugadores. Usa esta herramienta primero para obtener los IDs necesarios para get_recent_matches."""
         return interface.get_atp_rankings()
+
 
     @tool
     def get_recent_matches(
-        player_name: Annotated[str, "Nombre del jugador"],
-        num_matches: Annotated[int, "Número de partidos recientes"] = 5,
+        player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
+        opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
+        num_matches: Annotated[int, "Número de partidos recientes"] = 30,
     ) -> str:
-        """Obtiene los últimos partidos jugados por el jugador."""
-        return interface.get_recent_matches(player_name, num_matches)
+        """Obtiene los últimos partidos jugados entre dos jugadores específicos. IMPORTANTE: Primero usa get_atp_rankings para obtener los IDs de los jugadores, luego usa esos IDs aquí."""
+        return interface.get_recent_matches(player_id, opponent_id, num_matches)
 
     @tool
     def get_surface_winrate(
