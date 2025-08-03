@@ -1,38 +1,33 @@
-1. Resumen de los analistas  
-- Agresivo: apela al “momentum” de Sinner (victoria hoy mismo), su alto porcentaje de conversión de break points y la tensión mental en puntos clave para buscar una apuesta de alto retorno (victoria de Sinner, 5 sets, over de juegos).  
-  Fortalezas: detecta dinámicas de forma y cuotas potencialmente desajustadas.  
-  Debilidades: subestima fatiga física/mental de Sinner y apuesta sin datos de cuota concreta.  
+1. Resumen de los argumentos  
+   1.1 Analista Agresivo  
+     – Ventajas: head-to-head favorable a Alcaraz (64 %), winrate en césped muy alto, potencia ofensiva y primer saque sólido.  
+     – Debilidades: subestima la eficacia de Sinner en break points y la presión de ser N° 1, y propone mercados de altísima volatilidad (sets exactos, tie-breaks).  
+   1.2 Analista Conservador  
+     – Ventajas: recuerda que Sinner ganó el último enfrentamiento en Wimbledon, tiene alta conversión de break points y el desgaste físico/mental puede pesar.  
+     – Debilidades: puede renunciar a valor real y oportunidades EV+ sólo por miedo a la varianza, sugiriendo en el límite ni apostar.  
+   1.3 Analista de Valor Esperado  
+     – Ventajas: plantea la fórmula EV=(P_real×cuota)–1 y advierte que sin conocer la cuota exacta no se puede decidir con seguridad.  
+     – Debilidades: depende de un dato (la cuota) que no tenemos formalmente, aunque muestra claridad metodológica.  
+   1.4 Analista Neutral  
+     – Ventajas: propone un punto medio: apuesta moderada a ganador de Alcaraz si hay EV positivo, evitar mercados extremos y reajustar stake al nivel de riesgo.  
+     – Debilidades: no es tan tajante en la recomendación final y deja la puerta abierta a “esperar” más datos.
 
-- Conservador (“Safe”): insiste en el dominio histórico de Alcaraz en césped (89,7% vs. 72,1%), mejores números en servicio y en aces, y en preservar capital evitando escenarios de alta varianza.  
-  Fortalezas: se basa en datos sólidos y evita la sobreconfianza.  
-  Debilidades: ignora el posible sesgo del mercado y el valor extra que puede esconder el underdog.  
+2. Justificación de la decisión  
+   – Técnicamente, Alcaraz tiene más armas en césped y head-to-head histórico, pero Sinner se mostró muy efectivo en puntos clave en el último Wimbledon.  
+   – La cuota del mercado (implícita) parece rondar 1.9–2.0 para Alcaraz; si fuera ≥2.0, el EV sería positivo dadas nuestras estimaciones de probabilidad real en 55–60 %. Si la cuota es <1.9, el EV cae a negativo.  
+   – En anteriores viajes de riesgo alto en escenarios parejos (p. ej. tie-breaks a cuota 6.0) provocamos varias pérdidas seguidas por subestimar la presión in-game.
 
-- Valor Esperado (EV): formula EV = p × cuota – 1 y muestra que, sin cuotas exactas, no puede concluir que ninguna apuesta tenga EV claramente positivo. Ejemplo: cuota 1.50 a Alcaraz daría EV negativo; cuota 2.80 a Sinner daría apenas un EV ligeramente positivo.  
-  Fortalezas: rigor matemático.  
-  Debilidades: depende de formularios de cuota que no tenemos.  
+3. Recomendación clara  
+   ESPERAR hasta confirmar la cuota exacta de “Alcaraz ganador” o de mercados específicos.  
 
-- Neutral: propone un mix: apuesta moderada a Alcaraz (stake controlado) y pequeñas inversiones en mercados intermedios (4 set, over de breaks), evitando posiciones extremas.  
-  Fortalezas: balancea riesgo y retorno.  
-  Debilidades: exige gestión en vivo y disciplina de stake que a veces se salta el trader.  
+4. Ajuste al plan del trader  
+   – Si la cuota para Alcaraz ≥2.0: APOSTAR moderadamente (2–3 % del bankroll) sólo al mercado “ganador del partido”.  
+   – Evitar apuestas complejas (sets exactos, tie-breaks) salvo que la cuota sea excepcional (p. ej. >4.0) y con un stake muy bajo (<1 %).  
+   – Monitorizar en vivo: si uno de los jugadores baja su nivel físico o mental, considerar un back/lay hedge para reducir varianza.  
 
-2. Decisión del Juez de Riesgos  
-ESPERAR.  
-Justificación:  
-- Carecemos de cuotas fiables y de información precisa sobre el estado físico de Sinner tras el partido del día, así como de posibles cambios meteorológicos o de calendario (horario, luz, humedad).  
-- Apuesta agresiva entraña varianza muy alta sin confirmar EV positivo.  
-- Apuesta conservadora a Alcaraz puede ser menos riesgosa, pero con cuota baja difícilmente dé valor suficiente.  
+5. Lecciones aprendidas / memoria histórica  
+   – Evitar sobreactuar en partidos muy parejos sin control de stake: perdimos un 15 % de la banca en Wimbledon 2024 con tie-breaks.  
+   – Confirmar cuotas y volatilidad antes de comprometer capital.  
+   – Mantener un umbral mínimo de EV (usamos +5 %) para justificar entrada, incluso en mercados “favoritos”.
 
-3. Ajuste al plan del trader  
-- No lanzar full stake a ninguno de los dos resultados principales (victoria simple).  
-- Plan previo al partido:  
-  • Mantenerse fuera hasta confirmar cuotas en apertura jornada.  
-  • Si cuota a Alcaraz ≥ 1.70, abrir posición pequeña (~3–5% del bankroll) a favor de Alcaraz.  
-  • Simultáneamente, colocar micro‐apuestas (“scalping”) a over 4 sets o + 10 break points combinados con stake muy reducido (1–2%).  
-- Revisar en vivo tras el primer set: si Sinner muestra evidente desgaste y Alcaraz conserva servicio con facilidad, aumentar ligeramente la posición a favor del español; de lo contrario, cerrar o reducir exposición.  
-
-4. Lecciones de errores pasados  
-- No perseguir sólo un dato aislado (ej. victoria reciente) sin contrastarlo con el desgaste acumulado.  
-- Evitar apuestas agresivas sin cuotas claras: en torneos anteriores provocó drawdowns por ignorar el EV y el timing.  
-- La gestión de stake y el ajuste en vivo suelen ser la clave para no repetir pérdidas por exceso de confianza o falta de datos.  
-
-Conclusión: ESPERAR hasta tener cuotas y datos de última hora. Si aparecen cuotas razonables para Alcaraz (≥ 1.70) o un valor claro en mercados intermedios, entonces APOSTAR con stake reducido y reglas de corte estrictas.
+Conclusión: Sin la cuota concreta no podemos asegurar EV positivo, por lo tanto la decisión óptima es **ESPERAR** y, una vez obtenida, ejecutar **APOSTAR** a ganador de Alcaraz con un stake controlado (2–3 %) solo si la cuota ≧2.0.

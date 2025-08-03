@@ -123,11 +123,9 @@ class Toolkit:
         return interface.get_head_to_head(player_id, opponent_id)
 
     @tool
-    def get_injury_reports(
-        player_name: Annotated[str, "Nombre del jugador"],
-    ) -> str:
-        """Obtiene reportes de lesiones del jugador."""
-        return interface.get_injury_reports(player_name)
+    def get_injury_reports() -> str:
+        """Obtiene reportes de lesiones de todos los jugadores"""
+        return interface.get_injury_reports()
 
     # SOCIAL MEDIA ANALYST TOOLS
 

@@ -200,15 +200,60 @@ def get_head_to_head(player1: int, player2: int) -> str:
     print(f"[DEBUG] Resultado final de get_head_to_head: {result}")
     return result
 
-def get_injury_reports(player_name: str) -> str:
-    data = fetch_injury_reports(player_name)
+def get_injury_reports() -> str:
+    data = fetch_injury_reports()
     if not data:
-        return f"No se encontraron registros de lesión o retorno para {player_name}."
+        return f"No se encontraron registros de lesión o retorno para ningún jugador."
     
-    formatted = "\n".join([
-        f"{entry['date']}: {entry['player']} ({entry['status']}) - {entry['tournament']} - {entry['reason']}"
-        for entry in data
-    ])
+    # Verificar si data tiene la estructura correcta
+    if isinstance(data, dict) and 'injured_players' in data:
+        # Nueva estructura de datos
+        injured_players = data['injured_players']
+        returning_players = data.get('returning_players', [])
+        
+        formatted = ""
+        
+        # Mostrar jugadores lesionados
+        if injured_players:
+            formatted += "🏥 JUGADORES LESIONADOS:\n"
+            formatted += "-" * 40 + "\n"
+            formatted += "\n".join([
+                f"{entry['date']}: {entry['player_name']} - {entry['tournament']} - {entry['reason']}"
+                for entry in injured_players[:15]  # Mostrar solo los primeros 15
+            ])
+            
+            total_injured = data.get('total_injured', len(injured_players))
+            formatted += f"\n\n📊 Total lesionados: {total_injured} jugadores"
+        else:
+            formatted += "🏥 No se encontraron jugadores lesionados.\n"
+        
+        # Mostrar jugadores que regresan
+        if returning_players:
+            formatted += "\n\n✅ JUGADORES QUE REGRESAN:\n"
+            formatted += "-" * 40 + "\n"
+            formatted += "\n".join([
+                f"{entry['date']}: {entry['player_name']} - {entry['tournament']} - {entry['status']}"
+                for entry in returning_players[:15]  # Mostrar solo los primeros 15
+            ])
+            
+            total_returning = data.get('total_returning', len(returning_players))
+            formatted += f"\n\n📊 Total que regresan: {total_returning} jugadores"
+        else:
+            formatted += "\n\n✅ No se encontraron jugadores que regresen de lesiones.\n"
+        
+        # Resumen general
+        total_injured = data.get('total_injured', len(injured_players))
+        total_returning = data.get('total_returning', len(returning_players))
+        formatted += f"\n\n📈 RESUMEN GENERAL: {total_injured} lesionados, {total_returning} que regresan"
+        
+    else:
+        # Estructura antigua (fallback)
+        formatted = "\n".join([
+            f"{entry['date']}: {entry.get('player_name', entry.get('player', 'N/A'))} - {entry.get('tournament', 'N/A')} - {entry.get('reason', 'N/A')}"
+            for entry in data if isinstance(data, list)
+        ])
+
+    print(f"[DEBUG] Resultado final de get_injury_reports: {formatted}")
     return formatted
 
 

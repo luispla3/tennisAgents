@@ -11,6 +11,260 @@ RAPIDAPI_KEY = os.environ.get("RAPIDAPI_KEY")
 RAPIDAPI_HOST = "tennis-api-atp-wta-itf.p.rapidapi.com"
 
 
+def scrape_injured_players(page_url: str) -> list:
+    """
+    Scrapes injured players data from a single page of TennisExplorer.
+    
+    Args:
+        page_url: URL of the page to scrape
+        
+    Returns:
+        List of dictionaries containing injured player data
+    """
+    try:
+        print(f"[DEBUG] Scraping injured players from: {page_url}")
+        
+        # Headers to mimic a real browser request
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        
+        response = requests.get(page_url, headers=headers, timeout=15)
+        
+        if response.status_code != 200:
+            print(f"[ERROR] Failed to fetch page {page_url}: {response.status_code}")
+            return []
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Find the table with injured players data
+        table = soup.find('table', class_='result flags injured')
+        
+        if not table:
+            print(f"[ERROR] Could not find injured players table on page {page_url}")
+            return []
+        
+        injured_players = []
+        
+        # Find all table rows (tr elements)
+        rows = table.find_all('tr')
+        
+        for row in rows:
+            # Skip header row if it exists
+            if row.find('th'):
+                continue
+                
+            # Get all table data cells
+            cells = row.find_all('td')
+            
+            if len(cells) >= 4:  # We expect at least 4 columns: date, name, tournament, reason
+                try:
+                    # Extract date
+                    date_cell = cells[0]
+                    date_text = date_cell.get_text(strip=True)
+                    
+                    # Extract player name and link
+                    name_cell = cells[1]
+                    player_link = name_cell.find('a')
+                    player_name = player_link.get_text(strip=True) if player_link else name_cell.get_text(strip=True)
+                    player_url = player_link.get('href') if player_link else None
+                    
+                    # Extract tournament
+                    tournament_cell = cells[2]
+                    tournament_text = tournament_cell.get_text(strip=True)
+                    
+                    # Extract reason
+                    reason_cell = cells[3]
+                    reason_text = reason_cell.get_text(strip=True)
+                    
+                    # Parse date
+                    try:
+                        parsed_date = datetime.strptime(date_text, '%d.%m.%Y')
+                        formatted_date = parsed_date.strftime('%Y-%m-%d')
+                    except ValueError:
+                        formatted_date = date_text
+                    
+                    player_data = {
+                        'date': formatted_date,
+                        'player_name': player_name,
+                        'player_url': player_url,
+                        'tournament': tournament_text,
+                        'reason': reason_text,
+                        'source_page': page_url
+                    }
+                    
+                    injured_players.append(player_data)
+                    
+                except Exception as e:
+                    print(f"[WARNING] Error processing row: {e}")
+                    continue
+        
+        print(f"[INFO] Scraped {len(injured_players)} injured players from {page_url}")
+        return injured_players
+        
+    except requests.exceptions.RequestException as e:
+        print(f"[ERROR] Network error scraping {page_url}: {e}")
+        return []
+    except Exception as e:
+        print(f"[ERROR] Unexpected error scraping {page_url}: {e}")
+        return []
+
+
+def scrape_returning_players(page_url: str) -> list:
+    """
+    Scrapes returning players data from TennisExplorer.
+    
+    Args:
+        page_url: URL of the page to scrape
+        
+    Returns:
+        List of dictionaries containing returning player data
+    """
+    try:
+        print(f"[DEBUG] Scraping returning players from: {page_url}")
+        
+        # Headers to mimic a real browser request
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.5',
+            'Accept-Encoding': 'gzip, deflate',
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+        }
+        
+        response = requests.get(page_url, headers=headers, timeout=15)
+        
+        if response.status_code != 200:
+            print(f"[ERROR] Failed to fetch page {page_url}: {response.status_code}")
+            return []
+        
+        soup = BeautifulSoup(response.content, 'html.parser')
+        
+        # Find the table with returning players data
+        table = soup.find('table', class_='result flags injured')
+        
+        if not table:
+            print(f"[ERROR] Could not find returning players table on page {page_url}")
+            return []
+        
+        returning_players = []
+        
+        # Find all table rows (tr elements)
+        rows = table.find_all('tr')
+        
+        for row in rows:
+            # Skip header row if it exists
+            if row.find('th'):
+                continue
+                
+            # Get all table data cells
+            cells = row.find_all('td')
+            
+            if len(cells) >= 3:  # We expect at least 3 columns: date, name, tournament
+                try:
+                    # Extract date
+                    date_cell = cells[0]
+                    date_text = date_cell.get_text(strip=True)
+                    
+                    # Extract player name and link
+                    name_cell = cells[1]
+                    player_link = name_cell.find('a')
+                    player_name = player_link.get_text(strip=True) if player_link else name_cell.get_text(strip=True)
+                    player_url = player_link.get('href') if player_link else None
+                    
+                    # Extract tournament
+                    tournament_cell = cells[2]
+                    tournament_text = tournament_cell.get_text(strip=True)
+                    
+                    # Parse date
+                    try:
+                        parsed_date = datetime.strptime(date_text, '%d.%m.%Y')
+                        formatted_date = parsed_date.strftime('%Y-%m-%d')
+                    except ValueError:
+                        formatted_date = date_text
+                    
+                    player_data = {
+                        'date': formatted_date,
+                        'player_name': player_name,
+                        'player_url': player_url,
+                        'tournament': tournament_text,
+                        'status': 'returned',
+                        'source_page': page_url
+                    }
+                    
+                    returning_players.append(player_data)
+                    
+                except Exception as e:
+                    print(f"[WARNING] Error processing returning player row: {e}")
+                    continue
+        
+        print(f"[INFO] Scraped {len(returning_players)} returning players from {page_url}")
+        return returning_players
+        
+    except requests.exceptions.RequestException as e:
+        print(f"[ERROR] Network error scraping {page_url}: {e}")
+        return []
+    except Exception as e:
+        print(f"[ERROR] Unexpected error scraping {page_url}: {e}")
+        return []
+
+
+def fetch_injury_reports() -> dict:
+    """
+    Gets injury reports by scraping TennisExplorer for both injured and returning players.
+    
+    Returns:
+        Dictionary containing 'injured_players' and 'returning_players' lists
+    """
+    print("[INFO] Starting injury reports scraping...")
+    
+    # Base URLs for injured players (5 pages)
+    injured_urls = [
+        "https://www.tennisexplorer.com/list-players/injured/?page=1",
+        "https://www.tennisexplorer.com/list-players/injured/?page=2", 
+        "https://www.tennisexplorer.com/list-players/injured/?page=3",
+        "https://www.tennisexplorer.com/list-players/injured/?page=4",
+        "https://www.tennisexplorer.com/list-players/injured/?page=5"
+    ]
+    
+    # URL for returning players (1 page)
+    returning_url = "https://www.tennisexplorer.com/list-players/return-from-injury/"
+    
+    all_injured_players = []
+    
+    # Scrape all pages for injured players
+    for url in injured_urls:
+        print(f"[DEBUG] Scraping injured players from page: {url}")
+        page_players = scrape_injured_players(url)
+        all_injured_players.extend(page_players)
+        
+        # Add a small delay between requests to be respectful
+        import time
+        time.sleep(1)
+    
+    print(f"[INFO] Total injured players scraped: {len(all_injured_players)}")
+    
+    # Scrape returning players
+    print(f"[DEBUG] Scraping returning players from: {returning_url}")
+    returning_players = scrape_returning_players(returning_url)
+    print(f"[INFO] Total returning players scraped: {len(returning_players)}")
+    
+    return {
+        'injured_players': all_injured_players,
+        'returning_players': returning_players,
+        'total_injured': len(all_injured_players),
+        'total_returning': len(returning_players),
+        'scraped_at': datetime.now().isoformat()
+    }
+
+
+
 def fetch_atp_rankings() -> list:
     """
     Recupera el ranking ATP desde la API de tenis ATP/WTA/ITF.
@@ -349,70 +603,5 @@ def fetch_head_to_head(player1: int, player2: int) -> dict:
         return None
 
 
-def parse_injury_table(soup, table_id):
-    rows = soup.select(f"div#injuries > table:nth-of-type({table_id}) tr")
-    data = []
-    for row in rows[1:]:  # saltar encabezado
-        cols = row.find_all("td")
-        if len(cols) < 4:
-            continue
-
-        date_str = cols[0].text.strip()
-        try:
-            date = datetime.strptime(date_str, "%d.%m.%Y")
-        except ValueError:
-            continue
-
-        if date.year < datetime.today().year - 1:
-            continue
-
-        player = cols[1].text.strip()
-        tournament = cols[2].text.strip()
-        reason = cols[3].text.strip()
-        data.append({
-            "date": date.strftime("%Y-%m-%d"),
-            "player": player,
-            "tournament": tournament,
-            "status": "injured" if table_id == 1 else "returning",
-            "reason": reason
-        })
-    return data
-
-
-def fetch_injury_reports(player_name: str) -> list:
-    """
-    Recupera las lesiones o retornos de un jugador específico desde TennisExplorer.
-    """
-    url = "https://www.tennisexplorer.com/injured/"
-    headers = {
-        "User-Agent": "Mozilla/5.0"
-    }
-
-    try:
-        res = requests.get(url, headers=headers, timeout=10)
-        if res.status_code != 200:
-            print(f"[ERROR] No se pudo acceder a TennisExplorer: {res.status_code}")
-            return []
-
-        soup = BeautifulSoup(res.content, "html.parser")
-        all_entries = parse_injury_table(soup, 1) + parse_injury_table(soup, 2)
-
-        # Filtrar por coincidencia de nombre parcial (ignorando mayúsculas/minúsculas)
-        filtered = [
-            entry for entry in all_entries
-            if player_name.lower() in entry["player"].lower()
-        ]
-
-        if not filtered:
-            print(f"[INFO] No se encontraron lesiones para {player_name}")
-            
-        return filtered
-        
-    except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener lesiones: {e}")
-        return []
-    except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener lesiones: {e}")
-        return []
 
 
