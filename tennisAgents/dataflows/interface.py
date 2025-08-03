@@ -121,17 +121,19 @@ def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) ->
     return result
 
 
-def get_surface_winrate(player_name: str, surface: str) -> str:
+def get_surface_winrate(player_id: int, surface: str) -> str:
     """
     Devuelve el porcentaje de victorias del jugador en una superficie específica.
+    Usa directamente el ID del jugador proporcionado.
     """
-    stats = fetch_surface_winrate(player_name, surface)
+    # Usar directamente el ID proporcionado para obtener los datos de superficie
+    stats = fetch_surface_winrate(player_id, surface)
 
     if not stats:
-        return f"No se encontraron datos sobre {player_name} en {surface}."
+        return f"No se encontraron datos sobre el jugador con ID {player_id} en {surface}."
 
     return (
-        f"## Rendimiento de {player_name} en {surface}:\n\n"
+        f"## Rendimiento del jugador (ID: {player_id}) en {surface}:\n\n"
         f"- Partidos ganados: {stats['wins']}\n"
         f"- Partidos perdidos: {stats['losses']}\n"
         f"- Winrate: {stats['winrate']}%"

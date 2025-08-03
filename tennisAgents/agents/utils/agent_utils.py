@@ -108,11 +108,11 @@ class Toolkit:
 
     @tool
     def get_surface_winrate(
-        player_name: Annotated[str, "Nombre del jugador"],
+        player_id: Annotated[int, "Id del jugador"],
         surface: Annotated[str, "Superficie (clay, hard, grass)"],
     ) -> str:
         """Obtiene el winrate del jugador en una superficie dada."""
-        return interface.get_surface_winrate(player_name, surface)
+        return interface.get_surface_winrate(player_id, surface)
 
     @tool
     def get_head_to_head(

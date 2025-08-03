@@ -181,61 +181,101 @@ def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30
 
 
 
-def fetch_surface_winrate(player_name: str, surface: str) -> dict:
+def fetch_surface_winrate(player_id: int, surface: str) -> dict:
     """
     Devuelve el winrate de un jugador en una superficie dada usando la API de tenis.
+    Utiliza el endpoint getPlayerSurfaceSummary de la API ATP/WTA/ITF.
     """
     if not RAPIDAPI_KEY:
         print("[ERROR] RAPIDAPI_KEY no está configurada")
         return None
     
-    player_id = fetch_player_id(player_name)
-    if not player_id:
+    # Mapeo de superficies a courtId según la documentación
+    surface_mapping = {
+        "hard": 1,
+        "clay": 2, 
+        "i.hard": 3,
+        "grass": 5
+    }
+    
+    court_id = surface_mapping.get(surface.lower())
+    if not court_id:
+        print(f"[ERROR] Superficie '{surface}' no soportada. Superficies válidas: hard, clay, i.hard, grass")
         return None
 
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/players/{player_id}/matches"
+    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/player/surface-summary/{player_id}"
     headers = {
         "X-RapidAPI-Key": RAPIDAPI_KEY,
         "X-RapidAPI-Host": RAPIDAPI_HOST
     }
-    params = {
-        "limit": 50
-    }
+    params = {}
 
     try:
+        print(f"[DEBUG] Intentando obtener winrate para jugador {player_id} en superficie {surface}...")
+        print(f"[DEBUG] URL: {url}")
+        print(f"[DEBUG] Params: {params}")
+        
         response = requests.get(url, headers=headers, params=params, timeout=10)
-        if response.status_code != 200:
-            print(f"[ERROR] Fallo al obtener partidos para winrate: {response.status_code} - {response.text}")
+        
+        print(f"[DEBUG] Status code: {response.status_code}")
+        
+        if response.status_code == 401:
+            print("[ERROR] API key inválida o no autorizada")
+            return None
+        elif response.status_code == 403:
+            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
+            return None
+        elif response.status_code != 200:
+            print(f"[ERROR] Fallo al obtener winrate: {response.status_code}")
+            print(f"[DEBUG] Response: {response.text}")
             return None
 
         data = response.json()
-        if not data.get("matches"):
-            print(f"[INFO] No se encontraron partidos para {player_name}")
+        print(f"[DEBUG] Datos recibidos de RapidAPI")
+        print(f"[DEBUG] Response keys: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
+        
+        surface_data = data.get("data", [])
+        
+        if not surface_data:
+            print(f"[INFO] No se encontraron datos de superficie para el jugador {player_id}")
+            return None
+        
+        print(f"[DEBUG] Datos de superficie encontrados: {len(surface_data)} años")
+        
+        # Buscar datos para la superficie específica en el año más reciente
+        total_wins = 0
+        total_losses = 0
+        
+        for year_data in surface_data:
+            year = year_data.get("year", 0)
+            surfaces = year_data.get("surfaces", [])
+            
+            print(f"[DEBUG] Procesando año {year} con {len(surfaces)} superficies")
+            
+            for surface_info in surfaces:
+                if surface_info.get("courtId") == court_id:
+                    wins = surface_info.get("courtWins", 0)
+                    losses = surface_info.get("courtLosses", 0)
+                    court_name = surface_info.get("court", "N/D")
+                    
+                    print(f"[DEBUG] Superficie {court_name}: {wins} victorias, {losses} derrotas")
+                    
+                    total_wins += wins
+                    total_losses += losses
+
+        total_matches = total_wins + total_losses
+        if total_matches == 0:
+            print(f"[INFO] No se encontraron partidos en {surface} para el jugador {player_id}")
             return None
 
-        wins = 0
-        losses = 0
-
-        for match in data["matches"]:
-            match_surface = match.get("surface", "").lower()
-            if match_surface != surface.lower():
-                continue
-
-            winner = match.get("winner", {}).get("name", "")
-            if player_name.lower() in winner.lower():
-                wins += 1
-            else:
-                losses += 1
-
-        total = wins + losses
-        if total == 0:
-            print(f"[INFO] No se encontraron partidos en {surface} para {player_name}")
-            return None
-
+        winrate = round((total_wins / total_matches) * 100, 2)
+        
+        print(f"[INFO] Winrate calculado: {total_wins} victorias, {total_losses} derrotas = {winrate}%")
+        
         return {
-            "wins": wins,
-            "losses": losses,
-            "winrate": round((wins / total) * 100, 2)
+            "wins": total_wins,
+            "losses": total_losses,
+            "winrate": winrate
         }
         
     except requests.exceptions.RequestException as e:
