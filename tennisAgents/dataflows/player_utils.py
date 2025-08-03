@@ -286,64 +286,60 @@ def fetch_surface_winrate(player_id: int, surface: str) -> dict:
         return None
 
 
-def fetch_head_to_head(player1: str, player2: str) -> dict:
+def fetch_head_to_head(player1: int, player2: int) -> dict:
     """
-    Devuelve el historial de enfrentamientos (head-to-head) entre dos jugadores usando la API de tenis.
+    Devuelve las estadísticas head-to-head entre dos jugadores usando la API de tenis.
+    Basado en la documentación del endpoint getH2HStats.
     """
     if not RAPIDAPI_KEY:
         print("[ERROR] RAPIDAPI_KEY no está configurada")
         return None
     
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/matches/h2h"
+    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/h2h/stats/{player1}/{player2}/"
     headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPIDAPI_HOST
-    }
-    params = {
-        "player1": player1,
-        "player2": player2
+        "x-rapidapi-key": RAPIDAPI_KEY,
+        "x-rapidapi-host": RAPIDAPI_HOST
     }
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-        if response.status_code != 200:
+        response = requests.get(url, headers=headers, timeout=10)
+        
+        if response.status_code == 401:
+            print("[ERROR] API key inválida o no autorizada")
+            return None
+        elif response.status_code == 403:
+            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
+            return None
+        elif response.status_code != 200:
             print(f"[ERROR] Fallo en H2H: {response.status_code} - {response.text}")
             return None
 
         data = response.json()
-        matches = data.get("matches", [])
-
-        if not matches:
-            print(f"[INFO] No se encontraron enfrentamientos entre {player1} y {player2}")
+        
+        if not data or "data" not in data:
+            print(f"[INFO] No se encontraron estadísticas H2H entre jugadores {player1} y {player2}")
             return None
 
-        wins_p1 = 0
-        wins_p2 = 0
-        recent_matches = []
+        h2h_data = data["data"]
+        matches_count = h2h_data.get("matchesCount", "0")
+        
+        # Extraer estadísticas de ambos jugadores
+        player1_stats = None
+        player2_stats = None
+        
+        if "player1Stats" in h2h_data:
+            player1_stats = h2h_data["player1Stats"]
+        if "player2Stats" in h2h_data:
+            player2_stats = h2h_data["player2Stats"]
 
-        for match in matches:
-            winner = match.get("winner", {}).get("name", "")
-            if player1.lower() in winner.lower():
-                wins_p1 += 1
-            elif player2.lower() in winner.lower():
-                wins_p2 += 1
-
-            recent_matches.append({
-                "date": match.get("date", "N/D")[:10],
-                "tournament": match.get("tournament", {}).get("name", "N/D"),
-                "winner": winner,
-                "score": match.get("score", "N/A"),
-                "surface": match.get("surface", "N/D")
-            })
-
-        recent_matches = sorted(recent_matches, key=lambda x: x["date"], reverse=True)[:5]
-
-        return {
-            "total": len(matches),
-            "wins_p1": wins_p1,
-            "wins_p2": wins_p2,
-            "recent_matches": recent_matches
+        result = {
+            "matches_count": matches_count,
+            "player1_stats": player1_stats,
+            "player2_stats": player2_stats,
+            "raw_data": h2h_data
         }
+        
+        return result
         
     except requests.exceptions.RequestException as e:
         print(f"[ERROR] Error de conexión al obtener H2H: {e}")

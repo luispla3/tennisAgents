@@ -116,11 +116,11 @@ class Toolkit:
 
     @tool
     def get_head_to_head(
-        player1: Annotated[str, "Nombre del jugador 1"],
-        player2: Annotated[str, "Nombre del jugador 2"],
+        player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
+        opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
     ) -> str:
-        """Obtiene el historial H2H entre dos jugadores."""
-        return interface.get_head_to_head(player1, player2)
+        """Obtiene las estadisticas H2H entre dos jugadores."""
+        return interface.get_head_to_head(player_id, opponent_id)
 
     @tool
     def get_injury_reports(
