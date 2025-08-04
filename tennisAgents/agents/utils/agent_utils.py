@@ -161,10 +161,10 @@ class Toolkit:
     @tool
     def get_tournament_info(
         tournament: Annotated[str, "Nombre del torneo"],
-        year: Annotated[int, "Año del torneo"],
+        category: Annotated[str, "Categoría del torneo: atpgs: Atp tournaments + grand Slams, atp: Atp circuit, gs: grand slams, 1000: Masters 1000, ch: Challenger Circuit"],
     ) -> str:
         """Obtiene información y estadísticas del torneo."""
-        return interface.get_tournaments(year)
+        return interface.get_tournaments(tournament, category)
 
     @tool
     def get_mock_tournament_data(
@@ -176,12 +176,13 @@ class Toolkit:
     # WEATHER ANALYST TOOLS
     @tool
     def get_weather_forecast(
-        latitude: Annotated[float, "Latitud"],
-        longitude: Annotated[float, "Longitud"],
-        match_date: Annotated[str, "Fecha del partido yyyy-mm-dd"],
+        tournament: Annotated[str, "Nombre del torneo"],
+        fecha_hora: Annotated[str, "Fecha y hora del partido yyyy-mm-dd hh:mm"],
+        latitude: Annotated[float, "Latitud de la ubicación del torneo"],
+        longitude: Annotated[float, "Longitud de la ubicación del torneo"],
     ) -> str:
-        """Obtiene la previsión meteorológica para el partido."""
-        return interface.get_weather_forecast(latitude, longitude, start_date=match_date, end_date=match_date)
+        """Obtiene la previsión meteorológica para el partido usando la API de Open-Meteo."""
+        return interface.get_weather_forecast(tournament, fecha_hora, latitude, longitude)
 
     @tool
     def get_mock_weather_data(

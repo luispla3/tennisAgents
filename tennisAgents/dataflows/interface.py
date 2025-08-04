@@ -12,6 +12,7 @@ from .sentiment_utils import fetch_reddit_sentiment
 from .tournament_utils import fetch_tournament_info
 from .tournament_utils import get_mock_data
 from .weather_utils import fetch_weather_forecast
+from .weather_utils import fetch_weather_forecast, format_weather_report
 
 import requests
 import os
@@ -310,22 +311,28 @@ def get_reddit_posts(subreddit_name: str, player_name: str) -> str:
     return resumen
 
 
-def get_tournaments(tournament: str, year: int) -> str:
-    data = fetch_tournament_info(tournament, year)
-
-    if not data:
-        return f"No se encontró información sobre el torneo '{tournament}' en {year}."
-
-    resumen = f" {data['name']} ({year})\n"
-    resumen += f"- Ubicación: {data['location']}\n"
-    resumen += f"- Superficie: {data['surface']}\n"
-    resumen += f"- Fecha de inicio: {data['start_date']}\n"
-    resumen += f"- Fecha de final: {data['end_date']}\n"
-    resumen += f"- Ganador: {data['winner']}\n"
-    resumen += f"- Finalista: {data['runner_up']}\n"
-    resumen += f"- Participantes destacados: {', '.join(data['notables'])}\n"
-
-    return resumen
+def get_tournaments(tournament: str, category: str) -> str:
+    """
+    Obtiene la lista de torneos de la API de tenis, extrae el id del torneo específico y lo devuelve,
+    para que se pueda usar en el siguiente endpoint para obtener los datos del torneo.
+    
+    Args:
+        tournament (str): Nombre del torneo a buscar
+        category (str): Categoría de torneos (atpgs, atp, gs, 1000, ch)
+    
+    Returns:
+        str: ID del torneo si se encuentra, mensaje de error si no se encuentra
+    """
+    # Usar el año 2025 para hacer la llamada a la API
+    year = 2024
+    
+    # Obtener el ID del torneo específico
+    tournament_id = fetch_tournament_info(tournament, year, category)
+    
+    if tournament_id:
+        return f"ID del torneo '{tournament}': {tournament_id}"
+    else:
+        return f"No se encontró el torneo '{tournament}' en la categoría '{category}' para el año {year}."
 
 
 def get_mock_tournament_data(tournament: str, year: int) -> str:
@@ -343,38 +350,93 @@ def get_mock_tournament_data(tournament: str, year: int) -> str:
     return resumen
 
 
-def get_weather_forecast(latitude: float, longitude: float, start_date: str, end_date: str) -> str:
-    forecast = fetch_weather_forecast(latitude, longitude, start_date, end_date)
-
-    if not forecast:
-        return "No se pudo obtener el pronóstico del tiempo."
-
-    texto = f"- Pronóstico del {start_date}:\n"
-    texto += f"- Temperatura máxima: {forecast['temp_max']}°C\n"
-    texto += f"- Temperatura mínima: {forecast['temp_min']}°C\n"
-    texto += f"- Precipitación: {forecast['precip']} mm\n"
-    texto += f"- Viento: {forecast['wind']} km/h\n"
-    texto += f"- Cielo: {forecast['description']}\n"
-
-    return texto
+def get_weather_forecast(tournament: str, fecha_hora: str, latitude: float, longitude: float) -> str:
+    """
+    Obtiene el pronóstico meteorológico para un partido específico.
+    
+    Args:
+        tournament (str): Nombre del torneo
+        fecha_hora (str): Fecha y hora del partido en formato "yyyy-mm-dd hh:mm"
+        latitude (float): Latitud de la ubicación del torneo
+        longitude (float): Longitud de la ubicación del torneo
+    
+    Returns:
+        str: Reporte meteorológico formateado
+    """
+    
+    weather_data = fetch_weather_forecast(latitude, longitude, fecha_hora, tournament)
+    
+    print(f"[DEBUG] Datos meteorológicos: {weather_data}")
+    return format_weather_report(weather_data)
 
 import random
 
 def get_mock_weather_data(location: str) -> str:
+    """
+    Genera datos meteorológicos simulados realistas para pruebas.
+    
+    Args:
+        location (str): Ubicación del torneo
+    
+    Returns:
+        str: Reporte meteorológico simulado
+    """
+    # Simular diferentes condiciones meteorológicas
+    weather_conditions = [
+        {"description": "Despejado", "temp_max": (25, 32), "temp_min": (15, 22), "precip": (0, 1), "wind": (5, 15), "humidity": (40, 60)},
+        {"description": "Parcialmente nublado", "temp_max": (22, 28), "temp_min": (12, 18), "precip": (0, 3), "wind": (8, 18), "humidity": (50, 70)},
+        {"description": "Lluvia ligera", "temp_max": (18, 25), "temp_min": (10, 16), "precip": (2, 8), "wind": (10, 20), "humidity": (70, 85)},
+        {"description": "Nublado", "temp_max": (20, 26), "temp_min": (12, 18), "precip": (1, 5), "wind": (8, 16), "humidity": (60, 75)},
+        {"description": "Tormenta", "temp_max": (16, 22), "temp_min": (8, 14), "precip": (8, 20), "wind": (20, 35), "humidity": (80, 95)}
+    ]
+    
+    condition = random.choice(weather_conditions)
+    
     forecast = {
         "location": location,
-        "temp_max": round(random.uniform(22, 35), 1),
-        "temp_min": round(random.uniform(12, 21), 1),
-        "precip": round(random.uniform(0, 10), 1),
-        "wind": round(random.uniform(5, 25), 1),
-        "description": random.choice(["Despejado", "Parcialmente nublado", "Lluvia ligera", "Tormenta"]),
+        "temp_max": round(random.uniform(*condition["temp_max"]), 1),
+        "temp_min": round(random.uniform(*condition["temp_min"]), 1),
+        "precip": round(random.uniform(*condition["precip"]), 1),
+        "wind": round(random.uniform(*condition["wind"]), 1),
+        "humidity": round(random.uniform(*condition["humidity"]), 1),
+        "description": condition["description"],
+        "precipitation_prob": round(random.uniform(0, 100), 1) if condition["precip"][1] > 2 else 0
     }
 
-    return (
-        f" [SIMULADO] Pronóstico en {forecast['location']}:\n"
-        f"- Temp. Máx: {forecast['temp_max']}°C\n"
-        f"- Temp. Mín: {forecast['temp_min']}°C\n"
-        f"- Precipitación: {forecast['precip']} mm\n"
-        f"- Viento: {forecast['wind']} km/h\n"
-        f"- Cielo: {forecast['description']}"
-    )
+    report = f"🌤️ **[SIMULADO] Pronóstico Meteorológico - {location}**\n\n"
+    report += f"📊 **Condiciones Simuladas:**\n"
+    report += f"• Temperatura máxima: {forecast['temp_max']}°C\n"
+    report += f"• Temperatura mínima: {forecast['temp_min']}°C\n"
+    report += f"• Precipitación: {forecast['precip']} mm\n"
+    report += f"• Velocidad del viento: {forecast['wind']} km/h\n"
+    report += f"• Humedad: {forecast['humidity']}%\n"
+    report += f"• Probabilidad de lluvia: {forecast['precipitation_prob']}%\n"
+    report += f"• Condiciones: {forecast['description']}\n\n"
+    
+    # Análisis para tenis
+    report += "🎾 **Análisis para Tenis:**\n"
+    
+    temp_avg = (forecast['temp_max'] + forecast['temp_min']) / 2
+    
+    if temp_avg < 10:
+        report += "• ⚠️ Temperatura baja - puede afectar el rendimiento\n"
+    elif temp_avg > 35:
+        report += "• ⚠️ Temperatura alta - riesgo de agotamiento\n"
+    else:
+        report += "• ✅ Temperatura óptima para el tenis\n"
+    
+    if forecast['precip'] > 5:
+        report += "• ⚠️ Precipitación significativa - posible retraso\n"
+    elif forecast['precip'] > 0:
+        report += "• ⚠️ Lluvia ligera - condiciones húmedas\n"
+    else:
+        report += "• ✅ Sin precipitación - condiciones ideales\n"
+    
+    if forecast['wind'] > 20:
+        report += "• ⚠️ Viento fuerte - puede afectar el juego\n"
+    elif forecast['wind'] > 10:
+        report += "• ⚠️ Viento moderado - condiciones variables\n"
+    else:
+        report += "• ✅ Viento suave - condiciones estables\n"
+    
+    return report

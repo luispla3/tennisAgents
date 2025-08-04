@@ -4,8 +4,8 @@ from tennisAgents.utils.enumerations import *
 
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
-        current_date = state[STATE.match_date]
-        location = state.get(STATE.location, "Valencia")
+        match_date = state[STATE.match_date]
+        location = state.get(STATE.location, "Wimbledon")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
@@ -19,10 +19,12 @@ def create_weather_analyst(llm, toolkit):
         # Mensaje al sistema para enfocar el análisis
         system_message = (
             f"Eres un analista meteorológico especializado en tenis. Tu tarea es evaluar las condiciones climáticas "
-            f"esperadas para el día {current_date} en {location}, sede del torneo {tournament}, donde jugarán {player} contra {opponent}.\n\n"
+            f"esperadas para el día {match_date} en {location}, sede del torneo {tournament}, donde jugarán {player} contra {opponent}.\n\n"
             "Analiza cómo la temperatura, el viento, la humedad o la posibilidad de lluvia pueden afectar el juego. "
             "Considera el estilo de ambos jugadores y si alguno tiene un historial de mal rendimiento o lesiones bajo ciertas condiciones.\n\n"
             "Finaliza con un resumen en formato tabla Markdown de los factores clave."
+            "IMPORTANTE: haz solo una llamada a la herramienta get_weather_forecast, y usa la información de manera eficiente y completa."
+            
         )
 
         # Definición del prompt con historial y herramientas
@@ -32,6 +34,8 @@ def create_weather_analyst(llm, toolkit):
                     "system",
                     "Eres un asistente experto en meteorología deportiva colaborando con otros analistas. "
                     "Usa las siguientes herramientas para recopilar y analizar datos climáticos:\n\n"
+                    "IMPORTANTE: haz solo una llamada a la herramienta get_weather_forecast, y usa la información de manera eficiente y completa."
+                    "IMPORTANTE: las latitud y longitud son las coordenadas de la ubicación del torneo, y la fecha y hora son la fecha y hora del partido."
                     "{tool_names}\n\n"
                     "{system_message}"
                 ),
