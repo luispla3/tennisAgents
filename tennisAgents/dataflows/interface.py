@@ -105,22 +105,28 @@ def get_atp_rankings() -> str:
     result = "## Ranking ATP actual:\n\n"
     for jugador in rankings:
         result += f"{jugador['position']}. {jugador['name']} (ID: {jugador['id']}) - {jugador['point']} pts\n"
+    
+    #debug
+    print(f"[DEBUG] Resultado de get_atp_rankings: {result}")
     return result
 
 
-def get_recent_matches(player_name: str, num_matches: int = 5) -> str:
+def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) -> str:
     """
-    Devuelve los últimos partidos jugados por el jugador especificado.
+     Devuelve los últimos partidos jugados entre dos jugadores específicos.
+     Utiliza el endpoint getH2HMatches de la API de tenis.
     """
-    matches = fetch_recent_matches(player_name, num_matches)
+    matches = fetch_recent_matches(player_id, opponent_id, num_matches)
 
     if not matches:
-        return f"No se encontraron partidos recientes para {player_name}."
+        return f"No se encontraron partidos recientes entre los jugadores con IDs {player_id} y {opponent_id}."
 
-    result = f"## Últimos {num_matches} partidos de {player_name}:\n\n"
+    result = f"## Últimos {len(matches)} partidos entre jugadores (IDs: {player_id} vs {opponent_id}):\n\n"
     for m in matches:
-        result += f"- {m['date']} | {m['tournament']} | vs {m['opponent']} | Resultado: {m['result']} | Superficie: {m['surface']}\n"
+        result += f"- **{m['date']}** | {m['tournament']} | vs {m['opponent']} | **Resultado: {m['result']}** | Superficie: {m['surface']} | Ganador: {m['winner']}\n"
 
+    #debug
+    print(f"[DEBUG] Resultado de get_recent_matches: {result}")
     return result
 
 
@@ -132,6 +138,9 @@ def get_surface_winrate(player_name: str, surface: str) -> str:
 
     if not stats:
         return f"No se encontraron datos sobre {player_name} en {surface}."
+
+    #debug
+    print(f"[DEBUG] Resultado de get_surface_winrate: {stats}")
 
     return (
         f"## Rendimiento de {player_name} en {surface}:\n\n"
@@ -202,6 +211,9 @@ def get_head_to_head(player1: int, player2: int) -> str:
                 resumen += f"- {date} | {tournament} | {winner} ganó {score} (Superficie: {surface})\n"
         else:
             resumen += "**Últimos partidos:** No hay información de partidos recientes disponible\n"
+        
+        #debug
+        print(f"[DEBUG] Resultado de get_head_to_head: {resumen}")
 
         return resumen
         
@@ -247,6 +259,9 @@ def get_injury_reports() -> str:
         
         if not result:
             return "No se encontraron registros de lesiones actuales."
+        
+        #debug
+        print(f"[DEBUG] Resultado de get_injury_reports: {result}")
         
         return "\n".join(result)
         

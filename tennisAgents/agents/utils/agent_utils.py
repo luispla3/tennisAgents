@@ -107,11 +107,12 @@ class Toolkit:
 
     @tool
     def get_recent_matches(
-        player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
-        num_matches: Annotated[int, "Número de partidos recientes"] = 30,
+       player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
+       opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
+       num_matches: Annotated[int, "Número de partidos recientes"] = 30,
     ) -> str:
         """Obtiene los últimos partidos jugados entre dos jugadores específicos. IMPORTANTE: Primero usa get_atp_rankings para obtener los IDs de los jugadores, luego usa esos IDs aquí."""
-        return interface.get_recent_matches(player_id, num_matches)
+        return interface.get_recent_matches(player_id, opponent_id, num_matches)
 
     @tool
     def get_surface_winrate(
