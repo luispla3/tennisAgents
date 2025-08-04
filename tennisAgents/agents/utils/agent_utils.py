@@ -82,6 +82,14 @@ class Toolkit:
         return interface.get_tennis_odds(tournament_key)
 
     @tool
+    def get_tournament_surface(
+        tournament_name: Annotated[str, "Nombre del torneo (ej: 'Canadian Open', 'US Open', 'Wimbledon')"]
+    ) -> str:
+        """Obtiene la superficie (hard, clay, grass) donde se juega un torneo específico y actualiza el estado."""
+        surface = interface.get_tournament_surface(tournament_name)
+        return f"La superficie del torneo {tournament_name} es: {surface}"
+
+    @tool
     def get_mock_odds_data(
         player1: Annotated[str, "Nombre del jugador 1"],
         player2: Annotated[str, "Nombre del jugador 2"],

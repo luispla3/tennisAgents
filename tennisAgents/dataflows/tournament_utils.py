@@ -7,6 +7,76 @@ from typing import Dict, List, Optional
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
 RAPIDAPI_HOST = "ultimate-tennis1.p.rapidapi.com"
 
+# Diccionario de superficies conocidas por torneo
+TOURNAMENT_SURFACES = {
+    "australian_open": "hard",
+    "french_open": "clay", 
+    "wimbledon": "grass",
+    "us_open": "hard",
+    
+    "indian_wells": "hard",
+    "miami_open": "hard",
+    "monte_carlo": "clay",
+    "madrid_open": "clay",
+    "italian_open": "clay",
+    "canadian_open": "hard",
+    "cincinnati_open": "hard",
+    "shanghai_masters": "hard",
+    "paris_masters": "hard",
+    
+    "dubai": "hard",
+    "qatar_open": "hard",
+    "china_open": "hard",
+
+    "wta_australian_open": "hard",
+    "wta_french_open": "clay",
+    "wta_wimbledon": "grass",
+    "wta_us_open": "hard",
+    "wta_indian_wells": "hard",
+    "wta_miami_open": "hard",
+    "wta_madrid_open": "clay",
+    "wta_italian_open": "clay",
+    "wta_canadian_open": "hard",
+    "wta_cincinnati_open": "hard",
+    "wta_dubai": "hard",
+    "wta_qatar_open": "hard",
+    "wta_china_open": "hard",
+    "wta_wuhan_open": "hard",
+}
+
+def get_tournament_surface(tournament_key: str) -> str:
+    """
+    Obtiene la superficie de un torneo basándose en el nombre del torneo.
+    
+    Args:
+        tournament_key (str): Key del torneo
+        
+    Returns:
+        str: Superficie del torneo ('hard', 'clay', 'grass') o 'hard' como fallback
+    """
+    # Normalizar el nombre del torneo
+    tournament_normalized = tournament_key.lower().strip()
+    
+    # Buscar coincidencia exacta
+    if tournament_normalized in TOURNAMENT_SURFACES:
+        return TOURNAMENT_SURFACES[tournament_normalized]
+    
+    # Buscar coincidencias parciales
+    for key, surface in TOURNAMENT_SURFACES.items():
+        if key in tournament_normalized or tournament_normalized in key:
+            return surface
+    
+    # Fallback basado en palabras clave
+    if any(keyword in tournament_normalized for keyword in ["clay", "terre", "arcilla"]):
+        return "clay"
+    elif any(keyword in tournament_normalized for keyword in ["grass", "hierba", "césped"]):
+        return "grass"
+    elif any(keyword in tournament_normalized for keyword in ["hard", "dura", "cemento"]):
+        return "hard"
+    
+    # Fallback por defecto (la mayoría de torneos son hard court)
+    return "hard"
+
 
 def get_tournament_list(year: Optional[int] = None, category: str = "atpgs") -> Dict:
     """

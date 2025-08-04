@@ -1,4 +1,5 @@
 from .news_utils import fetch_news
+from .tournament_utils import get_tournament_surface
 from .odds_utils import fetch_tennis_odds, generate_mock_odds
 from .odds_utils import generate_mock_odds
 from .player_utils import fetch_atp_rankings
@@ -74,6 +75,12 @@ def get_tennis_odds(tournament_key: str) -> str:
     odds_data = fetch_tennis_odds(tournament_key)
     return json.dumps(odds_data, indent=2)
 
+def get_tournament_surface(tournament_name: str) -> str:
+    """
+    Obtiene la superficie de un torneo específico.
+    """
+    return get_tournament_surface(tournament_name)
+
 def get_mock_odds_data(player1: str, player2: str) -> str:
     """
     Devuelve una simulación realista de cuotas para un partido entre dos jugadores.
@@ -88,173 +95,84 @@ def get_mock_odds_data(player1: str, player2: str) -> str:
 
 def get_atp_rankings() -> str:
     """
-    Consulta el ranking ATP actual y lo devuelve formateado con los IDs de los jugadores.
+    Consulta el ranking ATP actual y lo devuelve formateado.
     """
     rankings = fetch_atp_rankings()
 
     if not rankings:
         return "No se pudo obtener el ranking ATP."
 
-    result = "## Ranking ATP actual (con IDs de jugadores):\n\n"
+    result = "## Ranking ATP actual:\n\n"
     for jugador in rankings:
-        player_id = jugador.get('id', 'N/D')
-        result += f"{jugador['position']}. {jugador['name']} (ID: {player_id}) - {jugador['point']} pts\n"
-    
-    result += "\n**Nota**: Usa estos IDs para llamar a get_recent_matches con los IDs correctos de los jugadores."
+        result += f"{jugador['rank']}. {jugador['name']} ({jugador['country']}) - {jugador['points']} pts\n"
     return result
 
 
-def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) -> str:
+def get_recent_matches(player_name: str, num_matches: int = 5) -> str:
     """
-    Devuelve los últimos partidos jugados entre dos jugadores específicos.
-    Utiliza el endpoint getH2HMatches de la API de tenis.
+    Devuelve los últimos partidos jugados por el jugador especificado.
     """
-    matches = fetch_recent_matches(player_id, opponent_id, num_matches)
+    matches = fetch_recent_matches(player_name, num_matches)
 
     if not matches:
-        return f"No se encontraron partidos recientes entre los jugadores con IDs {player_id} y {opponent_id}."
+        return f"No se encontraron partidos recientes para {player_name}."
 
-    result = f"## Últimos {len(matches)} partidos entre jugadores (IDs: {player_id} vs {opponent_id}):\n\n"
+    result = f"## Últimos {num_matches} partidos de {player_name}:\n\n"
     for m in matches:
-        result += f"- **{m['date']}** | {m['tournament']} | vs {m['opponent']} | **Resultado: {m['result']}** | Superficie: {m['surface']} | Ganador: {m['winner']}\n"
+        result += f"- {m['date']} | {m['tournament']} | vs {m['opponent']} | Resultado: {m['result']} | Superficie: {m['surface']}\n"
 
-    
     return result
 
 
-def get_surface_winrate(player_id: int, surface: str) -> str:
+def get_surface_winrate(player_name: str, surface: str) -> str:
     """
     Devuelve el porcentaje de victorias del jugador en una superficie específica.
-    Usa directamente el ID del jugador proporcionado.
     """
-    # Usar directamente el ID proporcionado para obtener los datos de superficie
-    stats = fetch_surface_winrate(player_id, surface)
+    stats = fetch_surface_winrate(player_name, surface)
 
     if not stats:
-        return f"No se encontraron datos sobre el jugador con ID {player_id} en {surface}."
+        return f"No se encontraron datos sobre {player_name} en {surface}."
 
     return (
-        f"## Rendimiento del jugador (ID: {player_id}) en {surface}:\n\n"
+        f"## Rendimiento de {player_name} en {surface}:\n\n"
         f"- Partidos ganados: {stats['wins']}\n"
         f"- Partidos perdidos: {stats['losses']}\n"
         f"- Winrate: {stats['winrate']}%"
     )
 
 
-def get_head_to_head(player1: int, player2: int) -> str:
+def get_head_to_head(player1: str, player2: str) -> str:
     """
-    Devuelve las estadísticas H2H entre dos jugadores de tenis.
+    Devuelve el historial H2H entre dos jugadores de tenis.
     """
     data = fetch_head_to_head(player1, player2)
-    
-    if not data:
-        return f"No se encontraron estadísticas H2H entre los jugadores {player1} y {player2}."
-    
-    matches_count = data.get("matches_count", "0")
-    player1_stats = data.get("player1_stats", {})
-    player2_stats = data.get("player2_stats", {})
-    
-    # Formatear estadísticas del jugador 1
-    p1_formatted = ""
-    if player1_stats:
-        p1_formatted = f"**Jugador 1 (ID: {player1}):**\n"
-        p1_formatted += f"- Partidos jugados: {player1_stats.get('statMatchesPlayed', 'N/A')}\n"
-        p1_formatted += f"- Partidos ganados: {player1_stats.get('matchesWon', 'N/A')}\n"
-        p1_formatted += f"- Porcentaje victorias: {round((player1_stats.get('matchesWon', 0) / player1_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
-        p1_formatted += f"- Primer servicio: {player1_stats.get('firstServe', 'N/A')}/{player1_stats.get('firstServeOf', 'N/A')} ({player1_stats.get('firstServePercentage', 'N/A')}%)\n"
-        p1_formatted += f"- Aces: {player1_stats.get('aces', 'N/A')}\n"
-        p1_formatted += f"- Dobles faltas: {player1_stats.get('doubleFaults', 'N/A')}\n"
-        p1_formatted += f"- Errores no forzados: {player1_stats.get('unforcedErrors', 'N/A')}\n"
-        p1_formatted += f"- Winners: {player1_stats.get('winners', 'N/A')}\n"
-        p1_formatted += f"- Break points convertidos: {player1_stats.get('breakPointsConverted', 'N/A')}/{player1_stats.get('breakPointsConvertedOf', 'N/A')} ({player1_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
-        p1_formatted += f"- Sets ganados: {player1_stats.get('setsWon', 'N/A')}\n"
-        p1_formatted += f"- Juegos ganados: {player1_stats.get('gamesWon', 'N/A')}\n"
-        p1_formatted += f"- Títulos: {player1_stats.get('title', 'N/A')}\n"
-        p1_formatted += f"- Grand Slams: {player1_stats.get('grandSlam', 'N/A')}\n"
-        p1_formatted += f"- Masters: {player1_stats.get('masters', 'N/A')}\n"
-        p1_formatted += f"- Superficies - Hard: {player1_stats.get('hard', 'N/A')}, Clay: {player1_stats.get('clay', 'N/A')}, Indoor: {player1_stats.get('iHard', 'N/A')}, Grass: {player1_stats.get('grass', 'N/A')}\n"
-    
-    # Formatear estadísticas del jugador 2
-    p2_formatted = ""
-    if player2_stats:
-        p2_formatted = f"**Jugador 2 (ID: {player2}):**\n"
-        p2_formatted += f"- Partidos jugados: {player2_stats.get('statMatchesPlayed', 'N/A')}\n"
-        p2_formatted += f"- Partidos ganados: {player2_stats.get('matchesWon', 'N/A')}\n"
-        p2_formatted += f"- Porcentaje victorias: {round((player2_stats.get('matchesWon', 0) / player2_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
-        p2_formatted += f"- Primer servicio: {player2_stats.get('firstServe', 'N/A')}/{player2_stats.get('firstServeOf', 'N/A')} ({player2_stats.get('firstServePercentage', 'N/A')}%)\n"
-        p2_formatted += f"- Aces: {player2_stats.get('aces', 'N/A')}\n"
-        p2_formatted += f"- Dobles faltas: {player2_stats.get('doubleFaults', 'N/A')}\n"
-        p2_formatted += f"- Errores no forzados: {player2_stats.get('unforcedErrors', 'N/A')}\n"
-        p2_formatted += f"- Winners: {player2_stats.get('winners', 'N/A')}\n"
-        p2_formatted += f"- Break points convertidos: {player2_stats.get('breakPointsConverted', 'N/A')}/{player2_stats.get('breakPointsConvertedOf', 'N/A')} ({player2_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
-        p2_formatted += f"- Sets ganados: {player2_stats.get('setsWon', 'N/A')}\n"
-        p2_formatted += f"- Juegos ganados: {player2_stats.get('gamesWon', 'N/A')}\n"
-        p2_formatted += f"- Títulos: {player2_stats.get('title', 'N/A')}\n"
-        p2_formatted += f"- Grand Slams: {player2_stats.get('grandSlam', 'N/A')}\n"
-        p2_formatted += f"- Masters: {player2_stats.get('masters', 'N/A')}\n"
-        p2_formatted += f"- Superficies - Hard: {player2_stats.get('hard', 'N/A')}, Clay: {player2_stats.get('clay', 'N/A')}, Indoor: {player2_stats.get('iHard', 'N/A')}, Grass: {player2_stats.get('grass', 'N/A')}\n"
-    
-    result = f"**Estadísticas Head-to-Head**\n"
-    result += f"Total de partidos: {matches_count}\n\n"
-    result += p1_formatted + "\n" + p2_formatted
-    
-    print(f"[DEBUG] Resultado final de get_head_to_head: {result}")
-    return result
 
-def get_injury_reports() -> str:
-    data = fetch_injury_reports()
     if not data:
-        return f"No se encontraron registros de lesión o retorno para ningún jugador."
-    
-    # Verificar si data tiene la estructura correcta
-    if isinstance(data, dict) and 'injured_players' in data:
-        # Nueva estructura de datos
-        injured_players = data['injured_players']
-        returning_players = data.get('returning_players', [])
-        
-        formatted = ""
-        
-        # Mostrar jugadores lesionados
-        if injured_players:
-            formatted += "🏥 JUGADORES LESIONADOS:\n"
-            formatted += "-" * 40 + "\n"
-            formatted += "\n".join([
-                f"{entry['date']}: {entry['player_name']} - {entry['tournament']} - {entry['reason']}"
-                for entry in injured_players[:15]  # Mostrar solo los primeros 15
-            ])
-            
-            total_injured = data.get('total_injured', len(injured_players))
-            formatted += f"\n\n📊 Total lesionados: {total_injured} jugadores"
-        else:
-            formatted += "🏥 No se encontraron jugadores lesionados.\n"
-        
-        # Mostrar jugadores que regresan
-        if returning_players:
-            formatted += "\n\n✅ JUGADORES QUE REGRESAN:\n"
-            formatted += "-" * 40 + "\n"
-            formatted += "\n".join([
-                f"{entry['date']}: {entry['player_name']} - {entry['tournament']} - {entry['status']}"
-                for entry in returning_players[:15]  # Mostrar solo los primeros 15
-            ])
-            
-            total_returning = data.get('total_returning', len(returning_players))
-            formatted += f"\n\n📊 Total que regresan: {total_returning} jugadores"
-        else:
-            formatted += "\n\n✅ No se encontraron jugadores que regresen de lesiones.\n"
-        
-        # Resumen general
-        total_injured = data.get('total_injured', len(injured_players))
-        total_returning = data.get('total_returning', len(returning_players))
-        formatted += f"\n\n📈 RESUMEN GENERAL: {total_injured} lesionados, {total_returning} que regresan"
-        
-    else:
-        # Estructura antigua (fallback)
-        formatted = "\n".join([
-            f"{entry['date']}: {entry.get('player_name', entry.get('player', 'N/A'))} - {entry.get('tournament', 'N/A')} - {entry.get('reason', 'N/A')}"
-            for entry in data if isinstance(data, list)
-        ])
+        return f"No se encontró historial H2H entre {player1} y {player2}."
 
-    print(f"[DEBUG] Resultado final de get_injury_reports: {formatted}")
+    resumen = f"## Historial H2H entre {player1} y {player2}:\n\n"
+    resumen += f"- Victorias de {player1}: {data['wins_p1']}\n"
+    resumen += f"- Victorias de {player2}: {data['wins_p2']}\n"
+    resumen += f"- Total de enfrentamientos: {data['total']}\n\n"
+
+    resumen += "### Últimos partidos:\n"
+    for match in data["recent_matches"]:
+        resumen += (
+            f"- {match['date']} | {match['tournament']} | {match['winner']} ganó en {match['score']} "
+            f"(Superficie: {match['surface']})\n"
+        )
+
+    return resumen
+
+def get_injury_reports(player_name: str) -> str:
+    data = fetch_injury_reports(player_name)
+    if not data:
+        return f"No se encontraron registros de lesión o retorno para {player_name}."
+    
+    formatted = "\n".join([
+        f"{entry['date']}: {entry['player']} ({entry['status']}) - {entry['tournament']} - {entry['reason']}"
+        for entry in data
+    ])
     return formatted
 
 
