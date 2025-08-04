@@ -1,5 +1,5 @@
 from .news_utils import fetch_news
-from .tournament_utils import get_tournament_surface
+from .tournament_utils import get_tournament_surface as get_tournament_surface_impl
 from .odds_utils import fetch_tennis_odds, generate_mock_odds
 from .odds_utils import generate_mock_odds
 from .player_utils import fetch_atp_rankings
@@ -74,11 +74,11 @@ def get_tennis_odds(tournament_key: str) -> str:
     odds_data = fetch_tennis_odds(tournament_key)
     return json.dumps(odds_data, indent=2)
 
-def get_tournament_surface(tournament_name: str) -> str:
+def get_tournament_surface(tournament_key: str) -> str:
     """
     Obtiene la superficie de un torneo específico.
     """
-    return get_tournament_surface(tournament_name)
+    return get_tournament_surface_impl(tournament_key)
 
 def get_mock_odds_data(player1: str, player2: str) -> str:
     """
@@ -103,7 +103,8 @@ def get_atp_rankings() -> str:
 
     result = "## Ranking ATP actual:\n\n"
     for jugador in rankings:
-        result += f"{jugador['rank']}. {jugador['name']} ({jugador['country']}) - {jugador['points']} pts\n"
+        result += f"{jugador['position']}. {jugador['name']} (ID: {jugador['id']}) - {jugador['point']} pts\n"
+    print(f"Ranking ATP: {result}")
     return result
 
 
@@ -150,9 +151,9 @@ def get_head_to_head(player1: str, player2: str) -> str:
         return f"No se encontró historial H2H entre {player1} y {player2}."
 
     resumen = f"## Historial H2H entre {player1} y {player2}:\n\n"
-    resumen += f"- Victorias de {player1}: {data['wins_p1']}\n"
-    resumen += f"- Victorias de {player2}: {data['wins_p2']}\n"
-    resumen += f"- Total de enfrentamientos: {data['total']}\n\n"
+    resumen += f"- Victorias de {player1}: {data['player1_stats']}\n"
+    resumen += f"- Victorias de {player2}: {data['player2_stats']}\n"
+    resumen += f"- Total de enfrentamientos: {data['matches_count']}\n\n"
 
     resumen += "### Últimos partidos:\n"
     for match in data["recent_matches"]:
@@ -161,20 +162,61 @@ def get_head_to_head(player1: str, player2: str) -> str:
             f"(Superficie: {match['surface']})\n"
         )
 
+    print(f"Historial H2H: {data}")
+
     return resumen
 
-def get_injury_reports(player_name: str) -> str:
-    data = fetch_injury_reports(player_name)
-    if not data:
-        return f"No se encontraron registros de lesión o retorno para {player_name}."
-    
-    formatted = "\n".join([
-        f"{entry['date']}: {entry['player']} ({entry['status']}) - {entry['tournament']} - {entry['reason']}"
-        for entry in data
-    ])
-    return formatted
-
-
+def get_injury_reports() -> str:
+    try:
+        data = fetch_injury_reports()
+        if not data:
+            return "No se encontraron registros de lesiones."
+        
+        print(f"Injury Reports:", data)
+        
+        result = []
+        
+        # Process injured players
+        injured_players = data.get('injured_players', [])
+        if injured_players:
+            result.append("JUGADORES LESIONADOS:")
+            for entry in injured_players:
+                try:
+                    player_name = entry.get('player_name', 'N/A')
+                    reason = entry.get('reason', 'N/A')
+                    date = entry.get('date', 'N/A')
+                    tournament = entry.get('tournament', 'N/A')
+                    result.append(f"- {player_name}: {reason} (Fecha: {date}, Torneo: {tournament})")
+                except Exception as e:
+                    print(f"Error processing injured player entry: {e}")
+                    print(f"Entry data: {entry}")
+                    result.append(f"- Error processing player data: {str(entry)}")
+        
+        # Process returning players
+        returning_players = data.get('returning_players', [])
+        if returning_players:
+            result.append("\nJUGADORES EN REGRESO:")
+            for entry in returning_players:
+                try:
+                    player_name = entry.get('player_name', 'N/A')
+                    date = entry.get('date', 'N/A')
+                    tournament = entry.get('tournament', 'N/A')
+                    # Returning players don't have 'reason', they have 'status'
+                    status = entry.get('status', 'returning from injury')
+                    result.append(f"- {player_name}: {status} (Fecha: {date}, Torneo: {tournament})")
+                except Exception as e:
+                    print(f"Error processing returning player entry: {e}")
+                    print(f"Entry data: {entry}")
+                    result.append(f"- Error processing player data: {str(entry)}")
+        
+        if not result:
+            return "No se encontraron registros de lesiones actuales."
+        
+        return "\n".join(result)
+        
+    except Exception as e:
+        print(f"Error in get_injury_reports: {e}")
+        return f"Error al obtener reportes de lesiones: {str(e)}"
 def get_twitter_posts(player_name: str) -> str:
     """
     Usa NewsAPI para simular un análisis de sentimiento como si fuese de Twitter.

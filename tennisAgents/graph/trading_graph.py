@@ -97,6 +97,7 @@ class TennisAgentsGraph:
             ),
             "players": ToolNode(
                 [
+                    self.toolkit.get_tournament_surface,
                     self.toolkit.get_atp_rankings,
                     self.toolkit.get_recent_matches,
                     self.toolkit.get_surface_winrate,

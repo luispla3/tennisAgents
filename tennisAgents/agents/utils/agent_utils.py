@@ -83,11 +83,11 @@ class Toolkit:
 
     @tool
     def get_tournament_surface(
-        tournament_name: Annotated[str, "Nombre del torneo (ej: 'Canadian Open', 'US Open', 'Wimbledon')"]
+        tournament_key: Annotated[str, "key del torneo (ej: 'Canadian Open', 'US Open', 'Wimbledon')"]
     ) -> str:
         """Obtiene la superficie (hard, clay, grass) donde se juega un torneo específico y actualiza el estado."""
-        surface = interface.get_tournament_surface(tournament_name)
-        return f"La superficie del torneo {tournament_name} es: {surface}"
+        surface = interface.get_tournament_surface(tournament_key)
+        return f"La superficie del torneo {tournament_key} es: {surface}"
 
     @tool
     def get_mock_odds_data(
@@ -108,11 +108,10 @@ class Toolkit:
     @tool
     def get_recent_matches(
         player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
-        opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
         num_matches: Annotated[int, "Número de partidos recientes"] = 30,
     ) -> str:
         """Obtiene los últimos partidos jugados entre dos jugadores específicos. IMPORTANTE: Primero usa get_atp_rankings para obtener los IDs de los jugadores, luego usa esos IDs aquí."""
-        return interface.get_recent_matches(player_id, opponent_id, num_matches)
+        return interface.get_recent_matches(player_id, num_matches)
 
     @tool
     def get_surface_winrate(
@@ -132,7 +131,7 @@ class Toolkit:
 
     @tool
     def get_injury_reports() -> str:
-        """Obtiene reportes de lesiones de todos los jugadores"""
+        """Obtiene reportes de lesiones para un jugador específico"""
         return interface.get_injury_reports()
 
     # SOCIAL MEDIA ANALYST TOOLS
