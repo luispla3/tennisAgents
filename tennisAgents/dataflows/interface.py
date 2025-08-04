@@ -105,7 +105,6 @@ def get_atp_rankings() -> str:
     result = "## Ranking ATP actual:\n\n"
     for jugador in rankings:
         result += f"{jugador['position']}. {jugador['name']} (ID: {jugador['id']}) - {jugador['point']} pts\n"
-    print(f"Ranking ATP: {result}")
     return result
 
 
@@ -204,12 +203,9 @@ def get_head_to_head(player1: int, player2: int) -> str:
         else:
             resumen += "**Últimos partidos:** No hay información de partidos recientes disponible\n"
 
-        print(f"Historial H2H: {resumen}")
-
         return resumen
         
     except Exception as e:
-        print(f"Error in get_head_to_head: {e}")
         return f"Error al obtener historial H2H entre {player1} y {player2}: {str(e)}"
 
 def get_injury_reports() -> str:
@@ -217,8 +213,6 @@ def get_injury_reports() -> str:
         data = fetch_injury_reports()
         if not data:
             return "No se encontraron registros de lesiones."
-        
-        print(f"Injury Reports:", data)
         
         result = []
         
@@ -234,8 +228,6 @@ def get_injury_reports() -> str:
                     tournament = entry.get('tournament', 'N/A')
                     result.append(f"- {player_name}: {reason} (Fecha: {date}, Torneo: {tournament})")
                 except Exception as e:
-                    print(f"Error processing injured player entry: {e}")
-                    print(f"Entry data: {entry}")
                     result.append(f"- Error processing player data: {str(entry)}")
         
         # Process returning players
@@ -251,8 +243,6 @@ def get_injury_reports() -> str:
                     status = entry.get('status', 'returning from injury')
                     result.append(f"- {player_name}: {status} (Fecha: {date}, Torneo: {tournament})")
                 except Exception as e:
-                    print(f"Error processing returning player entry: {e}")
-                    print(f"Entry data: {entry}")
                     result.append(f"- Error processing player data: {str(entry)}")
         
         if not result:
@@ -261,7 +251,6 @@ def get_injury_reports() -> str:
         return "\n".join(result)
         
     except Exception as e:
-        print(f"Error in get_injury_reports: {e}")
         return f"Error al obtener reportes de lesiones: {str(e)}"
 def get_twitter_posts(player_name: str) -> str:
     """
@@ -410,8 +399,6 @@ def get_weather_forecast(tournament: str, fecha_hora: str, latitude: float, long
     """
     
     weather_data = fetch_weather_forecast(latitude, longitude, fecha_hora, tournament)
-    
-    print(f"[DEBUG] Datos meteorológicos: {weather_data}")
     return format_weather_report(weather_data)
 
 import random

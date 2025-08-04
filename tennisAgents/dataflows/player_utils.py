@@ -22,7 +22,6 @@ def scrape_injured_players(page_url: str) -> list:
         List of dictionaries containing injured player data
     """
     try:
-        print(f"[DEBUG] Scraping injured players from: {page_url}")
         
         # Headers to mimic a real browser request
         headers = {
@@ -37,7 +36,6 @@ def scrape_injured_players(page_url: str) -> list:
         response = requests.get(page_url, headers=headers, timeout=15)
         
         if response.status_code != 200:
-            print(f"[ERROR] Failed to fetch page {page_url}: {response.status_code}")
             return []
         
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -46,7 +44,6 @@ def scrape_injured_players(page_url: str) -> list:
         table = soup.find('table', class_='result flags injured')
         
         if not table:
-            print(f"[ERROR] Could not find injured players table on page {page_url}")
             return []
         
         injured_players = []
@@ -101,17 +98,13 @@ def scrape_injured_players(page_url: str) -> list:
                     injured_players.append(player_data)
                     
                 except Exception as e:
-                    print(f"[WARNING] Error processing row: {e}")
                     continue
         
-        print(f"[INFO] Scraped {len(injured_players)} injured players from {page_url}")
         return injured_players
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Network error scraping {page_url}: {e}")
         return []
     except Exception as e:
-        print(f"[ERROR] Unexpected error scraping {page_url}: {e}")
         return []
 
 
@@ -126,8 +119,7 @@ def scrape_returning_players(page_url: str) -> list:
         List of dictionaries containing returning player data
     """
     try:
-        print(f"[DEBUG] Scraping returning players from: {page_url}")
-        
+
         # Headers to mimic a real browser request
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
@@ -141,7 +133,6 @@ def scrape_returning_players(page_url: str) -> list:
         response = requests.get(page_url, headers=headers, timeout=15)
         
         if response.status_code != 200:
-            print(f"[ERROR] Failed to fetch page {page_url}: {response.status_code}")
             return []
         
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -150,7 +141,6 @@ def scrape_returning_players(page_url: str) -> list:
         table = soup.find('table', class_='result flags injured')
         
         if not table:
-            print(f"[ERROR] Could not find returning players table on page {page_url}")
             return []
         
         returning_players = []
@@ -201,17 +191,13 @@ def scrape_returning_players(page_url: str) -> list:
                     returning_players.append(player_data)
                     
                 except Exception as e:
-                    print(f"[WARNING] Error processing returning player row: {e}")
                     continue
         
-        print(f"[INFO] Scraped {len(returning_players)} returning players from {page_url}")
         return returning_players
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Network error scraping {page_url}: {e}")
         return []
     except Exception as e:
-        print(f"[ERROR] Unexpected error scraping {page_url}: {e}")
         return []
 
 
@@ -240,7 +226,6 @@ def fetch_injury_reports() -> dict:
     
     # Scrape all pages for injured players
     for url in injured_urls:
-        print(f"[DEBUG] Scraping injured players from page: {url}")
         page_players = scrape_injured_players(url)
         all_injured_players.extend(page_players)
         
@@ -248,12 +233,9 @@ def fetch_injury_reports() -> dict:
         import time
         time.sleep(1)
     
-    print(f"[INFO] Total injured players scraped: {len(all_injured_players)}")
     
     # Scrape returning players
-    print(f"[DEBUG] Scraping returning players from: {returning_url}")
     returning_players = scrape_returning_players(returning_url)
-    print(f"[INFO] Total returning players scraped: {len(returning_players)}")
     
     return {
         'injured_players': all_injured_players,
@@ -283,33 +265,20 @@ def fetch_atp_rankings() -> list:
     params = {}
 
     try:
-        print(f"[DEBUG] Intentando obtener ranking ATP desde RapidAPI...")
-        print(f"[DEBUG] URL: {url}")
         response = requests.get(url, headers=headers, params=params, timeout=10)
 
-        print(f"[DEBUG] Status code: {response.status_code}")
-        
         if response.status_code == 401:
-            print("[ERROR] API key inválida o no autorizada")
             return []
         elif response.status_code == 403:
-            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
             return []
         elif response.status_code != 200:
-            print(f"[ERROR] Fallo al obtener ranking ATP: {response.status_code}")
-            print(f"[DEBUG] Response: {response.text}")
             return []
 
         data = response.json()
-        print(f"[DEBUG] Datos recibidos de RapidAPI")
-        print(f"[DEBUG] Response keys: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
-        
         rankings = []
 
         # Según la imagen de RapidAPI, los datos están en data["data"]
         players_data = data.get("data", [])
-        
-        print(f"[DEBUG] Jugadores disponibles en API: {len(players_data)}")
         
         for i, player_data in enumerate(players_data[:20]):  # Top 20
             # Extraer los datos que necesitamos: ID, nombre, puntos y posición
@@ -325,17 +294,11 @@ def fetch_atp_rankings() -> list:
                 "point": points,
                 "position": position
             })
-            
-            print(f"[DEBUG] Jugador procesado: {position}. {player_name} (ID: {player_id}) - {points} pts")
-
-        print(f"[INFO] Ranking ATP obtenido exitosamente: {len(rankings)} jugadores")
         return rankings
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener ranking ATP: {e}")
         return []
     except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener ranking ATP: {e}")
         return []
 
 
@@ -357,41 +320,25 @@ def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30
     params = {}
 
     try:
-        print(f"[DEBUG] Intentando obtener partidos recientes entre jugadores {player_id} y {opponent_id}...")
-        print(f"[DEBUG] URL: {url}")
-        print(f"[DEBUG] Params: {params}")
         
         response = requests.get(url, headers=headers, params=params, timeout=10)
-        
-        print(f"[DEBUG] Status code: {response.status_code}")
-        
+
         if response.status_code == 401:
-            print("[ERROR] API key inválida o no autorizada")
             return []
         elif response.status_code == 403:
-            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
             return []
         elif response.status_code != 200:
-            print(f"[ERROR] Fallo al obtener partidos recientes: {response.status_code}")
-            print(f"[DEBUG] Response: {response.text}")
             return []
 
         data = response.json()
-        print(f"[DEBUG] Datos recibidos de RapidAPI")
-        print(f"[DEBUG] Response keys: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
-        
         matches = data.get("data", [])
         
         if not matches:
-            print(f"[INFO] No se encontraron partidos entre los jugadores {player_id} y {opponent_id}")
             return []
-        
-        print(f"[DEBUG] Partidos encontrados: {len(matches)}")
-        
+
         # Procesar los partidos y limitar al número solicitado
         processed_matches = []
         for i, match in enumerate(matches[:num_matches]):
-            print(f"[DEBUG] Procesando partido {i+1}: {match}")
             
             # Extraer datos según la estructura de la API
             match_date = match.get("date", "")
@@ -421,16 +368,11 @@ def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30
                 "winner": winner_name
             })
             
-            print(f"[DEBUG] Partido procesado: {match_date[:10]} | Tournament ID: {match.get('tournamentId', 'N/D')} | vs {opponent_name} | Resultado: {result}")
-
-        print(f"[INFO] Partidos recientes obtenidos exitosamente: {len(processed_matches)} partidos")
         return processed_matches
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener partidos recientes: {e}")
         return []
     except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener partidos recientes: {e}")
         return []
 
 
@@ -454,7 +396,6 @@ def fetch_surface_winrate(player_id: int, surface: str) -> dict:
     
     court_id = surface_mapping.get(surface.lower())
     if not court_id:
-        print(f"[ERROR] Superficie '{surface}' no soportada. Superficies válidas: hard, clay, i.hard, grass")
         return None
 
     url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/player/surface-summary/{player_id}"
@@ -465,37 +406,22 @@ def fetch_surface_winrate(player_id: int, surface: str) -> dict:
     params = {}
 
     try:
-        print(f"[DEBUG] Intentando obtener winrate para jugador {player_id} en superficie {surface}...")
-        print(f"[DEBUG] URL: {url}")
-        print(f"[DEBUG] Params: {params}")
-        
         response = requests.get(url, headers=headers, params=params, timeout=10)
-        
-        print(f"[DEBUG] Status code: {response.status_code}")
-        
+            
         if response.status_code == 401:
-            print("[ERROR] API key inválida o no autorizada")
             return None
         elif response.status_code == 403:
-            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
             return None
         elif response.status_code != 200:
-            print(f"[ERROR] Fallo al obtener winrate: {response.status_code}")
-            print(f"[DEBUG] Response: {response.text}")
             return None
 
         data = response.json()
-        print(f"[DEBUG] Datos recibidos de RapidAPI")
-        print(f"[DEBUG] Response keys: {list(data.keys()) if isinstance(data, dict) else 'No es dict'}")
-        
+
         surface_data = data.get("data", [])
         
         if not surface_data:
-            print(f"[INFO] No se encontraron datos de superficie para el jugador {player_id}")
             return None
-        
-        print(f"[DEBUG] Datos de superficie encontrados: {len(surface_data)} años")
-        
+                
         # Buscar datos para la superficie específica en el año más reciente
         total_wins = 0
         total_losses = 0
@@ -503,29 +429,22 @@ def fetch_surface_winrate(player_id: int, surface: str) -> dict:
         for year_data in surface_data:
             year = year_data.get("year", 0)
             surfaces = year_data.get("surfaces", [])
-            
-            print(f"[DEBUG] Procesando año {year} con {len(surfaces)} superficies")
-            
+                        
             for surface_info in surfaces:
                 if surface_info.get("courtId") == court_id:
                     wins = surface_info.get("courtWins", 0)
                     losses = surface_info.get("courtLosses", 0)
                     court_name = surface_info.get("court", "N/D")
-                    
-                    print(f"[DEBUG] Superficie {court_name}: {wins} victorias, {losses} derrotas")
-                    
+                                        
                     total_wins += wins
                     total_losses += losses
 
         total_matches = total_wins + total_losses
         if total_matches == 0:
-            print(f"[INFO] No se encontraron partidos en {surface} para el jugador {player_id}")
             return None
 
         winrate = round((total_wins / total_matches) * 100, 2)
-        
-        print(f"[INFO] Winrate calculado: {total_wins} victorias, {total_losses} derrotas = {winrate}%")
-        
+                
         return {
             "wins": total_wins,
             "losses": total_losses,
@@ -533,10 +452,8 @@ def fetch_surface_winrate(player_id: int, surface: str) -> dict:
         }
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener winrate: {e}")
         return None
     except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener winrate: {e}")
         return None
 
 
@@ -546,7 +463,6 @@ def fetch_head_to_head(player1: int, player2: int) -> dict:
     Basado en la documentación del endpoint getH2HStats.
     """
     if not RAPIDAPI_KEY:
-        print("[ERROR] RAPIDAPI_KEY no está configurada")
         return None
     
     url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/h2h/stats/{player1}/{player2}/"
@@ -559,19 +475,15 @@ def fetch_head_to_head(player1: int, player2: int) -> dict:
         response = requests.get(url, headers=headers, timeout=10)
         
         if response.status_code == 401:
-            print("[ERROR] API key inválida o no autorizada")
             return None
         elif response.status_code == 403:
-            print("[ERROR] Acceso denegado - verifica tu plan de suscripción")
             return None
         elif response.status_code != 200:
-            print(f"[ERROR] Fallo en H2H: {response.status_code} - {response.text}")
             return None
 
         data = response.json()
         
         if not data or "data" not in data:
-            print(f"[INFO] No se encontraron estadísticas H2H entre jugadores {player1} y {player2}")
             return None
 
         h2h_data = data["data"]
@@ -596,10 +508,8 @@ def fetch_head_to_head(player1: int, player2: int) -> dict:
         return result
         
     except requests.exceptions.RequestException as e:
-        print(f"[ERROR] Error de conexión al obtener H2H: {e}")
         return None
     except Exception as e:
-        print(f"[ERROR] Error inesperado al obtener H2H: {e}")
         return None
 
 

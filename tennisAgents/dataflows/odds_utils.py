@@ -50,7 +50,6 @@ def fetch_tennis_odds(tournament_key: str) -> dict:
         return result
         
     except Exception as e:
-        print(f"[ERROR] Fallo al consultar Odds API para {tournament_key}: {e}")
         return {
             "error": f"Exception occurred: {str(e)}",
             "tournament": tournament_key,

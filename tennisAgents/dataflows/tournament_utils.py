@@ -145,8 +145,6 @@ def get_tournament_list(year: Optional[int] = None, category: str = "atpgs") -> 
             "fetched_at": datetime.now().isoformat(),
             "success": True
         }
-
-        print(f"[DEBUG] Resultado de get_tournament_list: {result}")
         
         return result
         
@@ -183,9 +181,7 @@ def fetch_tournament_info(tournament_name: str, year: int, category: str) -> str
             if "name" in tournament and tournament["name"].lower() == tournament_name.lower():
                 tournament_id = tournament["id"]
                 break
-    
-    print(f"[DEBUG] ID del torneo: {tournament_id}")
-    
+        
     return tournament_id
 
 
