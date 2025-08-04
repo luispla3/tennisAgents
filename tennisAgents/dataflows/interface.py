@@ -142,30 +142,75 @@ def get_surface_winrate(player_name: str, surface: str) -> str:
     )
 
 
-def get_head_to_head(player1: str, player2: str) -> str:
+def get_head_to_head(player1: int, player2: int) -> str:
     """
     Devuelve el historial H2H entre dos jugadores de tenis.
     """
-    data = fetch_head_to_head(player1, player2)
+    try:
+        data = fetch_head_to_head(player1, player2)
 
-    if not data:
-        return f"No se encontró historial H2H entre {player1} y {player2}."
+        if not data:
+            return f"No se encontró historial H2H entre {player1} y {player2}."
 
-    resumen = f"## Historial H2H entre {player1} y {player2}:\n\n"
-    resumen += f"- Victorias de {player1}: {data['player1_stats']}\n"
-    resumen += f"- Victorias de {player2}: {data['player2_stats']}\n"
-    resumen += f"- Total de enfrentamientos: {data['matches_count']}\n\n"
+        resumen = f"## Historial H2H entre jugadores {player1} y {player2}:\n\n"
+        
+        # Get match count
+        matches_count = data.get('matches_count', 0)
+        resumen += f"**Total de enfrentamientos:** {matches_count}\n\n"
+        
+        # Get player stats
+        player1_stats = data.get('player1_stats')
+        player2_stats = data.get('player2_stats')
+        
+        if player1_stats and player2_stats:
+            # Overall H2H record
+            p1_wins = player1_stats.get('matchesWon', 0)
+            p2_wins = player2_stats.get('matchesWon', 0)
+            resumen += f"**Record H2H:**\n"
+            resumen += f"- Jugador {player1}: {p1_wins} victorias ({(p1_wins/int(matches_count)*100):.1f}%)\n"
+            resumen += f"- Jugador {player2}: {p2_wins} victorias ({(p2_wins/int(matches_count)*100):.1f}%)\n\n"
+            
+            # Surface breakdown
+            resumen += f"**Por superficie:**\n"
+            resumen += f"- Jugador {player1}: Dura {player1_stats.get('hard', 0)}, Arcilla {player1_stats.get('clay', 0)}, Hierba {player1_stats.get('grass', 0)}, Indoor {player1_stats.get('iHard', 0)}\n"
+            resumen += f"- Jugador {player2}: Dura {player2_stats.get('hard', 0)}, Arcilla {player2_stats.get('clay', 0)}, Hierba {player2_stats.get('grass', 0)}, Indoor {player2_stats.get('iHard', 0)}\n\n"
+            
+            # Serve statistics comparison
+            resumen += f"**Estadísticas de servicio:**\n"
+            resumen += f"- Jugador {player1}: {player1_stats.get('firstServePercentage', 0)}% primer servicio, {player1_stats.get('aces', 0)} aces, {player1_stats.get('doubleFaults', 0)} dobles faltas\n"
+            resumen += f"- Jugador {player2}: {player2_stats.get('firstServePercentage', 0)}% primer servicio, {player2_stats.get('aces', 0)} aces, {player2_stats.get('doubleFaults', 0)} dobles faltas\n\n"
+            
+            # Break points and crucial moments
+            resumen += f" **Momentos cruciales:**\n"
+            resumen += f"- Jugador {player1}: {player1_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player1_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n"
+            resumen += f"- Jugador {player2}: {player2_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player2_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n\n"
+            
+            # Tournament level breakdown
+            resumen += f"**Por nivel de torneo:**\n"
+            resumen += f"- Jugador {player1}: GS {player1_stats.get('grandSlam', 0)}, Masters {player1_stats.get('masters', 0)}, ATP {player1_stats.get('mainTour', 0)}\n"
+            resumen += f"- Jugador {player2}: GS {player2_stats.get('grandSlam', 0)}, Masters {player2_stats.get('masters', 0)}, ATP {player2_stats.get('mainTour', 0)}\n\n"
 
-    resumen += "### Últimos partidos:\n"
-    for match in data["recent_matches"]:
-        resumen += (
-            f"- {match['date']} | {match['tournament']} | {match['winner']} ganó en {match['score']} "
-            f"(Superficie: {match['surface']})\n"
-        )
+        # Check if there are recent matches in raw_data
+        raw_data = data.get('raw_data', {})
+        if 'recentMatches' in raw_data and raw_data['recentMatches']:
+            resumen += "**Últimos partidos:**\n"
+            for match in raw_data['recentMatches']:
+                date = match.get('date', 'N/A')
+                tournament = match.get('tournament', 'N/A')
+                winner = match.get('winner', 'N/A')
+                score = match.get('score', 'N/A')
+                surface = match.get('surface', 'N/A')
+                resumen += f"- {date} | {tournament} | {winner} ganó {score} (Superficie: {surface})\n"
+        else:
+            resumen += "**Últimos partidos:** No hay información de partidos recientes disponible\n"
 
-    print(f"Historial H2H: {data}")
+        print(f"Historial H2H: {resumen}")
 
-    return resumen
+        return resumen
+        
+    except Exception as e:
+        print(f"Error in get_head_to_head: {e}")
+        return f"Error al obtener historial H2H entre {player1} y {player2}: {str(e)}"
 
 def get_injury_reports() -> str:
     try:

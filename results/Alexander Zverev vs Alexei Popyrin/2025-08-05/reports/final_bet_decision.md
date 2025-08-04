@@ -1,49 +1,40 @@
-1. Resumen de los argumentos  
-- Analista Agresivo  
-  • Ventaja en ranking (Zverev #3 vs Popyrin #8) y experiencia en momentos clave.  
-  • Winrates similares en hard, sin lesiones ni dudas físicas.  
-  • Propuesta: apuesta «explosiva» (victoria rápida, hándicap) para maximizar ganancias.  
-  Debilidad: subestima la falta de datos recientes y eleva mucho la volatilidad.  
+1. Resumen de los análisis  
+   - Analista Agresivo  
+     · Fortalezas: Historial directo 80% a favor de Zverev, servicio superior, manejo de presión en grandes torneos.  
+     · Debilidades: Asume que la ventaja histórica y psicológica compensa la falta de datos recientes y desestima la paridad en win-rate sobre superficie dura.  
+   - Analista Conservador (Safe)  
+     · Fortalezas: Señala la igualdad en win-rates (67% ambos) y la incertidumbre por la ausencia de partidos recientes. Advierte del bajo payout de cuotas de favorito y riesgos imprevistos.  
+     · Debilidades: Podría perder valor real al descartar totalmente las ventajas técnicas y psicológicas de Zverev.  
+   - Analista de Valor Esperado (EV)  
+     · Fortalezas: Enfoca la decisión en la comparación entre probabilidad real (≈80% según historial) y probabilidad implícita en la cuota. Establece umbrales claros:  
+       • Cuota <1.3 → EV negativo  
+       • Cuota 1.3–1.5 → posible EV marginal  
+       • Cuota >1.5 → EV positivo  
+     · Debilidades: No dispone de las cuotas oficiales, por lo que no puede concluir sin ese dato.  
+   - Analista Neutral  
+     · Fortalezas: Integra las visiones anteriores y propone una apuesta moderada, con control de riesgo, mercados alternativos (sets corridos, aces) y esperar a datos frescos.  
+     · Debilidades: Demora la decisión, aunque puede ser justo dada la información incompleta.
 
-- Analista Conservador  
-  • No hay enfrentamientos directos ni información fresca de forma física/mental.  
-  • Igualdad de rendimiento en hard hace débil cualquier ventaja.  
-  • Recomienda abstenerse o apostar muy poquito en mercados básicos.  
-  Fortaleza: protege la banca ante alta incertidumbre; evita riesgos de volatilidad.  
+2. Justificación de la decisión  
+   - Sin las cuotas no podemos medir objetivamente el valor esperado.  
+   - La paridad en win-rates y la falta de datos recientes introducen incertidumbre real.  
+   - Apostar “a ciegas” con un stake alto en cuota baja puede repetir el error de apuestas sobrevaloradas y sin margen de ganancia.  
+   - Históricamente, las pérdidas más frecuentes se dieron cuando se confiaron fuertes montos en favoritos de cuota insuficiente y sin verificar forma actual.
 
-- Analista de Valor Esperado  
-  • Con cuotas tipo 1.7–2.2, la probabilidad implícita (~50–60%) está muy cerca de la real estimada.  
-  • Sin datos sólidos, el EV de mercados agresivos o hándicaps es probablemente ≤ 0.  
-  • Sugiere abstenerse o, como mucho, apuesta mínima en victoria directa si la cuota supera 1.9.  
+3. Recomendación  
+   → ESPERAR  
+   Justo antes del inicio del partido:  
+   a) Obtener la cuota exacta para Zverev.  
+   b) Verificar cualquier novedad de último momento (lesiones, clima, sensaciones en calentamiento).  
+   c) Si la cuota es ≥1.4 (mejor aún ≥1.5), considerar una apuesta moderada (5–10% del bankroll habitual), pudiendo explorar mercados de “Zverev en sets corridos” o “número alto de aces”.  
+   d) Si la cuota <1.3, NO APOSTAR, pues el valor esperado será negativo.
 
-- Analista Neutral  
-  • Reconoce leve edge para Zverev pero también la falta de información.  
-  • Propone apuesta moderada y conservadora en mercado simple (victoria directa).  
-  • Evitar líneas complejas o de alto riesgo; mantener seguimiento para ajustar.  
+4. Ajuste al plan del trader  
+   - No aumentar stake sin confirmar cuota rentable.  
+   - Preparar el terreno para una micro-apuesta táctica (straight sets o aces) sólo si las odds compensan la incertidumbre.  
+   - Mantener liquidez para oportunidades de mayor claridad en el torneo.
 
-2. Lecciones de errores pasados  
-- Apuestas agresivas con ligeras ventajas llevaron a pérdidas cuando subestimamos la forma del rival.  
-- Falta de datos sobre estado real del jugador disparó varianza y erosionó nuestro bankroll.  
-- Conclusión: sólo comprometer capital cuando exista un desajuste claro entre cuota y probabilidad real.
-
-3. Decisión del Juez de Riesgos: ESPERAR  
-Justificación:  
-- La incertidumbre sobre la forma actual y la ausencia de H2H dejan el valor esperado muy cercano a cero.  
-- No hay un «descuento» en la cuota que nos dé margen de seguridad suficiente para cubrir la varianza.  
-- Riesgo de sorpresas es alto y podría penalizar duramente si apostamos agresivo o con mucho stake.
-
-4. Plan de ajuste para el trader  
-- No abrir posición ahora.  
-- Monitorear hasta 24 h antes del partido:  
-  • Noticias sobre prácticas, conferencia de prensa, calentamiento.  
-  • Movimientos de cuota (si baja de 1.8 a 1.9–2.0 para Zverev, podría surgir valor).  
-- Si surgen señales positivas claras (lesión leve de Popyrin, Zverev con ritmo alto), entonces:  
-  • Apuesta sencilla en victoria directa de Zverev.  
-  • Stake reducido (1–2 % del bankroll) para controlar riesgo.  
-  • Evitar hándicaps o mercados de sets rápidos.  
-
-5. Próximos pasos  
-- Recopilar datos frescos y revaluar 12–24 h antes del arranque.  
-- Si no mejora la relación cuota/probabilidad, cancelar la apuesta.  
-
-Recomendación final: ESPERAR hasta disponer de información que mueva la probabilidad estimada lo suficiente para generar un valor esperado positivo claro.
+5. Lecciones aprendidas  
+   - Evitar sobreapuestas en favoritos sin datos de forma reciente.  
+   - No subestimar la paridad estadística en superficie específica.  
+   - Siempre contrastar la probabilidad implícita en la cuota con nuestra estimación real antes de comprometer el capital.
