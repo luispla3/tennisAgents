@@ -1,14 +1,3 @@
-<p align="center">
-  <img src="assets/TennisAgents.jpg" style="width: 60%; height: auto;">
-</p>
-
-<div align="center" style="line-height: 1;">
-  <a href="https://discord.com/invite/tennisagents" target="_blank"><img alt="Discord" src="https://img.shields.io/badge/Discord-TennisAgents-7289da?logo=discord&logoColor=white&color=7289da"/></a>
-  <a href="https://x.com/tennisagents" target="_blank"><img alt="X Follow" src="https://img.shields.io/badge/X-TennisAgents-white?logo=x&logoColor=white"/></a>
-  <br>
-  <a href="https://github.com/luispla3/" target="_blank"><img alt="Community" src="https://img.shields.io/badge/Join_GitHub_Community-TennisAgents-14C290?logo=discourse"/></a>
-</div>
-
 <div align="center">
   <!-- Language translations -->
   <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=de">Deutsch</a> | 
@@ -24,6 +13,10 @@
 ---
 
 # TennisAgents: Multi-Agents LLM Betting Framework 
+
+<p align="center">
+  <img src="assets/TennisAgents.jpg" style="width: 100%; height: auto;">
+</p>
 
 ## TennisAgents Framework
 
@@ -151,7 +144,7 @@ print(decision)
 ## Preview
 
 <p align="center">
-  <img src="assets/preview.png" style="width: 60%; height: auto;">
+  <img src="assets/preview.png" style="width: 100%; height: auto;">
 </p>
 
 ## Contributing
