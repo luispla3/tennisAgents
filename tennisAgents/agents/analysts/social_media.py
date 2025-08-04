@@ -11,7 +11,7 @@ def create_social_media_analyst(llm, toolkit):
 
         # Herramientas disponibles según configuración
         if toolkit.config["online_tools"]:
-            tools = [toolkit.get_twitter_sentiment]
+            tools = [toolkit.get_sentiment]
         else:
             tools = [
                 toolkit.get_twitter_sentiment,

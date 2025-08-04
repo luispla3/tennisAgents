@@ -40,6 +40,7 @@ def create_tournament_analyst(llm, toolkit):
                     "Colaboras con otros agentes para tomar decisiones basadas en el torneo actual.\n\n"
                     "Usa las herramientas disponibles para obtener información detallada:\n\n"
                     "IMPORTANTE: la variable category es la categoria del torneo, y tienes que usar la que corresponda: Categoría del torneo: atpgs: Atp tournaments + grand Slams, atp: Atp circuit, gs: grand slams, 1000: Masters 1000, ch: Challenger Circuit"
+                    f"IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'.\n"
                     "IMPORTANTE: Solo puedes hacer UNA SOLA LLAMADA a get_tournament_info. Usa esa información de manera eficiente y completa.\n\n"
                     "IMPORTANTE: debes saber que en los torenos Grand Slam, los jugadores no juegan en el mismo día, sino que juegan en días alternos, por lo que debes tener en cuenta que el jugador que juega el día anterior puede estar cansado y que el jugador que juega el día siguiente puede estar en mejor forma."
                     "IMPORTANTE: debes saber que en los torneos Grand Slam, y en concreto a medida que avanza el torneo, el jugador con mejor ranking o con mejor trayectoria suele ganar el partido porque tiene menos nervios y es más confiado, y se juega al mejor de 5 sets. Se nota sobretodo en los partidos, juegos y puntos críticos."

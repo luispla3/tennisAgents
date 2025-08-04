@@ -1,7 +1,10 @@
 import os
+from openai import OpenAI
 import requests
 from datetime import datetime
 from typing import Dict, List, Optional
+
+from tennisAgents.dataflows.config import get_config
 
 # Configuración de la API
 RAPIDAPI_KEY = os.getenv("RAPIDAPI_KEY")
@@ -157,32 +160,39 @@ def get_tournament_list(year: Optional[int] = None, category: str = "atpgs") -> 
         }
 
 
-def fetch_tournament_info(tournament_name: str, year: int, category: str) -> str:
-    """
-    Obtiene el ID específico del torneo por nombre.
-    
-    Args:
-        tournament_name (str): Nombre del torneo a buscar
-        year (int, optional): Año para consultar. Por defecto usa el año actual.
-        category (str): Categoría de torneos.
-    
-    Returns:
-        str: ID del torneo si se encuentra, cadena vacía si no se encuentra
-    """
-    result = get_tournament_list(year, category)
-    
-    if not result.get("success", False):
-        return ""
-    
-    # Buscar el torneo específico por nombre y extraer su ID
-    tournament_id = ""
-    if "tournament_ids" in result:
-        for tournament in result["tournament_ids"]:
-            if "name" in tournament and tournament["name"].lower() == tournament_name.lower():
-                tournament_id = tournament["id"]
-                break
-        
-    return tournament_id
+def get_tournament_info_openai(tournament_name: str, category: str, date: str) -> str:
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
+
+    response = client.responses.create(
+        model=config["quick_think_llm"],
+        input=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": f"Busca información sobre el torneo {tournament_name} el dia {date} en la categoría {category}.",
+                    }
+                ],
+            }
+        ],
+        text={"format": {"type": "text"}},
+        reasoning={},
+        tools=[
+            {
+                "type": "web_search_preview",
+                "user_location": {"type": "approximate"},
+                "search_context_size": "low",
+            }
+        ],
+        temperature=1,
+        max_output_tokens=4096,
+        top_p=1,
+        store=True,
+    )
+
+    return response.output[1].content[0].text
 
 
 

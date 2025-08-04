@@ -137,11 +137,11 @@ class Toolkit:
     # SOCIAL MEDIA ANALYST TOOLS
 
     @tool
-    def get_twitter_sentiment(
+    def get_sentiment(
         player_name: Annotated[str, "Nombre del jugador"],
     ) -> str:
         """Analiza sentimiento en Twitter sobre el jugador."""
-        return interface.get_twitter_posts(player_name)
+        return interface.get_sentiment(player_name)
 
     @tool
     def get_tennis_forum_sentiment(
@@ -162,9 +162,10 @@ class Toolkit:
     def get_tournament_info(
         tournament: Annotated[str, "Nombre del torneo"],
         category: Annotated[str, "Categoría del torneo: atpgs: Atp tournaments + grand Slams, atp: Atp circuit, gs: grand slams, 1000: Masters 1000, ch: Challenger Circuit"],
+        date: Annotated[str, "Fecha del torneo en formato yyyy-mm-dd"],
     ) -> str:
         """Obtiene información y estadísticas del torneo."""
-        return interface.get_tournaments(tournament, category)
+        return interface.get_tournament_data(tournament, category, date)
 
     @tool
     def get_mock_tournament_data(

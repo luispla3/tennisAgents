@@ -1,3 +1,4 @@
+from tennisAgents.dataflows.config import get_config
 from .news_utils import fetch_news
 from .tournament_utils import get_tournament_surface as get_tournament_surface_impl
 from .odds_utils import fetch_tennis_odds, generate_mock_odds
@@ -7,9 +8,8 @@ from .player_utils import fetch_recent_matches
 from .player_utils import fetch_surface_winrate
 from .player_utils import fetch_head_to_head
 from .player_utils import fetch_injury_reports
-from .sentiment_utils import fetch_reddit_sentiment
-from .sentiment_utils import fetch_reddit_sentiment
-from .tournament_utils import fetch_tournament_info
+from .sentiment_utils import get_sentiment_openai
+from .tournament_utils import get_tournament_info_openai
 from .tournament_utils import get_mock_data
 from .weather_utils import fetch_weather_forecast
 from .weather_utils import fetch_weather_forecast, format_weather_report
@@ -252,64 +252,9 @@ def get_injury_reports() -> str:
         
     except Exception as e:
         return f"Error al obtener reportes de lesiones: {str(e)}"
-def get_twitter_posts(player_name: str) -> str:
-    """
-    Usa NewsAPI para simular un análisis de sentimiento como si fuese de Twitter.
-    """
-    newsapi_key = os.getenv("NEWS_API_KEY")
-    if not newsapi_key:
-        return "La clave de API de NewsAPI no está configurada. No se puede obtener el sentimiento de Twitter."
-
-    url = "https://newsapi.org/v2/everything"
-    params = {
-        "q": player_name,
-        "language": "en",
-        "sortBy": "relevancy",
-        "pageSize": 10,
-        "apiKey": newsapi_key,
-    }
-
-    try:
-        response = requests.get(url, params=params)
-        if response.status_code != 200:
-            return f"[ERROR] Fallo al obtener noticias: {response.text}"
-    except Exception as e:
-        return f"[ERROR] Error al conectar con la API de noticias: {e}"
-
-    articles = response.json().get("articles", [])
-    if not articles:
-        return f"No se encontraron noticias recientes sobre {player_name}."
-
-    sentiments = []
-    for article in articles:
-        text = f"{article.get('title', '')} {article.get('description', '')}"
-        # Simple sentiment analysis based on positive/negative keywords
-        positive_words = ['victory', 'win', 'success', 'great', 'excellent', 'amazing', 'outstanding']
-        negative_words = ['defeat', 'loss', 'injury', 'poor', 'bad', 'terrible', 'disappointing']
-        
-        text_lower = text.lower()
-        positive_count = sum(1 for word in positive_words if word in text_lower)
-        negative_count = sum(1 for word in negative_words if word in text_lower)
-        
-        if positive_count > negative_count:
-            sentiment = 0.3
-        elif negative_count > positive_count:
-            sentiment = -0.3
-        else:
-            sentiment = 0.0
-            
-        sentiments.append(sentiment)
-
-    average_sentiment = sum(sentiments) / len(sentiments)
-
-    if average_sentiment > 0.2:
-        mood = "positivo"
-    elif average_sentiment < -0.2:
-        mood = "negativo"
-    else:
-        mood = "neutral"
-
-    return f"El sentimiento medio en noticias recientes sobre {player_name} es {mood} (polaridad media: {average_sentiment:.2f})."
+    
+def get_sentiment(player_name: str) -> str:
+    return get_sentiment_openai(player_name)
 
 
 def get_tennis_forum_sentiment(player_name: str) -> str:
@@ -345,7 +290,7 @@ def get_reddit_posts(subreddit_name: str, player_name: str) -> str:
     return resumen
 
 
-def get_tournaments(tournament: str, category: str) -> str:
+def get_tournament_data(tournament: str, category: str, date: str) -> str:
     """
     Obtiene la lista de torneos de la API de tenis, extrae el id del torneo específico y lo devuelve,
     para que se pueda usar en el siguiente endpoint para obtener los datos del torneo.
@@ -353,20 +298,17 @@ def get_tournaments(tournament: str, category: str) -> str:
     Args:
         tournament (str): Nombre del torneo a buscar
         category (str): Categoría de torneos (atpgs, atp, gs, 1000, ch)
+        date (str): Fecha del torneo en formato "yyyy-mm-dd"
     
     Returns:
         str: ID del torneo si se encuentra, mensaje de error si no se encuentra
     """
-    # Usar el año 2025 para hacer la llamada a la API
-    year = 2024
     
-    # Obtener el ID del torneo específico
-    tournament_id = fetch_tournament_info(tournament, year, category)
+    response = get_tournament_info_openai(tournament, category, date)
+
+    return response
     
-    if tournament_id:
-        return f"ID del torneo '{tournament}': {tournament_id}"
-    else:
-        return f"No se encontró el torneo '{tournament}' en la categoría '{category}' para el año {year}."
+    
 
 
 def get_mock_tournament_data(tournament: str, year: int) -> str:
