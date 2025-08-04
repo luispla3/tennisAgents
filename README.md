@@ -1,87 +1,159 @@
-# TennisAgents: Sistema Inteligente de Asistencia a Apuestas en Tenis con LLM y LangGraph
+<p align="center">
+  <img src="assets/TennisAgents.jpg" style="width: 60%; height: auto;">
+</p>
 
-Este proyecto implementa un sistema de agentes basado en LLMs (Large Language Models) y LangGraph para analizar partidos de tenis y generar recomendaciones de apuesta. El sistema toma como entrada múltiples fuentes de información (cuotas, redes sociales, noticias, jugadores, etc.) y produce una recomendación argumentada basada en distintos perfiles de riesgo (Agresivo, Conservador, Neutral) y una predicción objetiva basada en las cuotas de mercado (*Expected from Odds*).
+<div align="center" style="line-height: 1;">
+  <a href="https://discord.com/invite/tennisagents" target="_blank"><img alt="Discord" src="https://img.shields.io/badge/Discord-TennisAgents-7289da?logo=discord&logoColor=white&color=7289da"/></a>
+  <a href="https://x.com/tennisagents" target="_blank"><img alt="X Follow" src="https://img.shields.io/badge/X-TennisAgents-white?logo=x&logoColor=white"/></a>
+  <br>
+  <a href="https://github.com/luispla3/" target="_blank"><img alt="Community" src="https://img.shields.io/badge/Join_GitHub_Community-TennisAgents-14C290?logo=discourse"/></a>
+</div>
 
-## Objetivos
+<div align="center">
+  <!-- Language translations -->
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=de">Deutsch</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=es">Español</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=fr">français</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=ja">日本語</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=ko">한국어</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=pt">Português</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=ru">Русский</a> | 
+  <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=zh">中文</a>
+</div>
 
-- Analizar datos heterogéneos (noticias, redes sociales, cuotas, clima, contexto del torneo).
-- Simular razonamientos de distintos perfiles de analistas (agresivo, neutral, conservador).
-- Generar una decisión final razonada y argumentada.
-- Utilizar agentes conversacionales con LLM (Gemini o GPT).
-- Aprovechar memoria contextual sobre situaciones financieras pasadas.
+---
 
--- Arquitectura del Sistema
+# TennisAgents: Multi-Agents LLM Betting Framework 
 
-### Arquitectura del Sistema
+## TennisAgents Framework
 
-```text
-                          +------------------------+
-                          |     LLM: Gemini        |
-                          |------------------------|
-                          | Players (2 calls)      |
-                          | Social Media (1)       |
-                          | News (1)               |
-                          | Weather (1)            |
-                          | Tournament Context (1) |
-                          | Market Odds (1)        |
-                          +----------+-------------+
-                                     |
-                                     v
-+------------------+     +------------------+     +------------------+     +------------------
-| Tennis Players   |     | Social Media     |     | News             |     | Weather         |
-| API fetch        |     | API fetch        |     | API fetch        |     | API             |
-+--------+---------+     +--------+---------+     +--------+---------+     +--------+---------
-         |                        |                        |                        |
-         v                        v                        v                        v
-+-------------------------------------------------------------------------------------------+
-|                                      Risk Management Team                                 |
-|-------------------------------------------------------------------------------------------|
-|  Aggressive Agent        Neutral Agent        Conservative Agent        Expected (Odds)   |
-+-------------------------------------------------------------------------------------------+
-                                               |
-                                               v
-                                      +------------------+
-                                      |     Manager      |
-                                      |------------------|
-                                      | Final decision   |
-                                      | Argumentation    |
-                                      +--------+---------+
-                                               |
-                                               v
-                                    +-----------------------+
-                                    | Show Recommendation   |
-                                    +-----------------------+
+TennisAgents is a multi-agent betting framework that mirrors the dynamics of professional sports analysis teams. By deploying specialized LLM-powered agents: from player performance analysts, weather experts, odds specialists, and news analysts, to risk management debators, the platform collaboratively evaluates match conditions and informs betting decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal betting strategy.
 
-                   [ Todos los módulos orquestados con LangGraph + Gemini ]
+<p align="center">
+  <img src="assets/TennisAgents.jpg" style="width: 100%; height: auto;">
+</p>
 
+> TennisAgents framework is designed for research purposes. Betting performance may vary based on many factors, including the chosen backbone language models, model temperature, analysis periods, the quality of data, and other non-deterministic factors. [It is not intended as financial, investment, or gambling advice.]
 
-```
+Our framework decomposes complex tennis match analysis into specialized roles. This ensures the system achieves a robust, scalable approach to match analysis and betting decision-making.
 
-## Configuración de Variables de Entorno
+### Analyst Team
+- **Players Analyst**: Evaluates player statistics, head-to-head records, current form, and playing style matchups to assess competitive advantages.
+- **News Analyst**: Monitors tennis news, injury reports, and player announcements to gauge potential impact on match outcomes.
+- **Odds Analyst**: Analyzes betting market movements, value opportunities, and market sentiment to identify profitable betting positions.
+- **Tournament Analyst**: Evaluates tournament-specific factors like surface type, altitude, prize money, and historical performance patterns.
+- **Weather Analyst**: Assesses weather conditions, court surface interactions, and their impact on different playing styles.
+- **Social Media Analyst**: Analyzes social media sentiment, fan engagement, and public perception to gauge momentum and confidence factors.
 
-Para que el sistema funcione correctamente, necesitas configurar las siguientes variables de entorno:
+### Risk Management Team
+- **Conservative Debator**: Advocates for cautious betting approaches, emphasizing capital preservation and high-probability outcomes.
+- **Aggressive Debator**: Pushes for higher-risk, higher-reward betting opportunities when the analysis supports strong conviction plays.
+- **Odds Debator**: Focuses on mathematical expected value calculations and long-term profitability metrics.
+- **Neutral Debator**: Provides balanced perspectives and mediates between different risk approaches to find optimal strategies.
 
-### Variables Opcionales (para funcionalidad completa)
+### Manager Agent
+- Synthesizes reports from all analysts and risk management debators to make final betting decisions. It determines the betting amount, type, and timing based on comprehensive match analysis and risk assessment.
 
-- `NEWS_API_KEY`: Clave de API para NewsAPI (https://newsapi.org/)
-  - Si no está configurada, el sistema usará datos simulados para las noticias
-  - Para obtener una clave gratuita: https://newsapi.org/register
+## Installation and CLI
 
-### Variables del Sistema
+### Installation
 
-- `TENNISAGENTS_RESULTS_DIR`: Directorio donde se guardan los resultados (por defecto: `./results`)
-
-### Ejemplo de configuración
-
+Clone TennisAgents:
 ```bash
-# En Windows (PowerShell)
-$env:NEWS_API_KEY="tu_clave_api_aqui"
-$env:TENNISAGENTS_RESULTS_DIR="./results"
-
-# En Linux/Mac
-export NEWS_API_KEY="tu_clave_api_aqui"
-export TENNISAGENTS_RESULTS_DIR="./results"
+git clone https://github.com/luispla3/tennisAgents.git
+cd tennisAgents
 ```
 
-**Nota**: Si no configuras `NEWS_API_KEY`, el sistema seguirá funcionando pero usará datos simulados para las noticias.
+Create a virtual environment:
+```bash
+conda create -n TennisAgents python=3.13
 
+conda activate TennisAgents
+```
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Required APIs
+
+You will need the OpenAI API for all the agents:
+```bash
+# On Linux
+export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
+# On Windows
+set OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
+```
+
+Or create a:
+```
+.env
+```
+
+### CLI Usage
+
+You can try out the CLI directly by running:
+```bash
+python -m cli.main
+```
+
+The CLI will guide you through selecting:
+- Players for the match
+- Tournament Name
+- Match date
+
+## TennisAgents Package
+
+### Implementation Details
+
+We built TennisAgents with a modular architecture to ensure flexibility and scalability. The framework uses advanced LLM models for analysis and decision-making processes.
+
+### Python Usage
+
+To use TennisAgents in your code:
+
+```python
+from tennisAgents.graph.trading_graph import TennisAgentsGraph
+from tennisAgents.default_config import DEFAULT_CONFIG
+
+ta = TennisAgentsGraph(debug=True, config=DEFAULT_CONFIG.copy())
+
+# Analyze a tennis match
+player1 = "Alexander Zverev"
+player2 = "Alexei Popyrin"
+match_date = "2025-08-05"
+
+_, decision = ta.propagate(player1, player2, match_date)
+print(decision)
+```
+
+You can also customize the configuration:
+
+```python
+from tennisAgents.graph.trading_graph import TennisAgentsGraph
+from tennisAgents.default_config import DEFAULT_CONFIG
+
+# Create a custom config
+config = DEFAULT_CONFIG.copy()
+config["deep_think_llm"] = "o4-mini"
+config["quick_think_llm"] = "gpt-4o-mini"
+config["max_debate_rounds"] = 3
+
+# Initialize with custom config
+ta = TennisAgentsGraph(debug=True, config=config)
+
+# Analyze match
+_, decision = ta.propagate(player1, player2, match_date)
+print(decision)
+```
+
+## Preview
+
+<p align="center">
+  <img src="assets/preview.png" style="width: 60%; height: auto;">
+</p>
+
+## Contributing
+
+We welcome contributions from the tennis and AI community! Whether it's improving analysis algorithms, adding new data sources, or enhancing the risk management system, your input helps make this project better.

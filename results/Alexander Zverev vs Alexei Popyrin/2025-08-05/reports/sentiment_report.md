@@ -1,27 +1,29 @@
-Informe de percepción en redes sociales sobre Alexander Zverev y Alexei Popyrin para el Canadian Open 2025
+Informe de percepción en redes sociales y foros sobre Alexander Zverev y Alexei Popyrin para el Canadian Open 2025
 
 Alexander Zverev:
-- La percepción en redes sociales de Zverev es compleja y polarizada. Por un lado, su rendimiento deportivo es destacado pero no exento de críticas; por ejemplo, tras su victoria en el Masters 1000 de Roma 2024, recibió respuestas airadas de aficionados rivales.
-- Su imagen pública se ha visto afectada por controversias personales relacionadas con acusaciones de violencia doméstica, que generan debates y reacciones encontradas en las plataformas sociales.
-- Zverev ha recibido críticas por su actitud al minimizar las denuncias, lo que ha enfadado a parte de sus seguidores y la comunidad online.
-- Por otra parte, ha despertado empatía debido a su confesión pública sobre sentirse vacío y solo, lo que ha abierto un debate saludable sobre la salud mental en el tenis.
-- En general, la narrativa mediática y las opiniones públicas revelan una mezcla de apoyo sincero y cuestionamiento duro, influenciado tanto por sus actuaciones como por su vida privada.
+- La opinión pública sobre Zverev es mixta, con un significativo debate sobre su carrera y personalidad.
+- En redes sociales, su ambición sobre ganar un Grand Slam generó tanto apoyo como críticas.
+- Fue objeto de protestas en Instagram tras derrotar al chileno Alejandro Tabilo, con comentarios de protesta ligados a la derrota de Tabilo.
+- En julio de 2025, su confesión pública sobre problemas de salud mental recibió amplio apoyo y empatía, reavivando el debate sobre este tema en el tenis.
+- Su comportamiento polémico en el Madrid Open (tomar una foto con el móvil durante un partido para protestar una decisión arbitral) suscitó controversia y división de opiniones.
+- En general, las percepciones sobre Zverev reflejan la complejidad de su figura, incluyendo tanto admiración por su talento como críticas por su comportamiento y declaraciones.
 
 Alexei Popyrin:
-- Popyrin tiene una percepción predominantemente positiva en la comunidad tenística, impulsada especialmente por su triunfo significativo en el Masters 1000 de Montreal 2024, donde derrotó a un jugador top.
-- Su ascenso al puesto 23 del ranking ATP se percibe como un logro notable y un indicativo de su potencial en el circuito.
-- No obstante, recientes desafíos deportivos, como su temprana eliminación en Wimbledon 2025, y una pausa para manejar fatiga mental, han sido recibidos con comprensión y apoyo, mostrando una narrativa de crecimiento y resiliencia.
-- La comunidad tiende a valorar su talento y esfuerzo, visualizándolo como un jugador en desarrollo con futuro prometedor.
+- Popyrin genera un sentimiento más optimista y de apoyo en redes sociales.
+- Su victoria en el Masters 1000 de Montreal 2024 fue ampliamente celebrada y resaltó su crecimiento en el ranking ATP.
+- La contratación de Wayne Ferreira como entrenador en 2025 despertó especulaciones acerca de su rendimiento y búsqueda por superar una crisis.
+- Su derrota en Wimbledon 2025 y la pausa posterior para abordar fatiga mental causaron preocupación y apoyo hacia su salud mental y su futuro profesional.
+- La narrativa mediática es de un jugador en desarrollo, enfrentando desafíos pero con una base sólida de seguidores que expresan esperanza en su potencial.
 
-Resumen en tabla Markdown:
+Resumen final en tabla:
 
-| Aspecto             | Alexander Zverev                             | Alexei Popyrin                           |
-|---------------------|---------------------------------------------|-----------------------------------------|
-| Sentimiento general | Mixto: apoyo y críticas, influenciado por controversias | Predominantemente positivo y alentador |
-| Rumores / Controversias | Acusaciones por violencia doméstica, juicio próximo | Ninguna controversia significativa      |
-| Estado físico y moral | Confesó sentirse vacío y solo, indicó mala salud mental | Reconoció fatiga mental, pausó su actividad para recuperarse |
-| Confianza            | Mezcla de confianza y dudas entre seguidores | Impulso por victoria en Masters 1000, vista en ascenso |
-| Narrativa mediática  | Compleja, centrada en su vida personal y salud mental | Positiva, centrada en su progresión y talento |
-| Expectativas en Canadian Open | Expectación alta pero con escepticismo debido a factores extra deportivos | Buenas expectativas, jugando con empuje y renovación |
+| Aspecto                | Alexander Zverev                                          | Alexei Popyrin                                         |
+|------------------------|----------------------------------------------------------|--------------------------------------------------------|
+| Sentimiento general    | Mixto: apoyo y críticas, polarización                     | Mayormente positivo, con preocupación por salud mental|
+| Ambición y metas       | Declaración sobre ganar Grand Slam genera debate          | En busca de consolidar y mejorar su rendimiento         |
+| Comportamiento reciente| Controversias por protesta y comentarios en redes         | Cambio de entrenador y pausa por fatiga mental          |
+| Salud mental           | Abiertamente discutida, recibe apoyo y atención            | Pausa por fatiga mental genera preocupación y apoyo     |
+| Popularidad en redes   | Alta, con reacciones polarizadas                            | Creciente, con seguidores optimistas                     |
+| Rumores y especulaciones| Controversias y críticas tras partidos y declaraciones    | Cambio en equipo técnico y adaptación                     |
 
-Este análisis servirá para entender el clima social y mediático alrededor de ambos jugadores antes de su enfrentamiento en el Canadian Open.
+Este análisis apunta a que Zverev enfrenta una percepción pública compleja con altibajos emocionales, mientras que Popyrin es visto como un talentoso jugador en crecimiento que lucha por superar desafíos, con un soporte más unánime en las redes sociales. Esta información es relevante para anticipar el ambiente alrededor del partido en el Canadian Open 2025.
