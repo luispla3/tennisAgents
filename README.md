@@ -14,10 +14,6 @@
 
 # TennisAgents: Multi-Agents LLM Betting Framework 
 
-<p align="center">
-  <img src="assets/TennisAgents.jpg" style="width: 100%; height: auto;">
-</p>
-
 ## TennisAgents Framework
 
 TennisAgents is a multi-agent betting framework that mirrors the dynamics of professional sports analysis teams. By deploying specialized LLM-powered agents: from player performance analysts, weather experts, odds specialists, and news analysts, to risk management debators, the platform collaboratively evaluates match conditions and informs betting decisions. Moreover, these agents engage in dynamic discussions to pinpoint the optimal betting strategy.
