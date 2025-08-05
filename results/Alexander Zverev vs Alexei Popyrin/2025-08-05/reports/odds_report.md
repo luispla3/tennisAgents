@@ -1,41 +1,45 @@
-Análisis de las cuotas para el partido Alexander Zverev vs Alexei Popyrin en el ATP Canadian Open:
+Análisis de cuotas para el partido Alexander Zverev vs Alexei Popyrin en el ATP Canadian Open (fecha: 2025-08-05):
 
-1. Favorito claro: Alexander Zverev es el claro favorito en todas las casas de apuestas. Las cuotas para su victoria oscilan entre aproximadamente 1.26 y 1.35, mientras que las cuotas para Alexei Popyrin son considerablemente mayores, entre 3.3 y 3.85 aproximadamente. Esto refleja la percepción del mercado de que Zverev tiene una alta probabilidad de ganar.
+1. Favorito según cuotas:
+- Alexander Zverev es el claro favorito en todas las casas de apuestas con cuotas que oscilan entre 1.26 y 1.35.
+- Alexei Popyrin es el desvalido con cuotas que van aproximadamente de 3.2 a 3.85.
 
-2. Variabilidad entre casas:
-   - La casa con la cuota más baja para Zverev es LeoVegas con 1.26, ofreciendo la menor ganancia para apostar por él.
-   - La cuota más alta para Zverev la ofrece Betfair con 1.35.
-   - Para Popyrin, las cuotas más altas (más ganancia) se ven en Betfair con 3.8 a 3.85.
-   - La más baja para Popyrin es en casas como Everygame o Leovegas con aproximadamente 3.3 a 3.4.
+2. Casas con cuotas significativamente distintas:
+- La mayoría ofrecen cuotas muy similares para ambos jugadores.
+- Betfair muestra las cuotas más altas para Popyrin (hasta 3.85) y ligeramente más altas para Zverev (1.35).
+- LeoVegas ofrece la cuota más baja para Zverev (1.26).
+- Algunas casas como BetOnline.ag, LowVig.ag ofrecen cuotas un poco más altas para Popyrin (3.74).
 
-3. Cuotas y mercados diferentes:
-   - Además del mercado H2H, algunas casas ofrecen spreads y totales.
-   - En spreads, Zverev tiene una línea generalmente entre -2.5 y -3.5 juegos, indicativo de la expectativa de una victoria amplia.
-   - Las cuotas de spread están equilibradas en torno a 1.75-2.05 para Zverev y 1.74-2.00 para Popyrin, mostrando interés en ambos lados con ligera confianza en Zverev ganando con margin superior.
-   - En totales, se ubica en torno a 22.5-23 juegos con cuotas aproximadamente equilibradas entre Over y Under, indicando que el mercado prevé un partido de duración media.
+3. Variación de cuotas en las últimas horas:
+- Los datos indican que la última actualización fue bastante reciente (en las últimas horas).
+- No hay variaciones abruptas en las cuotas, lo que sugiere estabilidad en la valoración del partido.
+- La ligera diferencia entre casas puede reflejar ajustes menores de mercado o preferencias regionales.
 
-4. Cambios en cuotas en las últimas horas:
-   - Todas las cuotas observadas se han actualizado hace poco (menos de una hora).
-   - No se evidencian cambios abruptos o movimientos bruscos que sugieran una fuerte entrada masiva hacia alguna de las opciones.
+4. Patrones del mercado:
+- El mercado favorece firmemente a Alexander Zverev como ganador.
+- Existe una confianza clara en el favorito ya que las cuotas bajas para Zverev indican poco riesgo percibido.
+- La dispersión pequeña de cuotas para ambos jugadores indica consenso generalizado entre casas.
 
-5. Patrón del mercado:
-   - El mercado muestra una fuerte convicción hacia la victoria de Zverev con cuotas bajas y un spread negativo bastante directo.
-   - No se identifican desviaciones significativas ni cuotas "value" para Popyrin en la mayoría de casas.
-   - La mayoría de casas están alineadas con la expectativa general siendo Zverev favorito robusto.
+Observaciones adicionales:
+- Algunas casas ofrecen apuestas con spread y totales, reflejando confianza en la capacidad dominante de Zverev.
+- Spread típico para Zverev es alrededor de -3.5 juegos, con cuotas alrededor de 2.0.
+- Totales de juegos rondan 22.5 a 23.5, con una ligera preferencia de apuestas hacia "Under" en algunas casas.
 
-| Casa de Apuestas    | Cuota Zverev | Cuota Popyrin | Observaciones clave                         |
-|--------------------|--------------|---------------|--------------------------------------------|
-| Parions Sport (FR)  | 1.29         | 3.65          | Cuotas estándar, favor claro a Zverev      |
-| Nordic Bet         | 1.29         | 3.43          | Muy similar a Parions Sport                 |
-| Betway             | 1.3          | 3.5           | Margen típico                               |
-| Winamax (FR)       | 1.3          | 3.5           | Mismo rango que Betway                      |
-| Winamax (DE)       | 1.32         | 3.65          | Margen un poco más alto en Popyrin         |
-| 1xBet              | 1.32         | 3.47          | Ofrece spreads y totales, cuotas equilibradas |
-| DraftKings         | 1.3          | 3.6           | Común cuota, ligera diferencia en Popyrin  |
-| Bovada             | 1.32         | 3.5           | Spread con quota próxima 1.77 para Zverev  |
-| Betfair            | 1.35         | 3.8 - 3.85    | Cuotas más altas para ambos jugadores      |
-| LeoVegas           | 1.26         | 3.3           | Cuota más baja a Zverev                     |
+---
 
-En conclusión, Alexander Zverev es el claro favorito con cuotas consistentes y bajas, lo que refleja una percepción de alta probabilidad de victoria entre los apostadores y casas. No hay movimientos bruscos recientes en las cuotas ni casas que muestren un favoritismo diferente significativo. Spreads alrededor de -3 para Zverev indican una expectativa de ganancia con margen. El mercado no presenta indicios de apuestas contrarias importantes hacia Popyrin.
+| Casa de Apuestas | Cuota Zverev | Cuota Popyrin | Observaciones clave                  |
+|------------------|--------------|---------------|-----------------------------------|
+| Parions Sport (FR)| 1.30         | 3.55          | Cuotas estándar, mercado equilibrado|
+| Nordic Bet       | 1.29         | 3.43          | Muy close a promedio, estable       |
+| Betway           | 1.30         | 3.50          | Consistencia en cuotas              |
+| Winamax (FR)     | 1.30         | 3.50          | Igual que Betway                    |
+| Betfair (Ex EU)  | 1.35         | 3.80 - 3.85   | Cuotas más altas para ambos, mayor margen |
+| LeoVegas         | 1.26         | 3.30          | Cuota más baja para Zverev, mejor para apostadores al favorito |
+| 1xBet            | 1.32         | 3.47          | Spread y totales disponibles        |
+| DraftKings       | 1.30         | 3.60          | Cuota alta para Popyrin             |
+| Bovada           | 1.33         | 3.40          | Spread y totales, mercado variado   |
+| Pinnacle         | 1.34         | 3.59          | Cuotas competitivas, spread 3.5    |
 
-Si necesita análisis adicional o sobre otros mercados como totales o especiales, por favor indique.
+En resumen, Alexander Zverev es el favorito indiscutible con pequeñas variaciones en cuotas entre casas. No hay señales de movimientos bruscos recientes en las cuotas, lo que indica una valoración estable. Algunos sitios ofrecen mejores cuotas para el underdog Popyrin, perfecto para apuestas de valor o riesgo alto.
+
+¿Deseas que analice algún otro aspecto del mercado o un comparativo de spread y totales?

@@ -1,31 +1,39 @@
-Informe de noticias recientes para el análisis del partido Alexander Zverev vs Alexei Popyrin en el Canadian Open (2025-08-05):
+Informes de noticias deportivas recientes para Alexander Zverev y Alexei Popyrin en relación al torneo Canadian Open y su desempeño general:
 
 Alexander Zverev:
-- Zverev ha avanzado en el torneo de Toronto (Canadian Open) tras un año difícil donde confesó haberse sentido perdido. Ha logrado 500 victorias en su carrera ATP y está mostrando signos de reactivación.
-- Recientemente, un adversario, Francisco Cerúndolo, se retiró durante su partido contra Zverev. Zverev incluso le habló y aconsejó en un descanso antes de que abandonara por lesión.
-- Zverev ha estado muy vinculado con Toni Nadal, a quien pidió ayuda para relanzar su carrera y entrenar. Sin embargo, Toni Nadal declinó ser su entrenador aunque le ofrece el uso de la academia de Rafa Nadal. Zverev ha descrito su experiencia con Nadal y su tío Toni como muy positiva y reveladora.
-- Tiene críticas negativas hacia la estructura actual de los Masters 1000 (torneos de dos semanas), y ha expresado sentirse solo y con problemas de salud mental. Su nivel de juego ha mejorado últimamente, pero sigue mostrando preocupación por su mentalidad.
-- Zverev sigue activo en el circuito y ha avanzado a los cuartos de final en Toronto, enfrentándose próximamente a Francisco Cerúndolo. No se reportan lesiones recientes propias.
-- Zverev destaca el estilo de juego de jóvenes estrellas como Alcaraz y Sinner, y tiene cierta rivalidad con Federer, Nadal y Djokovic, aunque guarda respeto por ellos y por Nadal especialmente.
+- Zverev ha mencionado que Rafael Nadal le daba consejos técnicos incluso en su academia, mostrando que tuvo un apoyo importante últimamente.
+- Ha superado un año duro y se considera que estaba "completamente perdido" pero ahora está reactivado y muestra mejoras en Toronto.
+- Llegó a 500 victorias en el circuito ATP, un logro importante que habla de su experiencia y consistencia.
+- Se ha retirado a cuartos de final tras un partido donde su rival, Cerundolo, se retiró lesionado.
+- Está en proceso de convencer a Toni Nadal para que sea su entrenador, aunque hasta ahora Toni no ha aceptado entrenarlo, pero Zverev tiene acceso a la academia Nadal.
+- Ha criticado la estructura de los torneos Masters 1000, indicando que no le gustan y que el negocio no está funcionando bien.
+- Ha confesado que ha sentido soledad y problemas de salud mental, lo que podría influir en su rendimiento psicológico.
+- No se reportan lesiones recientes que afecten su actualidad deportiva.
+- Ha avanzado a los cuartos de final en el Canadian Open 2025.
 
 Alexei Popyrin:
-- Popyrin es el defensor del título en el Canadian Open y ha avanzado a cuartos de final tras una victoria destacada ante Rune y otra ante Medvedev en Toronto.
-- Está en buena forma reciente, habiendo obtenido buenos resultados en varios torneos ATP 250 y Masters 1000. Recientemente, se separó de su entrenador Xavier Malisse tras tres años de colaboración y parece estar buscando nuevo camino.
-- Popyrin ha reconocido la importancia de su formación en España para lograr un buen juego en tierra batida.
-- Se menciona que ha contratado a un ex top 10 para mejorar y salir de un bache.
-- Ha derrotado a jugadores de alto nivel recientemente, destacando un triunfo sorpresivo sobre Djokovic en un Grand Slam.
-- Su rendimiento es sólido en el circuito y mantiene defensa del título en el torneo canadiense.
-- No se reportan lesiones recientes ni problemas físicos importantes.
-- Tiene mentalidad competitiva y confía en mantenerse en buena forma física y mental para los partidos decisivos.
+- Es el defensor del título en el Canadian Open y ha avanzado a cuartos de final.
+- Recientemente ha superado a jugadores como Rune y Medvedev, mostrando buen nivel competitivo.
+- Se ha separado de su entrenador Xavier Malisse tras tres años, ahora tiene un ex top 10 contratado para superar una crisis.
+- Entrenó en España durante mucho tiempo, lo que le ayuda a sentirse cómodo en tierra batida. Esto no se relaciona directamente con el Canadian Open (pista dura), pero es información de contexto.
+- No hay reportes recientes de lesiones.
+- Demostró ser un tenista capaz de remontar y mantener su desempeño bajo presión.
+- Ha tenido declaraciones positivas sobre su propio estado físico y mental.
+- No aparecen noticias que indiquen problemas físicos o controversias recientes que afecten su desempeño.
+- Popyrin aparece como un rival sólido, habiendo defendido exitosamente su título y eliminando a jugadores de alto nivel.
 
-Resumen de factores relevantes:
+Resumen síntesis en tabla:
 
-| Jugador          | Estado físico y salud                      | Mentalidad y preparación             | Entrenamiento / equipo                | Últimos resultados / rendimiento          | Otros aspectos relevantes                       |
-|------------------|------------------------------------------|------------------------------------|------------------------------------|------------------------------------------|-------------------------------------------------|
-| Alexander Zverev | Sin lesiones reportadas                  | Mejorando, pero mente frágil en 2025; apoyo de Toni Nadal y Rafa Nadal; crítica a la ATP | Intento con Toni Nadal como entrenador; apoyo en academia Nadal | Avanza en Toronto; 500 victorias alcanzadas; Cerúndolo se retiró ante él | Ha tenido un año difícil mentalmente; busca retomar nivel top |
-| Alexei Popyrin   | Sin lesiones reportadas                  | Confía en su forma física y mental; contrató ex top 10 | Separado de entrenador Xavier Malisse; busca nuevos apoyos | Defensor del título en Toronto; última gran victoria vs Djokovic | Entrenó en España, lo que mejora tierra batida; sólida defensa del título |
+| Aspecto                   | Alexander Zverev                                 | Alexei Popyrin                                |
+|---------------------------|-------------------------------------------------|-----------------------------------------------|
+| Estado físico             | Sin reportes de lesiones recientes.              | Sin reportes de lesiones recientes.            |
+| Estado psicológico        | Ha tenido problemas de salud mental, soledad, ha recibido apoyo de Nadal y busca entrenador (Toni Nadal). | En proceso de superar crisis, contrató nuevo entrenador ex top 10. Buen estado mental actual. |
+| Resultados recientes      | Alcanzó 500 victorias ATP, avanza a cuartos en Canadian Open tras retirada de Cerundolo. | Defensor del título, avanza a cuartos, elimina a Rune y Medvedev, buen desempeño competitivo. |
+| Cambios en equipo         | Posible colaboración con Toni Nadal, aún en negociación. | Separación con Xavier Malisse, nuevo entrenador contratado. |
+| Declaraciones / polémicas | Críticas a la ATP y estructura de torneos, muestra confianza renovada pero reconoce dificultades! | Positivo y enfocado en progreso, sin polémicas relevantes. |
+| Presión mediática         | Alta, por su historial y expectativas de revancha. | Defensor del título, presión de mantener nivel. |
+| Otras notas relevantes    | Recibe consejos de Nadal, criticó la estructura de Masters, mantiene ambición. | Experiencia en España, buenas remontadas, mejora física y mental. |
 
-Conclusión:
-Zverev llega recuperado en forma física, con buena racha, acompañado de apoyo técnico y motivación renovada, aunque arrastra secuelas mentales del año pasado. Popyrin viene con rendimiento sólido, manteniendo su título en Toronto y con respaldo técnico nuevo que puede influir positivamente. El partido puede ser muy competitivo, con Zverev confiando en su potencia y experiencia y Popyrin afianzando su estilo agresivo y fresco.
+En conclusión, ambos jugadores llegan en buena forma física al Canadian Open sin lesiones conocidas. Zverev muestra señales de recuperación y busca renovar su equipo técnico con la influencia de la familia Nadal, pero carga con la presión y declaraciones controversiales. Popyrin defiende bien su título y parece estar en su mejor momento tras cambios en su equipo de entrenadores. Esto indica un duelo probablemente competitivo, con Zverev según las últimas semanas mostrando motivación renovada y Popyrin estable y en confianza tras triunfos recientes.
 
-¿Desea que elabore un pronóstico detallado o análisis más profundo del partido?
+¿Quieres un análisis específico para el pronóstico del partido o detalles sobre su juego?

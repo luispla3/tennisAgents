@@ -1,43 +1,44 @@
-Informe de análisis de rendimiento: Alexander Zverev vs Alexei Popyrin en Canadian Open (superficie: hard)
+Análisis de rendimiento de Alexander Zverev contra Alexei Popyrin en el torneo Canadian Open (superficie hard):
 
 1. Superficie del torneo:
-- El Canadian Open se juega en pista dura ("hard").
+   - El torneo Canadian Open se juega en superficie dura (hard).
 
 2. Reportes de lesiones:
-- No hay reportes recientes de lesiones para Alexander Zverev ni para Alexei Popyrin.
+   - No hay reportes recientes de lesiones para Alexander Zverev ni para Alexei Popyrin.
 
 3. Ranking actual:
-- Alexander Zverev está ubicado en el puesto 3 del ranking ATP con 6030 puntos.
-- Alexei Popyrin está fuera del top 10 (no aparece en el listado top 11 proporcionado), lo que indica una posición inferior en el ranking.
+   - Alexander Zverev está actualmente en el puesto 3 ATP con 6030 puntos.
+   - Alexei Popyrin está más abajo, fuera del top 10 (ID 39309, posición no exacta dada pero inferior a Zverev).
 
 4. Partidos recientes:
-- No se encontraron registros de partidos recientes recientes para ambos jugadores.
+   - No se encontraron partidos recientes para ninguno de los dos jugadores (posiblemente no han disputado partidos públicos recientes o datos no disponibles).
 
-5. Winrate en superficie dura:
-- Alexander Zverev tiene un winrate en pista dura del 67.06% (226 victorias y 111 derrotas).
-- Alexei Popyrin tiene un winrate un poco superior, del 67.62% (190 victorias y 91 derrotas) en pista dura.
+5. Eficiencia sobre superficie dura:
+   - Alexander Zverev tiene un winrate del 67.06% en hard, con 226 partidos ganados y 111 perdidos.
+   - Alexei Popyrin tiene un winrate similar en hard, de 67.62%, con 190 partidos ganados y 91 perdidos.
 
-6. Estadísticas head-to-head:
-- Se han enfrentado 10 veces.
-- Alexander Zverev domina el historial con 8 victorias (80%).
-- Popyrin ha ganado solo 2 veces (20%).
-- Sobre pista dura, Zverev ha ganado 5 encuentros y Popyrin 2.
-- Zverev tiene mejor porcentaje en momentos cruciales como puntos de quiebre convertidos (50% frente a 32%) y sets decisivos ganados (60% frente a 40%).
-- Zverev también gana más aces y tiene mejor porcentaje de primer servicio.
+6. Comparación winrate:
+   - Ambos tienen un winrate casi idéntico en superficie dura, ligeramente mejor Popyrin en porcentaje pero Zverev con más partidos ganados.
 
-Resumen en tabla:
+7. Estadísticas head-to-head:
+   - Se enfrentaron 10 veces.
+   - Zverev lleva amplia ventaja con 8 victorias vs 2 de Popyrin (80% de efectividad).
+   - En hard, Zverev ha ganado 5 encuentros y Popyrin 2.
+   - Zverev posee mejores estadísticas de servicio, más aces y mayor efectividad en puntos cruciales como break points y sets decisivos.
+   - Zverev también tiene mejor desempeño en torneos de mayor nivel (Grand Slams y Masters).
 
-| Aspecto                   | Alexander Zverev               | Alexei Popyrin               |
-|---------------------------|-------------------------------|------------------------------|
-| Ranking ATP               | 3 (6030 pts)                   | No en top 11                 |
-| Surface winrate (hard)    | 67.06% (226-111 W-L)           | 67.62% (190-91 W-L)          |
-| Head-to-Head (10 matches) | 8 wins (80%)                   | 2 wins (20%)                 |
-| Hard court H2H            | 5 wins                        | 2 wins                      |
-| Aces in H2H               | 90                            | 19                          |
-| Double faults in H2H      | 41                            | 16                          |
-| Break points converted    | 50%                           | 32%                         |
-| Sets decisivos ganados    | 60%                           | 40%                         |
-| Lesiones recientes        | Ninguna reportada             | Ninguna reportada            |
+Informe resumen en tabla:
 
-Conclusión:
-Alexander Zverev tiene una mejor posición en el ranking y un dominio claro en el historial de enfrentamientos directos contra Alexei Popyrin, especialmente en pista dura que es la superficie del Canadian Open. Aunque ambos tienen winrates similares en esta superficie, la mayor experiencia y efectividad de Zverev en momentos decisivos y su récord frente a Popyrin lo colocan como favorito en este enfrentamiento. Además, ninguno presenta problemas de lesiones recientes que puedan afectar su rendimiento.
+| Aspecto                  | Alexander Zverev            | Alexei Popyrin             |
+|--------------------------|----------------------------|----------------------------|
+| Ranking ATP              | 3 (6030 pts)                | Más abajo (ID 39309)       |
+| Superficie Canadian Open | Hard                       | Hard                       |
+| Winrate Hard             | 67.06% (226W-111L)          | 67.62% (190W-91L)          |
+| Encuentros H2H           | 10 (8W - 2L)                | 10 (2W - 8L)               |
+| Aces en H2H              | 90                         | 19                         |
+| Dobles faltas en H2H     | 41                         | 16                         |
+| Break points convertidos | 50%                        | 32%                        |
+| Sets decisivos ganados   | 60%                        | 40%                        |
+| Lesiones recientes       | No reportadas              | No reportadas              |
+
+Conclusión: Alexander Zverev tiene clara superioridad histórica contra Alexei Popyrin y un ranking muy superior, pese a que ambos tienen rendimientos semejantes en la superficie dura. Si Zverev mantiene nivel y estado físico, es favorito para ganar el partido en el Canadian Open.
