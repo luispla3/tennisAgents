@@ -45,6 +45,7 @@ def create_player_analyst(llm, toolkit):
         "cincinnati_open"
         "shanghai_masters"
         "paris_masters"
+        "National Bank Open Presented by Rogers"
 
         "dubai"
         "qatar_open"

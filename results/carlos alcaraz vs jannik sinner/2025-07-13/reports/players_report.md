@@ -1,43 +1,44 @@
-Análisis del rendimiento de Carlos Alcaraz contra Jannik Sinner en Wimbledon:
+Análisis del rendimiento de Carlos Alcaraz contra Jannik Sinner en el torneo Wimbledon (superficie grass):
 
 1. Superficie del torneo:
-- El torneo Wimbledon se juega en superficie de césped (grass).
+   - Wimbledon se juega en superficie de césped (grass).
 
 2. Reportes de lesiones:
-- No hay reportes de lesiones recientes para Carlos Alcaraz ni para Jannik Sinner, indicando que ambos llegan en condición física óptima al partido.
+   - Ninguno de los dos jugadores, Carlos Alcaraz ni Jannik Sinner, aparece en los reportes de lesiones recientes, por lo que ambos están en condiciones físicas óptimas.
 
-3. Ranking actual y evolución:
-- Jannik Sinner ocupa el puesto número 1 del ranking ATP con 12,030 puntos.
-- Carlos Alcaraz sigue en el puesto número 2 con 8,600 puntos.
-- Esto indica que ambos jugadores están en la élite del tenis mundial, con Sinner liderando actualmente.
+3. Ranking actual:
+   - Jannik Sinner ocupa el puesto número 1 en el ranking ATP con 12,030 puntos.
+   - Carlos Alcaraz está en la posición número 2 con 8,600 puntos.
+   - Esto indica una rivalidad muy pareja en la élite del tenis mundial.
 
 4. Partidos recientes entre ambos:
-- En el último partido el 13 de julio de 2025, Sinner ganó a Alcaraz 4-6, 6-4, 6-4, 6-4.
-- En los encuentros recientes, Alcaraz ha ganado 9 de los 14 enfrentamientos totales (64.3%).
-- Sinner ha ganado 5 de esos partidos (35.7%).
+   - Se enfrentaron recientemente el 13 de julio de 2025 en Wimbledon, con victoria para Jannik Sinner 4-6 6-4 6-4 6-4.
+   - De 10 partidos recientes analizados, Carlos Alcaraz ganó 6 y Jannik Sinner 4, mostrando un duelo muy competido.
 
-5. Eficiencia sobre superficie césped:
-- Alcaraz tiene un winrate de 89.74% en césped (35 victorias y 4 derrotas).
-- Sinner tiene un winrate de 72.09% en césped (31 victorias y 12 derrotas).
-- Ambos son jugadores sólidos en césped, pero Alcaraz muestra una mayor eficacia histórica.
+5. Winrate en césped:
+   - Carlos Alcaraz tiene un winrate muy alto en césped: 89.74% (35 victorias de 39 partidos).
+   - Jannik Sinner tiene un winrate sólido pero inferior: 72.09% (31 victorias de 43 partidos).
 
-6. Estadísticas head-to-head:
-- En césped, Sinner tiene 2 victorias y Alcaraz no ha ganado directamente en césped en enfrentamientos previos.
-- En momentos clave, Alcaraz convierte 34% de sus oportunidades de break y gana 75% de los sets decisivos, mientras que Sinner convierte 48% de break y gana solo 25% de sets decisivos.
-- Alcaraz presenta mejor porcentaje de puntos clave convertidos en sets decisivos.
+6. Head-to-head (14 enfrentamientos totales):
+   - Carlos Alcaraz lidera 9-5 (64.3% victorias).
+   - Alcaraz muestra mejor porcentaje de primer servicio (63% vs 57%), más aces (73 vs 69) y mejor rendimiento en sets decisivos (75% ganados).
+   - Sinner tiene mejor porcentaje de break points convertidos (48% vs 34%) pero menor éxito en la definición de sets.
+   - En cuanto a resultados por superficie, Alcaraz ha ganado en hard y clay principalmente, pero no ha ganado en césped en esta rivalidad, mientras que Sinner tiene 2 victorias en césped.
 
-Resumen en tabla:
+Resumen e implicaciones:
+- Carlos Alcaraz es claramente el jugador con más victorias en este duelo, mayor eficiencia en servicio y porcentaje de triunfos general, además de un excelente historial en césped.
+- Sin embargo, Jannik Sinner viene de ganarle en Wimbledon 2025, lo que indica que ha sabido adaptarse y superar a Alcaraz en césped.
+- Ambos jugadores están sanos y en su mejor nivel, y dada la cercanía en ranking y resultados recientes, el partido será muy competitivo pero con ligero favoritismo hacia Alcaraz por su historial y winrate en césped.
 
-| Aspecto                   | Carlos Alcaraz                 | Jannik Sinner                  |
-|---------------------------|-------------------------------|-------------------------------|
-| ATP Ranking               | 2 (8,600 pts)                 | 1 (12,030 pts)                 |
-| Reportes de Lesiones      | Ninguno                      | Ninguno                      |
-| Winrate en césped         | 89.74% (35W-4L)              | 72.09% (31W-12L)             |
-| Matches H2H Totales       | 9 victorias (64.3%)          | 5 victorias (35.7%)          |
-| H2H en césped             | 0 victorias                  | 2 victorias                  |
-| Convert. Break Points     | 34%                         | 48%                         |
-| Sets decisivos ganados    | 75%                         | 25%                         |
-| Último enfrentamiento     | Pérdida 4-6 6-4 6-4 6-4 (2025)| Victoria 6-4 4-6 6-4 6-4 (2025)|
+| Aspecto                 | Carlos Alcaraz              | Jannik Sinner              |
+|------------------------|-----------------------------|----------------------------|
+| Ranking ATP            | 2 (8600 puntos)              | 1 (12030 puntos)            |
+| Winrate en césped       | 89.74% (35-4)                | 72.09% (31-12)              |
+| Récord H2H              | 9-5 (64.3%)                  | 5-9 (35.7%)                 |
+| % Primer servicio       | 63%                         | 57%                        |
+| Aces                   | 73                          | 69                         |
+| Break points convertidos| 34%                         | 48%                        |
+| Último partido Wimbledon| Perdió (4-6 6-4 6-4 6-4)    | Ganó (4-6 6-4 6-4 6-4)     |
+| Estado físico           | Sin lesiones reportadas      | Sin lesiones reportadas     |
 
-Conclusión:
-Carlos Alcaraz llega con un mejor rendimiento histórico sobre césped y un record general superior frente a Jannik Sinner. Sin embargo, Sinner es recientemente el número 1 del mundo y ganó el último enfrentamiento en Wimbledon, lo que añade confianza a su juego. El partido está muy parejo y podrá decidirse en los detalles, especialmente en la concreción de puntos clave y en la gestión de los sets decisivos.
+¿Quieres que amplíe el análisis con aspectos técnicos o tácticos específicos?

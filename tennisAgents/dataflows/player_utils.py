@@ -279,8 +279,9 @@ def fetch_atp_rankings() -> list:
 
         # Según la imagen de RapidAPI, los datos están en data["data"]
         players_data = data.get("data", [])
+        print(f"[DEBUG] Jugadores disponibles en API: {len(players_data)}")
         
-        for i, player_data in enumerate(players_data[:20]):  # Top 20
+        for i, player_data in enumerate(players_data[:100]):  # Top 100
             # Extraer los datos que necesitamos: ID, nombre, puntos y posición
             player_info = player_data.get("player", {})
             player_id = player_info.get("id", "N/D")
@@ -294,7 +295,10 @@ def fetch_atp_rankings() -> list:
                 "point": points,
                 "position": position
             })
+        
+        print(f"[DEBUG] Jugador procesado: {position}. {player_name} (ID: {player_id}) - {points} pts")
         return rankings
+    
         
     except requests.exceptions.RequestException as e:
         return []
@@ -364,7 +368,7 @@ def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30
                 "tournament": f"Tournament ID: {match.get('tournamentId', 'N/D')}",
                 "opponent": opponent_name,
                 "result": result,
-                "surface": "N/D",  # La API no parece incluir superficie en este endpoint
+                "surface": "N/D",  
                 "winner": winner_name
             })
             

@@ -106,8 +106,7 @@ def get_atp_rankings() -> str:
     for jugador in rankings:
         result += f"{jugador['position']}. {jugador['name']} (ID: {jugador['id']}) - {jugador['point']} pts\n"
     
-    #debug
-    print(f"[DEBUG] Resultado de get_atp_rankings: {result}")
+    
     return result
 
 
@@ -130,20 +129,21 @@ def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) ->
     return result
 
 
-def get_surface_winrate(player_name: str, surface: str) -> str:
+def get_surface_winrate(player_id: str, surface: str) -> str:
     """
     Devuelve el porcentaje de victorias del jugador en una superficie específica.
+    Usa directamente el ID del jugador proporcionado.
     """
-    stats = fetch_surface_winrate(player_name, surface)
+    stats = fetch_surface_winrate(player_id, surface)
 
     if not stats:
-        return f"No se encontraron datos sobre {player_name} en {surface}."
+        return f"No se encontraron datos sobre el jugador con ID {player_id} en {surface}."
 
     #debug
     print(f"[DEBUG] Resultado de get_surface_winrate: {stats}")
 
     return (
-        f"## Rendimiento de {player_name} en {surface}:\n\n"
+        f"## Rendimiento del jugador (ID: {player_id}) en {surface}:\n\n"
         f"- Partidos ganados: {stats['wins']}\n"
         f"- Partidos perdidos: {stats['losses']}\n"
         f"- Winrate: {stats['winrate']}%"
@@ -152,7 +152,7 @@ def get_surface_winrate(player_name: str, surface: str) -> str:
 
 def get_head_to_head(player1: int, player2: int) -> str:
     """
-    Devuelve el historial H2H entre dos jugadores de tenis.
+    Devuelve las estadísticas H2H entre dos jugadores de tenis.
     """
     try:
         data = fetch_head_to_head(player1, player2)
@@ -178,18 +178,53 @@ def get_head_to_head(player1: int, player2: int) -> str:
             resumen += f"- Jugador {player1}: {p1_wins} victorias ({(p1_wins/int(matches_count)*100):.1f}%)\n"
             resumen += f"- Jugador {player2}: {p2_wins} victorias ({(p2_wins/int(matches_count)*100):.1f}%)\n\n"
             
-            # Surface breakdown
-            resumen += f"**Por superficie:**\n"
+            # Detailed player statistics
+            resumen += f"**Estadísticas detalladas del Jugador {player1}:**\n"
+            resumen += f"- Partidos jugados: {player1_stats.get('statMatchesPlayed', 'N/A')}\n"
+            resumen += f"- Partidos ganados: {player1_stats.get('matchesWon', 'N/A')}\n"
+            resumen += f"- Porcentaje victorias: {round((player1_stats.get('matchesWon', 0) / player1_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
+            resumen += f"- Primer servicio: {player1_stats.get('firstServe', 'N/A')}/{player1_stats.get('firstServeOf', 'N/A')} ({player1_stats.get('firstServePercentage', 'N/A')}%)\n"
+            resumen += f"- Aces: {player1_stats.get('aces', 'N/A')}\n"
+            resumen += f"- Dobles faltas: {player1_stats.get('doubleFaults', 'N/A')}\n"
+            resumen += f"- Errores no forzados: {player1_stats.get('unforcedErrors', 'N/A')}\n"
+            resumen += f"- Winners: {player1_stats.get('winners', 'N/A')}\n"
+            resumen += f"- Break points convertidos: {player1_stats.get('breakPointsConverted', 'N/A')}/{player1_stats.get('breakPointsConvertedOf', 'N/A')} ({player1_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
+            resumen += f"- Sets ganados: {player1_stats.get('setsWon', 'N/A')}\n"
+            resumen += f"- Juegos ganados: {player1_stats.get('gamesWon', 'N/A')}\n"
+            resumen += f"- Títulos: {player1_stats.get('title', 'N/A')}\n"
+            resumen += f"- Grand Slams: {player1_stats.get('grandSlam', 'N/A')}\n"
+            resumen += f"- Masters: {player1_stats.get('masters', 'N/A')}\n"
+            resumen += f"- Superficies - Hard: {player1_stats.get('hard', 'N/A')}, Clay: {player1_stats.get('clay', 'N/A')}, Indoor: {player1_stats.get('iHard', 'N/A')}, Grass: {player1_stats.get('grass', 'N/A')}\n\n"
+            
+            resumen += f"**Estadísticas detalladas del Jugador {player2}:**\n"
+            resumen += f"- Partidos jugados: {player2_stats.get('statMatchesPlayed', 'N/A')}\n"
+            resumen += f"- Partidos ganados: {player2_stats.get('matchesWon', 'N/A')}\n"
+            resumen += f"- Porcentaje victorias: {round((player2_stats.get('matchesWon', 0) / player2_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
+            resumen += f"- Primer servicio: {player2_stats.get('firstServe', 'N/A')}/{player2_stats.get('firstServeOf', 'N/A')} ({player2_stats.get('firstServePercentage', 'N/A')}%)\n"
+            resumen += f"- Aces: {player2_stats.get('aces', 'N/A')}\n"
+            resumen += f"- Dobles faltas: {player2_stats.get('doubleFaults', 'N/A')}\n"
+            resumen += f"- Errores no forzados: {player2_stats.get('unforcedErrors', 'N/A')}\n"
+            resumen += f"- Winners: {player2_stats.get('winners', 'N/A')}\n"
+            resumen += f"- Break points convertidos: {player2_stats.get('breakPointsConverted', 'N/A')}/{player2_stats.get('breakPointsConvertedOf', 'N/A')} ({player2_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
+            resumen += f"- Sets ganados: {player2_stats.get('setsWon', 'N/A')}\n"
+            resumen += f"- Juegos ganados: {player2_stats.get('gamesWon', 'N/A')}\n"
+            resumen += f"- Títulos: {player2_stats.get('title', 'N/A')}\n"
+            resumen += f"- Grand Slams: {player2_stats.get('grandSlam', 'N/A')}\n"
+            resumen += f"- Masters: {player2_stats.get('masters', 'N/A')}\n"
+            resumen += f"- Superficies - Hard: {player2_stats.get('hard', 'N/A')}, Clay: {player2_stats.get('clay', 'N/A')}, Indoor: {player2_stats.get('iHard', 'N/A')}, Grass: {player2_stats.get('grass', 'N/A')}\n\n"
+            
+            # Surface breakdown comparison
+            resumen += f"**Comparación por superficie:**\n"
             resumen += f"- Jugador {player1}: Dura {player1_stats.get('hard', 0)}, Arcilla {player1_stats.get('clay', 0)}, Hierba {player1_stats.get('grass', 0)}, Indoor {player1_stats.get('iHard', 0)}\n"
             resumen += f"- Jugador {player2}: Dura {player2_stats.get('hard', 0)}, Arcilla {player2_stats.get('clay', 0)}, Hierba {player2_stats.get('grass', 0)}, Indoor {player2_stats.get('iHard', 0)}\n\n"
             
             # Serve statistics comparison
-            resumen += f"**Estadísticas de servicio:**\n"
+            resumen += f"**Comparación de servicio:**\n"
             resumen += f"- Jugador {player1}: {player1_stats.get('firstServePercentage', 0)}% primer servicio, {player1_stats.get('aces', 0)} aces, {player1_stats.get('doubleFaults', 0)} dobles faltas\n"
             resumen += f"- Jugador {player2}: {player2_stats.get('firstServePercentage', 0)}% primer servicio, {player2_stats.get('aces', 0)} aces, {player2_stats.get('doubleFaults', 0)} dobles faltas\n\n"
             
             # Break points and crucial moments
-            resumen += f" **Momentos cruciales:**\n"
+            resumen += f"**Momentos cruciales:**\n"
             resumen += f"- Jugador {player1}: {player1_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player1_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n"
             resumen += f"- Jugador {player2}: {player2_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player2_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n\n"
             
