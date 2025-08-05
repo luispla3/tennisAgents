@@ -1,8 +1,11 @@
+from openai import OpenAI
 import requests
 import os
 from bs4 import BeautifulSoup
 from datetime import datetime
 from dotenv import load_dotenv
+
+from tennisAgents.dataflows.config import get_config
 
 load_dotenv()
 
@@ -248,62 +251,38 @@ def fetch_injury_reports() -> dict:
 
 
 def fetch_atp_rankings() -> list:
-    """
-    Recupera el ranking ATP desde la API de tenis ATP/WTA/ITF.
-    """
-    if not RAPIDAPI_KEY:
-        print("[ERROR] RAPIDAPI_KEY no está configurada")
-        return []
-    
-    # URL correcta para rankings ATP según RapidAPI
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/ranking/singles/"
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPIDAPI_HOST
-    }
-    # No necesitamos parámetros para este endpoint
-    params = {}
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
 
-    try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
+    response = client.responses.create(
+        model=config["quick_think_llm"],
+        input=[
+            {
+                "role": "system",
+                "content": [
+                    {
+                        "type": "input_text",
+                        "text": f"Busca el top 100 del ranking ATP y devuelve una lista de jugadores con su nombre, ranking y puntos. El formato debe ser una lista de diccionarios con las claves 'name', 'ranking' y 'points'.",
+                    }
+                ],
+            }
+        ],
+        text={"format": {"type": "text"}},
+        reasoning={},
+        tools=[
+            {
+                "type": "web_search_preview",
+                "user_location": {"type": "approximate"},
+                "search_context_size": "low",
+            }
+        ],
+        temperature=1,
+        max_output_tokens=4096,
+        top_p=1,
+        store=True,
+    )
 
-        if response.status_code == 401:
-            return []
-        elif response.status_code == 403:
-            return []
-        elif response.status_code != 200:
-            return []
-
-        data = response.json()
-        rankings = []
-
-        # Según la imagen de RapidAPI, los datos están en data["data"]
-        players_data = data.get("data", [])
-        print(f"[DEBUG] Jugadores disponibles en API: {len(players_data)}")
-        
-        for i, player_data in enumerate(players_data[:100]):  # Top 100
-            # Extraer los datos que necesitamos: ID, nombre, puntos y posición
-            player_info = player_data.get("player", {})
-            player_id = player_info.get("id", "N/D")
-            player_name = player_info.get("name", "N/D")
-            points = player_data.get("point", "N/D")
-            position = player_data.get("position", "N/D")
-            
-            rankings.append({
-                "id": player_id,
-                "name": player_name,
-                "point": points,
-                "position": position
-            })
-        
-        print(f"[DEBUG] Jugador procesado: {position}. {player_name} (ID: {player_id}) - {points} pts")
-        return rankings
-    
-        
-    except requests.exceptions.RequestException as e:
-        return []
-    except Exception as e:
-        return []
+    return response.output[1].content[0].text
 
 
 
