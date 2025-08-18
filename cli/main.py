@@ -400,8 +400,8 @@ def get_user_selections():
     # Display ASCII art welcome message
     welcome_content = """
     ╔══════════════════════════════════════════════════════════════════════════════╗
-    ║                           TENNIS AGENTS CLI                                 ║
-    ║                Multi-Agents LLM Tennis Betting Framework                    ║
+    ║                           TENNIS AGENTS CLI                                  ║
+    ║                Multi-Agents LLM Tennis Betting Framework                     ║
     ╚══════════════════════════════════════════════════════════════════════════════╝
     """
     welcome_content += "[bold green]TennisAgents: Multi-Agents LLM Tennis Betting Framework - CLI[/bold green]\n\n"
