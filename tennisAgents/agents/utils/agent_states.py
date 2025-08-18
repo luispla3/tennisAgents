@@ -19,6 +19,10 @@ class RiskDebateState(TypedDict):
         str, "Neutral Agent's Conversation history"
     ]  # Conversation history
 
+    expected_history: Annotated[
+        str, "Expected Value Agent's Conversation history"
+    ]  # Conversation history
+
     history: Annotated[
         str, "Conversation history"
     ]  # Conversation history

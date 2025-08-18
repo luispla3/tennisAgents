@@ -1,26 +1,32 @@
-Recomendación: APOSTAR (pero con tamaño de apuesta moderado y condicionado a una cuota suficientemente atractiva).
+Resumen de los argumentos clave  
+1. Analista Agresivo  
+   - Fortalezas: Alto win-rate de Alcaraz en césped (~90%), dominio H2H histórico (64%–36%), gran mentalidad en momentos decisivos (75%).  
+   - Debilidades: Minimiza el último triunfo de Sinner en Wimbledon y la condición de #1 del italiano; pasa por alto la incertidumbre de un partido a cinco sets y el desgaste físico.  
 
-1. Resumen de los argumentos  
-- Analista Agresivo: Señala ventaja histórica de Alcaraz en césped (winrate ~90% vs 72%), mejor primer saque y rendimiento en momentos decisivos. Cree que el mercado sobrevalora la victoria reciente de Sinner y ofrece valor.  
-- Analista Conservador: Destaca que Sinner ganó los dos últimos duelos en Wimbledon, la importancia de los resultados inmediatos y la volatilidad en césped. Propone no exponerse demasiado o, en su defecto, apostar sólo una fracción muy pequeña del bankroll.  
-- Analista de Valor Esperado: Calcula que la probabilidad real de Alcaraz ronda el 55%. Si la cuota para él es ≥2.0, el EV es positivo; por debajo de ~1.9 el EV desaparece.  
-- Analista Neutral: Equilibra ambas posturas: reconoce la ventaja técnica de Alcaraz, pero advierte de la adaptación de Sinner en césped y aconseja un stake proporcional al nivel de confianza y a la cuota.
+2. Analista Conservador  
+   - Fortalezas: Destaca la victoria reciente de Sinner en césped, su condición de número 1 y su efectividad en break points (48% vs 34%). Señala la imprevisibilidad de un cinco sets y propone proteger el capital.  
+   - Debilidades: Infravalora la ventaja histórica y en superficie de Alcaraz; sugiere abstenerse sin valorar oportunidades de EV positivo cuando las cuotas son atractivas.  
 
-2. Justificación de la decisión  
-– Históricamente y en estadísticas de superficie, Alcaraz parte ligeramente favorito.  
-– El último triunfo de Sinner en Wimbledon introduce incertidumbre, pero no invalida la tendencia general.  
-– La clave es la cuota: solo si la casa paga 2.0 o más por la victoria de Alcaraz la apuesta ofrece un valor esperado positivo y justifica correr el riesgo.  
+3. Analista de Valor Esperado (EV)  
+   - Fortalezas: Plantea cuantificar la probabilidad real (55–60% para Alcaraz) vs la probabilidad implícita de las cuotas. Muestra que solo hay apuesta rentable si la cuota de Alcaraz supera 1.8–2.0.  
+   - Debilidades: Falta de datos de cuota real impide cálculo definitivo; depende totalmente de información externa.  
 
-3. Ajuste al plan del trader  
-– Condicionar la entrada a que la cuota de Alcaraz sea ≥2.0.  
-– Apostar un stake moderado (por ejemplo, 2–3 % del bankroll) en lugar de un “tote” agresivo.  
-– Si la cuota baja a 1.8–1.9, esperar e incluso reconsiderar (no apostar o reducir al 1 % del bankroll).  
-– Monitorear hasta el momento previo al partido posibles cambios de clima o noticias sobre forma física.
+4. Analista Neutral  
+   - Fortalezas: Propone un punto medio: aprovechar valor de Alcaraz con apuestas de tamaño controlado si cuota ≥1.8, y en caso contrario diversificar o no jugar. Atiende a gestión de riesgos y monitoreo de variables (clima, estado físico).  
+   - Debilidades: No toma una posición firme; puede diluir la decisión si las condiciones cambian rápidamente.  
 
-4. Lecciones de apuestas pasadas  
-– Evitar sobreapostar simplemente por sesgo de favorito.  
-– Valorar siempre la cuota en contraste con la probabilidad real.  
-– Ajustar el stake a la fuerza del edge (cuanto mayor EV, mayor el stake; cuanto más marginal, menor stake).  
-– Incorporar resultados inmediatos y factores psicológicos en tenis de élite.
+Decisión del Juez de Riesgos: ESPERAR  
+Justificación  
+- Sin conocer las cuotas exactas no podemos confirmar un EV positivo.  
+- El debate muestra señales a favor de Alcaraz (superficie y mentalidad) pero también fortalezas claras de Sinner (ranking, último triunfo, conversión de break).  
+- Apostar a ciegas o con mucho capital entraña riesgo excesivo.  
 
-Conclusión final: APOSTAR a la victoria de Alcaraz solo si la cuota es atractiva (≥2.0), con un stake prudente que proteja el bankroll y aproveche el valor matemático identificado.
+Ajuste al plan del trader  
+- Esperar a la publicación de las cuotas oficiales.  
+- Si la cuota de Alcaraz ≥1.8, apostar un 2–3% del bankroll (apuesta pequeña controlada) para capturar valor.  
+- Si la cuota está por debajo de 1.8 o favorece demasiado a Sinner (<1.9), NO APOSTAR o explorar mercados alternativos (por ejemplo, ganador de set 1 a Alcaraz, total de juegos).  
+
+Lecciones de errores pasados  
+- Evitar el sesgo de recencia (apostar solo por el resultado más reciente).  
+- No sobreponderar estadísticas históricas sin considerar la cuota del mercado.  
+- Controlar el tamaño de la apuesta cuando la información clave (cuotas, condiciones meteorológicas, posible lesión) no está completa.
