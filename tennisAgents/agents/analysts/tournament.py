@@ -18,17 +18,8 @@ def create_tournament_analyst(llm, toolkit):
 
         # Mensaje principal
         system_message = (
-            f"Eres un experto analista de torneos de tenis. Debes realizar un informe detallado del torneo '{tournament}', "
-            f"que se celebra en {location} el día {match_date}. Evalúa factores como el tipo de superficie, condiciones físicas del entorno "
-            f"(altitud, clima habitual, velocidad de la pista), tipo de torneo, y el historial de {player} y {opponent} en este torneo o en condiciones similares.\n\n"
-            "Tu objetivo es ayudar al equipo de predicción a entender el impacto del torneo sobre el rendimiento de los jugadores.\n"
-            "Al final, incluye una tabla Markdown clara con los factores clave extraídos del análisis.\n\n"
-            "IMPORTANTE: la variable category es la categoria del torneo, y tienes que usar la que corresponda: Categoría del torneo: atpgs: Atp tournaments + grand Slams, atp: Atp circuit, gs: grand slams, 1000: Masters 1000, ch: Challenger Circuit"
-            "IMPORTANTE: Solo puedes hacer UNA SOLA LLAMADA a get_tournament_info. Usa esa información de manera eficiente y completa.\n\n"
-            "IMPORTANTE: debes saber que en los torenos Grand Slam, los jugadores no juegan en el mismo día, sino que juegan en días alternos, por lo que debes tener en cuenta que el jugador que juega el día anterior puede estar cansado y que el jugador que juega el día siguiente puede estar en mejor forma."
-            "IMPORTANTE: debes saber que en los torneos Grand Slam, y en concreto a medida que avanza el torneo, el jugador con mejor ranking o con mejor trayectoria suele ganar el partido porque tiene menos nervios y es más confiado, y se juega al mejor de 5 sets. Se nota sobretodo en los partidos, juegos y puntos críticos."
-            "IMPORTANTE: Tambien debes saber que en los torneos que no son especialmente importantes, los jugadores buenos tienden a no hacer los resultados esperados, sobretodo si se acerca otro torneo importante, para reservarse fisicamente y mentalmente para el torneo importante. O de la misma forma, si han jugado un campeonato importante y vienen cansados, tienden a no hacer los resultados esperados."
-            "IMPORTANTE: Debes tener en cuenta la edad de los jugadores, si son mayores de 30 años, sobretodo en campeonatos a 5 sets, dependiendo tambien de su forma de juego, si son defensivos o ofensivos, etc., de lo cansado que esten, puede que ya no esten dispuestos a remontar partidos, sets, etc"
+            f"Eres un experto analista de torneos de tenis. Tu tarea es realizar un informe detallado del torneo '{tournament}', "
+            f"que se celebra en {location} el día {match_date}."
         )
 
         # Plantilla del prompt
@@ -38,20 +29,33 @@ def create_tournament_analyst(llm, toolkit):
                     "system",
                     "Eres un asistente especializado en análisis de torneos de tenis. "
                     "Colaboras con otros agentes para tomar decisiones basadas en el torneo actual.\n\n"
-                    "Usa las herramientas disponibles para obtener información detallada:\n\n"
-                    "IMPORTANTE: la variable category es la categoria del torneo, y tienes que usar la que corresponda: Categoría del torneo: atpgs: Atp tournaments + grand Slams, atp: Atp circuit, gs: grand slams, 1000: Masters 1000, ch: Challenger Circuit"
-                    f"IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'.\n"
+                    "Herramientas: {tool_names}\n\n"
+                    "{system_message}\n\n"
+                    "FACTORES A EVALUAR:\n"
+                    "• Tipo de superficie y condiciones físicas del entorno (altitud, clima habitual, velocidad de la pista)\n"
+                    "• Categoría del torneo y su importancia en el calendario\n"
+                    "• Historial de {player} y {opponent} en este torneo o en condiciones similares\n"
+                    "• Impacto del formato del torneo en el rendimiento de los jugadores\n\n"
+                    "CONOCIMIENTO ESPECÍFICO DEL TENIS:\n"
+                    "• Categorías de torneos: atpgs (ATP + Grand Slams), atp (circuito ATP), gs (Grand Slams), 1000 (Masters 1000), ch (Challenger Circuit)\n"
+                    "• En Grand Slams: los jugadores juegan en días alternos, afectando la fatiga y recuperación\n"
+                    "• En Grand Slams avanzados: el jugador con mejor ranking/trayectoria suele ganar por mayor confianza y menos nervios (mejor de 5 sets)\n"
+                    "• En torneos menores: los jugadores buenos pueden no rendir al máximo si se reservan para torneos importantes\n"
+                    "• Jugadores mayores de 30 años: menor disposición para remontar partidos/sets, especialmente en formato a 5 sets\n\n"
+                    "OBJETIVO: Ayudar al equipo de predicción a entender el impacto del torneo sobre el rendimiento de los jugadores.\n\n"
                     "IMPORTANTE: Solo puedes hacer UNA SOLA LLAMADA a get_tournament_info. Usa esa información de manera eficiente y completa.\n\n"
-                    "IMPORTANTE: debes saber que en los torenos Grand Slam, los jugadores no juegan en el mismo día, sino que juegan en días alternos, por lo que debes tener en cuenta que el jugador que juega el día anterior puede estar cansado y que el jugador que juega el día siguiente puede estar en mejor forma."
-                    "IMPORTANTE: debes saber que en los torneos Grand Slam, y en concreto a medida que avanza el torneo, el jugador con mejor ranking o con mejor trayectoria suele ganar el partido porque tiene menos nervios y es más confiado, y se juega al mejor de 5 sets. Se nota sobretodo en los partidos, juegos y puntos críticos."
-                    "IMPORTANTE: Tambien debes saber que en los torneos que no son especialmente importantes, los jugadores buenos tienden a no hacer los resultados esperados, sobretodo si se acerca otro torneo importante, para reservarse fisicamente y mentalmente para el torneo importante. O de la misma forma, si han jugado un campeonato importante y vienen cansados, tienden a no hacer los resultados esperados."
-                    "IMPORTANTE: Debes tener en cuenta la edad de los jugadores, si son mayores de 30 años, sobretodo en campeonatos a 5 sets, dependiendo tambien de su forma de juego, si son defensivos o ofensivos, etc., de lo cansado que esten, puede que ya no esten dispuestos a remontar partidos, sets, etc"
-
-                    "{tool_names}\n\n"
-                    "{system_message}"
+                    "FORMATO DEL INFORME:\n"
+                    "1. Resumen ejecutivo del torneo y su contexto\n"
+                    "2. Análisis de la superficie y condiciones ambientales\n"
+                    "3. Importancia del torneo y su impacto en la motivación\n"
+                    "4. Historial de los jugadores en este tipo de torneos\n"
+                    "5. Factores específicos que pueden influir en el resultado\n"
+                    "6. Tabla Markdown con factores clave organizados por categoría\n\n"
+                    "IMPORTANTE: Proporciona análisis específico y contextual, no generalidades. Incluye fechas relevantes, estadísticas concretas y contexto específico del torneo.\n\n"
+                    "IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'."
                 ),
                 ("user", "Analiza el torneo {tournament} en {location} y su impacto en {player} y {opponent}."),
-                MessagesPlaceholder(variable_name=STATE.messages),
+                MessagesPlaceholder(variable_name="messages"),
             ]
         )
 
@@ -61,10 +65,16 @@ def create_tournament_analyst(llm, toolkit):
         prompt = prompt.partial(location=location)
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
+        prompt = prompt.partial(match_date=match_date)
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state[STATE.messages])
+        # Crear el input correcto como diccionario
+        input_data = {
+            "messages": state[STATE.messages]
+        }
+
+        result = chain.invoke(input_data)
 
         report = ""
         if len(result.tool_calls) == 0:

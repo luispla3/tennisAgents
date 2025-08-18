@@ -23,10 +23,7 @@ def create_social_media_analyst(llm, toolkit):
         system_message = (
             f"Eres un analista especializado en recopilar y analizar la opinión pública sobre jugadores de tenis. "
             f"Tu tarea es elaborar un informe detallado sobre la percepción actual de {player} y {opponent} en redes sociales y foros de tenis, "
-            "de cara al partido que se jugará en el torneo {tournament}. "
-            "Debes analizar tweets, comentarios, publicaciones en Reddit o foros, y cualquier indicio sobre estado físico, moral, confianza o rumores.\n\n"
-            "Incluye tanto información objetiva (sentimiento positivo/negativo) como subjetiva (percepción, rumores, narrativa mediática).\n\n"
-            "Finaliza tu informe con una tabla Markdown con los puntos clave para que sea fácil de leer."
+            f"de cara al partido que se jugará en el torneo {tournament}."
         )
 
         # Prompt que incluye los mensajes anteriores y la plantilla base
@@ -35,12 +32,33 @@ def create_social_media_analyst(llm, toolkit):
                 (
                     "system",
                     "Eres un asistente de IA experto en analizar redes sociales de jugadores de tenis, colaborando con otros agentes.\n"
-                    "Usa las herramientas disponibles para extraer información útil. Si no puedes completar el análisis, aporta lo que puedas.\n"
-                    "Herramientas disponibles: {tool_names}\n{system_message}\n\n"
+                    "Tu objetivo es extraer información valiosa sobre la percepción pública que pueda influir en el rendimiento.\n\n"
+                    "Herramientas: {tool_names}\n\n"
+                    "{system_message}\n\n"
+                    "FUENTES A ANALIZAR:\n"
+                    "• Tweets y conversaciones en Twitter/X\n"
+                    "• Comentarios en foros especializados de tenis\n"
+                    "• Publicaciones y discusiones en Reddit\n"
+                    "• Cualquier indicio sobre estado físico, moral, confianza o rumores\n\n"
+                    "TIPOS DE INFORMACIÓN A EXTRAER:\n"
+                    "• Sentimiento objetivo (positivo/negativo/neutral) con métricas cuantitativas\n"
+                    "• Percepción subjetiva y narrativa mediática\n"
+                    "• Rumores sobre lesiones, cambios de entrenador o problemas personales\n"
+                    "• Expectativas de los fans y expertos\n"
+                    "• Comparación de la popularidad y apoyo en redes sociales\n\n"
+                    "OBJETIVO: Proporcionar insights sobre el estado mental y la percepción pública que puedan influir en el rendimiento.\n\n"
+                    "FORMATO DEL INFORME:\n"
+                    "1. Resumen ejecutivo del sentimiento general hacia ambos jugadores\n"
+                    "2. Análisis detallado por plataforma (Twitter, foros, Reddit)\n"
+                    "3. Comparación de la percepción entre ambos jugadores\n"
+                    "4. Identificación de temas recurrentes y preocupaciones\n"
+                    "5. Impacto potencial en la confianza y motivación\n"
+                    "6. Tabla Markdown con métricas clave organizadas por plataforma y jugador\n\n"
+                    "IMPORTANTE: Proporciona análisis específico con métricas concretas, no generalidades. Incluye porcentajes de sentimiento, ejemplos de comentarios relevantes y contexto específico de cada plataforma.\n\n"
                     "Fecha: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
                 ),
                 ("user", "Analiza la percepción en redes sociales de {player} y {opponent} para el torneo {tournament}."),
-                MessagesPlaceholder(variable_name=STATE.messages),
+                MessagesPlaceholder(variable_name="messages"),
             ]
         )
 
@@ -55,7 +73,12 @@ def create_social_media_analyst(llm, toolkit):
         # Construcción de la cadena LLM
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state[STATE.messages])
+        # Crear el input correcto como diccionario
+        input_data = {
+            "messages": state[STATE.messages]
+        }
+
+        result = chain.invoke(input_data)
 
         report = ""
         if len(result.tool_calls) == 0:

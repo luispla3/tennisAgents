@@ -19,12 +19,7 @@ def create_weather_analyst(llm, toolkit):
         # Mensaje al sistema para enfocar el análisis
         system_message = (
             f"Eres un analista meteorológico especializado en tenis. Tu tarea es evaluar las condiciones climáticas "
-            f"esperadas para el día {match_date} en {location}, sede del torneo {tournament}, donde jugarán {player} contra {opponent}.\n\n"
-            "Analiza cómo la temperatura, el viento, la humedad o la posibilidad de lluvia pueden afectar el juego. "
-            "Considera el estilo de ambos jugadores y si alguno tiene un historial de mal rendimiento o lesiones bajo ciertas condiciones.\n\n"
-            "Finaliza con un resumen en formato tabla Markdown de los factores clave."
-            "IMPORTANTE: haz solo una llamada a la herramienta get_weather_forecast, y usa la información de manera eficiente y completa."
-            
+            f"esperadas para el día {match_date} en {location}, sede del torneo {tournament}, donde jugarán {player} contra {opponent}."
         )
 
         # Definición del prompt con historial y herramientas
@@ -33,14 +28,32 @@ def create_weather_analyst(llm, toolkit):
                 (
                     "system",
                     "Eres un asistente experto en meteorología deportiva colaborando con otros analistas. "
-                    "Usa las siguientes herramientas para recopilar y analizar datos climáticos:\n\n"
-                    "IMPORTANTE: haz solo una llamada a la herramienta get_weather_forecast, y usa la información de manera eficiente y completa."
-                    "IMPORTANTE: las latitud y longitud son las coordenadas de la ubicación del torneo, y la fecha y hora son la fecha y hora del partido."
-                    "{tool_names}\n\n"
-                    "{system_message}"
+                    "Tu objetivo es analizar el impacto del clima en el rendimiento de los jugadores de tenis.\n\n"
+                    "Herramientas: {tool_names}\n\n"
+                    "{system_message}\n\n"
+                    "FACTORES CLIMÁTICOS A ANALIZAR:\n"
+                    "• Temperatura y su impacto en la velocidad de la pelota y resistencia de los jugadores\n"
+                    "• Viento y su efecto en la precisión de los saques y golpes\n"
+                    "• Humedad y su influencia en la velocidad de la superficie y deslizamiento\n"
+                    "• Posibilidad de lluvia y su impacto en la continuidad del juego\n"
+                    "• Presión atmosférica y su efecto en la altitud (si aplica)\n\n"
+                    "ANÁLISIS REQUERIDO:\n"
+                    "• Cómo las condiciones climáticas pueden afectar el estilo de juego de ambos jugadores\n"
+                    "• Historial de rendimiento de los jugadores bajo condiciones climáticas similares\n"
+                    "• Impacto en la estrategia del partido y adaptaciones necesarias\n"
+                    "• Comparación de ventajas/desventajas para cada jugador según el clima\n\n"
+                    "IMPORTANTE: Haz solo una llamada a get_weather_forecast y usa la información de manera eficiente y completa.\n\n"
+                    "FORMATO DEL INFORME:\n"
+                    "1. Resumen ejecutivo de las condiciones climáticas esperadas\n"
+                    "2. Análisis detallado de cada factor meteorológico\n"
+                    "3. Impacto específico en el estilo de juego de cada jugador\n"
+                    "4. Adaptaciones estratégicas recomendadas\n"
+                    "5. Tabla Markdown con factores clave organizados por categoría\n\n"
+                    "IMPORTANTE: Proporciona análisis específico y cuantitativo, no generalidades. Incluye temperaturas exactas, velocidades de viento, porcentajes de humedad y contexto específico del impacto en el tenis.\n\n"
+                    "IMPORTANTE: Las coordenadas latitud y longitud corresponden a la ubicación del torneo, y la fecha y hora son las del partido."
                 ),
                 ("user", "Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} en {location}."),
-                MessagesPlaceholder(variable_name=STATE.messages),
+                MessagesPlaceholder(variable_name="messages"),
             ]
         )
 
@@ -53,7 +66,12 @@ def create_weather_analyst(llm, toolkit):
 
         chain = prompt | llm.bind_tools(tools)
 
-        result = chain.invoke(state[STATE.messages])
+        # Crear el input correcto como diccionario
+        input_data = {
+            "messages": state[STATE.messages]
+        }
+
+        result = chain.invoke(input_data)
 
         report = ""
         if len(result.tool_calls) == 0:
