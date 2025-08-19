@@ -204,49 +204,47 @@ def scrape_returning_players(page_url: str) -> list:
         return []
 
 
-def fetch_injury_reports() -> dict:
+def fetch_injury_reports() -> str:
     """
-    Gets injury reports by scraping TennisExplorer for both injured and returning players.
+    Gets injury reports using OpenAI instead of web scraping.
     
     Returns:
-        Dictionary containing 'injured_players' and 'returning_players' lists
+        String containing injury reports information
     """
-    print("[INFO] Starting injury reports scraping...")
-    
-    # Base URLs for injured players (5 pages)
-    injured_urls = [
-        "https://www.tennisexplorer.com/list-players/injured/?page=1",
-        "https://www.tennisexplorer.com/list-players/injured/?page=2", 
-        "https://www.tennisexplorer.com/list-players/injured/?page=3",
-        "https://www.tennisexplorer.com/list-players/injured/?page=4",
-        "https://www.tennisexplorer.com/list-players/injured/?page=5"
-    ]
-    
-    # URL for returning players (1 page)
-    returning_url = "https://www.tennisexplorer.com/list-players/return-from-injury/"
-    
-    all_injured_players = []
-    
-    # Scrape all pages for injured players
-    for url in injured_urls:
-        page_players = scrape_injured_players(url)
-        all_injured_players.extend(page_players)
-        
-        # Add a small delay between requests to be respectful
-        import time
-        time.sleep(1)
-    
-    
-    # Scrape returning players
-    returning_players = scrape_returning_players(returning_url)
-    
-    return {
-        'injured_players': all_injured_players,
-        'returning_players': returning_players,
-        'total_injured': len(all_injured_players),
-        'total_returning': len(returning_players),
-        'scraped_at': datetime.now().isoformat()
-    }
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
+
+    try:
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": "Busca información actualizada sobre jugadores de tenis lesionados y jugadores que están regresando de lesiones. Incluye nombres, tipos de lesiones, fechas, torneos afectados, y estado actual de recuperación. Enfócate en jugadores relevantes del circuito ATP.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "medium",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
+        return response.output[1].content[0].text
+    except Exception as e:
+        return f"Error al obtener reportes de lesiones: {str(e)}"
 
 
 
@@ -286,214 +284,125 @@ def fetch_atp_rankings() -> list:
 
 
 
-def fetch_recent_matches(player_id: int, opponent_id: int, num_matches: int = 30) -> list:
+def fetch_recent_matches(player1_name: str, player2_name: str, num_matches: int = 30) -> str:
     """
-    Obtiene los partidos recientes entre dos jugadores usando la API de tenis.
-    Utiliza el endpoint getH2HMatches de la API ATP/WTA/ITF.
+    Obtiene los partidos recientes entre dos jugadores usando OpenAI.
     """
-    if not RAPIDAPI_KEY:
-        print("[ERROR] RAPIDAPI_KEY no está configurada")
-        return []
-    
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/h2h/matches/{player_id}/{opponent_id}/"
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPIDAPI_HOST
-    }
-    params = {}
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
 
     try:
-        
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-
-        if response.status_code == 401:
-            return []
-        elif response.status_code == 403:
-            return []
-        elif response.status_code != 200:
-            return []
-
-        data = response.json()
-        matches = data.get("data", [])
-        
-        if not matches:
-            return []
-
-        # Procesar los partidos y limitar al número solicitado
-        processed_matches = []
-        for i, match in enumerate(matches[:num_matches]):
-            
-            # Extraer datos según la estructura de la API
-            match_date = match.get("date", "")
-            
-            # Obtener información de los jugadores
-            player1_info = match.get("player1", {})
-            player2_info = match.get("player2", {})
-            
-            # Determinar el ganador basado en el resultado
-            result = match.get("result", "")
-            winner_name = "N/D"
-            opponent_name = "N/D"
-            
-            # Si hay resultado, intentar determinar el ganador
-            if result and player1_info and player2_info:
-                # Por ahora, asumimos que el primer jugador es el ganador
-                # En una implementación más completa, analizaríamos el resultado
-                winner_name = player1_info.get("name", "N/D")
-                opponent_name = player2_info.get("name", "N/D")
-            
-            processed_matches.append({
-                "date": match_date[:10] if match_date else "N/D",
-                "tournament": f"Tournament ID: {match.get('tournamentId', 'N/D')}",
-                "opponent": opponent_name,
-                "result": result,
-                "surface": "N/D",  
-                "winner": winner_name
-            })
-            
-        return processed_matches
-        
-    except requests.exceptions.RequestException as e:
-        return []
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"Busca información sobre los últimos {num_matches} partidos jugados por {player1_name} y {player2_name}. Incluye fechas, torneos, resultados, superficies y estadísticas relevantes. Devuelve un análisis detallado de su rendimiento reciente.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "medium",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
+        return response.output[1].content[0].text
     except Exception as e:
-        return []
+        return f"Error al obtener partidos recientes: {str(e)}"
 
 
 
-def fetch_surface_winrate(player_id: int, surface: str) -> dict:
+def fetch_surface_winrate(player_name: str, surface: str) -> str:
     """
-    Devuelve el winrate de un jugador en una superficie dada usando la API de tenis.
-    Utiliza el endpoint getPlayerSurfaceSummary de la API ATP/WTA/ITF.
+    Devuelve el winrate de un jugador en una superficie dada usando OpenAI.
     """
-    if not RAPIDAPI_KEY:
-        print("[ERROR] RAPIDAPI_KEY no está configurada")
-        return None
-    
-    # Mapeo de superficies a courtId según la documentación
-    surface_mapping = {
-        "hard": 1,
-        "clay": 2, 
-        "i.hard": 3,
-        "grass": 5
-    }
-    
-    court_id = surface_mapping.get(surface.lower())
-    if not court_id:
-        return None
-
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/player/surface-summary/{player_id}"
-    headers = {
-        "X-RapidAPI-Key": RAPIDAPI_KEY,
-        "X-RapidAPI-Host": RAPIDAPI_HOST
-    }
-    params = {}
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
 
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=10)
-            
-        if response.status_code == 401:
-            return None
-        elif response.status_code == 403:
-            return None
-        elif response.status_code != 200:
-            return None
-
-        data = response.json()
-
-        surface_data = data.get("data", [])
-        
-        if not surface_data:
-            return None
-                
-        # Buscar datos para la superficie específica en el año más reciente
-        total_wins = 0
-        total_losses = 0
-        
-        for year_data in surface_data:
-            year = year_data.get("year", 0)
-            surfaces = year_data.get("surfaces", [])
-                        
-            for surface_info in surfaces:
-                if surface_info.get("courtId") == court_id:
-                    wins = surface_info.get("courtWins", 0)
-                    losses = surface_info.get("courtLosses", 0)
-                    court_name = surface_info.get("court", "N/D")
-                                        
-                    total_wins += wins
-                    total_losses += losses
-
-        total_matches = total_wins + total_losses
-        if total_matches == 0:
-            return None
-
-        winrate = round((total_wins / total_matches) * 100, 2)
-                
-        return {
-            "wins": total_wins,
-            "losses": total_losses,
-            "winrate": winrate
-        }
-        
-    except requests.exceptions.RequestException as e:
-        return None
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"Busca estadísticas específicas sobre el rendimiento de {player_name} en superficie {surface} (clay, hard, grass). Incluye winrate, partidos ganados/perdidos, títulos, y rendimiento histórico en esta superficie. Devuelve datos cuantitativos y análisis cualitativo.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "medium",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
+        return response.output[1].content[0].text
     except Exception as e:
-        return None
+        return f"Error al obtener winrate en superficie: {str(e)}"
 
 
-def fetch_head_to_head(player1: int, player2: int) -> dict:
+def fetch_head_to_head(player1_name: str, player2_name: str) -> str:
     """
-    Devuelve las estadísticas head-to-head entre dos jugadores usando la API de tenis.
-    Basado en la documentación del endpoint getH2HStats.
+    Devuelve las estadísticas head-to-head entre dos jugadores usando OpenAI.
     """
-    if not RAPIDAPI_KEY:
-        return None
-    
-    url = f"https://{RAPIDAPI_HOST}/tennis/v2/atp/h2h/stats/{player1}/{player2}/"
-    headers = {
-        "x-rapidapi-key": RAPIDAPI_KEY,
-        "x-rapidapi-host": RAPIDAPI_HOST
-    }
+    config = get_config()
+    client = OpenAI(base_url=config["backend_url"])
 
     try:
-        response = requests.get(url, headers=headers, timeout=10)
-        
-        if response.status_code == 401:
-            return None
-        elif response.status_code == 403:
-            return None
-        elif response.status_code != 200:
-            return None
-
-        data = response.json()
-        
-        if not data or "data" not in data:
-            return None
-
-        h2h_data = data["data"]
-        matches_count = h2h_data.get("matchesCount", "0")
-        
-        # Extraer estadísticas de ambos jugadores
-        player1_stats = None
-        player2_stats = None
-        
-        if "player1Stats" in h2h_data:
-            player1_stats = h2h_data["player1Stats"]
-        if "player2Stats" in h2h_data:
-            player2_stats = h2h_data["player2Stats"]
-
-        result = {
-            "matches_count": matches_count,
-            "player1_stats": player1_stats,
-            "player2_stats": player2_stats,
-            "raw_data": h2h_data
-        }
-        
-        return result
-        
-    except requests.exceptions.RequestException as e:
-        return None
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"Busca el historial completo de enfrentamientos (head-to-head) entre {player1_name} y {player2_name}. Incluye total de partidos, victorias de cada uno, fechas, torneos, superficies, y análisis de patrones en sus enfrentamientos. Devuelve estadísticas detalladas y contexto histórico.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "medium",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
+        return response.output[1].content[0].text
     except Exception as e:
-        return None
+        return f"Error al obtener head-to-head: {str(e)}"
 
 
 

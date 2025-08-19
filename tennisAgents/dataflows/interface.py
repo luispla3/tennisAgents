@@ -97,208 +97,73 @@ def get_atp_rankings() -> str:
     """
     Consulta el ranking ATP actual y lo devuelve formateado.
     """
-    rankings = fetch_atp_rankings()
+    result = fetch_atp_rankings()
 
-    if not rankings:
+    if not result or result.startswith("Error"):
         return "No se pudo obtener el ranking ATP."
 
-    result = "## Ranking ATP actual:\n\n"
-    for jugador in rankings:
-        result += f"{jugador['position']}. {jugador['name']} (ID: {jugador['id']}) - {jugador['point']} pts\n"
-    
+    #debug
+    print(f"[DEBUG] Resultado de get_atp_rankings: {result}")
     
     return result
 
 
-def get_recent_matches(player_id:int, opponent_id:int, num_matches: int = 30) -> str:
+def get_recent_matches(player1_name: str, player2_name: str, num_matches: int = 30) -> str:
     """
      Devuelve los últimos partidos jugados entre dos jugadores específicos.
-     Utiliza el endpoint getH2HMatches de la API de tenis.
+     Usa OpenAI para obtener la información.
     """
-    matches = fetch_recent_matches(player_id, opponent_id, num_matches)
-
-    if not matches:
-        return f"No se encontraron partidos recientes entre los jugadores con IDs {player_id} y {opponent_id}."
-
-    result = f"## Últimos {len(matches)} partidos entre jugadores (IDs: {player_id} vs {opponent_id}):\n\n"
-    for m in matches:
-        result += f"- **{m['date']}** | {m['tournament']} | vs {m['opponent']} | **Resultado: {m['result']}** | Superficie: {m['surface']} | Ganador: {m['winner']}\n"
+    result = fetch_recent_matches(player1_name, player2_name, num_matches)
+    
+    if not result or result.startswith("Error"):
+        return f"No se encontraron partidos recientes entre {player1_name} y {player2_name}."
 
     #debug
     print(f"[DEBUG] Resultado de get_recent_matches: {result}")
     return result
 
 
-def get_surface_winrate(player_id: str, surface: str) -> str:
+def get_surface_winrate(player_name: str, surface: str) -> str:
     """
     Devuelve el porcentaje de victorias del jugador en una superficie específica.
-    Usa directamente el ID del jugador proporcionado.
+    Usa OpenAI para obtener la información.
     """
-    stats = fetch_surface_winrate(player_id, surface)
+    result = fetch_surface_winrate(player_name, surface)
 
-    if not stats:
-        return f"No se encontraron datos sobre el jugador con ID {player_id} en {surface}."
+    if not result or result.startswith("Error"):
+        return f"No se encontraron datos sobre {player_name} en {surface}."
 
     #debug
-    print(f"[DEBUG] Resultado de get_surface_winrate: {stats}")
-
-    return (
-        f"## Rendimiento del jugador (ID: {player_id}) en {surface}:\n\n"
-        f"- Partidos ganados: {stats['wins']}\n"
-        f"- Partidos perdidos: {stats['losses']}\n"
-        f"- Winrate: {stats['winrate']}%"
-    )
+    print(f"[DEBUG] Resultado de get_surface_winrate: {result}")
+    return result
 
 
-def get_head_to_head(player1: int, player2: int) -> str:
+def get_head_to_head(player1_name: str, player2_name: str) -> str:
     """
     Devuelve las estadísticas H2H entre dos jugadores de tenis.
+    Usa OpenAI para obtener la información.
     """
     try:
-        data = fetch_head_to_head(player1, player2)
+        result = fetch_head_to_head(player1_name, player2_name)
 
-        if not data:
-            return f"No se encontró historial H2H entre {player1} y {player2}."
+        if not result or result.startswith("Error"):
+            return f"No se encontró historial H2H entre {player1_name} y {player2_name}."
 
-        resumen = f"## Historial H2H entre jugadores {player1} y {player2}:\n\n"
-        
-        # Get match count
-        matches_count = data.get('matches_count', 0)
-        resumen += f"**Total de enfrentamientos:** {matches_count}\n\n"
-        
-        # Get player stats
-        player1_stats = data.get('player1_stats')
-        player2_stats = data.get('player2_stats')
-        
-        if player1_stats and player2_stats:
-            # Overall H2H record
-            p1_wins = player1_stats.get('matchesWon', 0)
-            p2_wins = player2_stats.get('matchesWon', 0)
-            resumen += f"**Record H2H:**\n"
-            resumen += f"- Jugador {player1}: {p1_wins} victorias ({(p1_wins/int(matches_count)*100):.1f}%)\n"
-            resumen += f"- Jugador {player2}: {p2_wins} victorias ({(p2_wins/int(matches_count)*100):.1f}%)\n\n"
-            
-            # Detailed player statistics
-            resumen += f"**Estadísticas detalladas del Jugador {player1}:**\n"
-            resumen += f"- Partidos jugados: {player1_stats.get('statMatchesPlayed', 'N/A')}\n"
-            resumen += f"- Partidos ganados: {player1_stats.get('matchesWon', 'N/A')}\n"
-            resumen += f"- Porcentaje victorias: {round((player1_stats.get('matchesWon', 0) / player1_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
-            resumen += f"- Primer servicio: {player1_stats.get('firstServe', 'N/A')}/{player1_stats.get('firstServeOf', 'N/A')} ({player1_stats.get('firstServePercentage', 'N/A')}%)\n"
-            resumen += f"- Aces: {player1_stats.get('aces', 'N/A')}\n"
-            resumen += f"- Dobles faltas: {player1_stats.get('doubleFaults', 'N/A')}\n"
-            resumen += f"- Errores no forzados: {player1_stats.get('unforcedErrors', 'N/A')}\n"
-            resumen += f"- Winners: {player1_stats.get('winners', 'N/A')}\n"
-            resumen += f"- Break points convertidos: {player1_stats.get('breakPointsConverted', 'N/A')}/{player1_stats.get('breakPointsConvertedOf', 'N/A')} ({player1_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
-            resumen += f"- Sets ganados: {player1_stats.get('setsWon', 'N/A')}\n"
-            resumen += f"- Juegos ganados: {player1_stats.get('gamesWon', 'N/A')}\n"
-            resumen += f"- Títulos: {player1_stats.get('title', 'N/A')}\n"
-            resumen += f"- Grand Slams: {player1_stats.get('grandSlam', 'N/A')}\n"
-            resumen += f"- Masters: {player1_stats.get('masters', 'N/A')}\n"
-            resumen += f"- Superficies - Hard: {player1_stats.get('hard', 'N/A')}, Clay: {player1_stats.get('clay', 'N/A')}, Indoor: {player1_stats.get('iHard', 'N/A')}, Grass: {player1_stats.get('grass', 'N/A')}\n\n"
-            
-            resumen += f"**Estadísticas detalladas del Jugador {player2}:**\n"
-            resumen += f"- Partidos jugados: {player2_stats.get('statMatchesPlayed', 'N/A')}\n"
-            resumen += f"- Partidos ganados: {player2_stats.get('matchesWon', 'N/A')}\n"
-            resumen += f"- Porcentaje victorias: {round((player2_stats.get('matchesWon', 0) / player2_stats.get('statMatchesPlayed', 1)) * 100, 1)}%\n"
-            resumen += f"- Primer servicio: {player2_stats.get('firstServe', 'N/A')}/{player2_stats.get('firstServeOf', 'N/A')} ({player2_stats.get('firstServePercentage', 'N/A')}%)\n"
-            resumen += f"- Aces: {player2_stats.get('aces', 'N/A')}\n"
-            resumen += f"- Dobles faltas: {player2_stats.get('doubleFaults', 'N/A')}\n"
-            resumen += f"- Errores no forzados: {player2_stats.get('unforcedErrors', 'N/A')}\n"
-            resumen += f"- Winners: {player2_stats.get('winners', 'N/A')}\n"
-            resumen += f"- Break points convertidos: {player2_stats.get('breakPointsConverted', 'N/A')}/{player2_stats.get('breakPointsConvertedOf', 'N/A')} ({player2_stats.get('breakpointsWonPercentage', 'N/A')}%)\n"
-            resumen += f"- Sets ganados: {player2_stats.get('setsWon', 'N/A')}\n"
-            resumen += f"- Juegos ganados: {player2_stats.get('gamesWon', 'N/A')}\n"
-            resumen += f"- Títulos: {player2_stats.get('title', 'N/A')}\n"
-            resumen += f"- Grand Slams: {player2_stats.get('grandSlam', 'N/A')}\n"
-            resumen += f"- Masters: {player2_stats.get('masters', 'N/A')}\n"
-            resumen += f"- Superficies - Hard: {player2_stats.get('hard', 'N/A')}, Clay: {player2_stats.get('clay', 'N/A')}, Indoor: {player2_stats.get('iHard', 'N/A')}, Grass: {player2_stats.get('grass', 'N/A')}\n\n"
-            
-            # Surface breakdown comparison
-            resumen += f"**Comparación por superficie:**\n"
-            resumen += f"- Jugador {player1}: Dura {player1_stats.get('hard', 0)}, Arcilla {player1_stats.get('clay', 0)}, Hierba {player1_stats.get('grass', 0)}, Indoor {player1_stats.get('iHard', 0)}\n"
-            resumen += f"- Jugador {player2}: Dura {player2_stats.get('hard', 0)}, Arcilla {player2_stats.get('clay', 0)}, Hierba {player2_stats.get('grass', 0)}, Indoor {player2_stats.get('iHard', 0)}\n\n"
-            
-            # Serve statistics comparison
-            resumen += f"**Comparación de servicio:**\n"
-            resumen += f"- Jugador {player1}: {player1_stats.get('firstServePercentage', 0)}% primer servicio, {player1_stats.get('aces', 0)} aces, {player1_stats.get('doubleFaults', 0)} dobles faltas\n"
-            resumen += f"- Jugador {player2}: {player2_stats.get('firstServePercentage', 0)}% primer servicio, {player2_stats.get('aces', 0)} aces, {player2_stats.get('doubleFaults', 0)} dobles faltas\n\n"
-            
-            # Break points and crucial moments
-            resumen += f"**Momentos cruciales:**\n"
-            resumen += f"- Jugador {player1}: {player1_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player1_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n"
-            resumen += f"- Jugador {player2}: {player2_stats.get('breakpointsWonPercentage', 0)}% break points convertidos, {player2_stats.get('decidingSetWinPercentage', 0)}% sets decisivos ganados\n\n"
-            
-            # Tournament level breakdown
-            resumen += f"**Por nivel de torneo:**\n"
-            resumen += f"- Jugador {player1}: GS {player1_stats.get('grandSlam', 0)}, Masters {player1_stats.get('masters', 0)}, ATP {player1_stats.get('mainTour', 0)}\n"
-            resumen += f"- Jugador {player2}: GS {player2_stats.get('grandSlam', 0)}, Masters {player2_stats.get('masters', 0)}, ATP {player2_stats.get('mainTour', 0)}\n\n"
-
-        # Check if there are recent matches in raw_data
-        raw_data = data.get('raw_data', {})
-        if 'recentMatches' in raw_data and raw_data['recentMatches']:
-            resumen += "**Últimos partidos:**\n"
-            for match in raw_data['recentMatches']:
-                date = match.get('date', 'N/A')
-                tournament = match.get('tournament', 'N/A')
-                winner = match.get('winner', 'N/A')
-                score = match.get('score', 'N/A')
-                surface = match.get('surface', 'N/A')
-                resumen += f"- {date} | {tournament} | {winner} ganó {score} (Superficie: {surface})\n"
-        else:
-            resumen += "**Últimos partidos:** No hay información de partidos recientes disponible\n"
-        
-        #debug
-        print(f"[DEBUG] Resultado de get_head_to_head: {resumen}")
-
-        return resumen
+        return result
         
     except Exception as e:
-        return f"Error al obtener historial H2H entre {player1} y {player2}: {str(e)}"
+        return f"Error al obtener historial H2H entre {player1_name} y {player2_name}: {str(e)}"
 
 def get_injury_reports() -> str:
     try:
-        data = fetch_injury_reports()
-        if not data:
+        result = fetch_injury_reports()
+        if not result or result.startswith("Error"):
             return "No se encontraron registros de lesiones."
-        
-        result = []
-        
-        # Process injured players
-        injured_players = data.get('injured_players', [])
-        if injured_players:
-            result.append("JUGADORES LESIONADOS:")
-            for entry in injured_players:
-                try:
-                    player_name = entry.get('player_name', 'N/A')
-                    reason = entry.get('reason', 'N/A')
-                    date = entry.get('date', 'N/A')
-                    tournament = entry.get('tournament', 'N/A')
-                    result.append(f"- {player_name}: {reason} (Fecha: {date}, Torneo: {tournament})")
-                except Exception as e:
-                    result.append(f"- Error processing player data: {str(entry)}")
-        
-        # Process returning players
-        returning_players = data.get('returning_players', [])
-        if returning_players:
-            result.append("\nJUGADORES EN REGRESO:")
-            for entry in returning_players:
-                try:
-                    player_name = entry.get('player_name', 'N/A')
-                    date = entry.get('date', 'N/A')
-                    tournament = entry.get('tournament', 'N/A')
-                    # Returning players don't have 'reason', they have 'status'
-                    status = entry.get('status', 'returning from injury')
-                    result.append(f"- {player_name}: {status} (Fecha: {date}, Torneo: {tournament})")
-                except Exception as e:
-                    result.append(f"- Error processing player data: {str(entry)}")
-        
-        if not result:
-            return "No se encontraron registros de lesiones actuales."
         
         #debug
         print(f"[DEBUG] Resultado de get_injury_reports: {result}")
         
-        return "\n".join(result)
+        return result
         
     except Exception as e:
         return f"Error al obtener reportes de lesiones: {str(e)}"

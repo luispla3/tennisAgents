@@ -1,37 +1,45 @@
-1. Resumen de argumentos clave  
-• Analista Agresivo  
-  – Fortalezas: ve valor en la cuota alta (2.4–2.9) de Alcaraz; destaca su frescura física y mental, motivación extra por recuperar el nº 1 y su historial en enfrentamientos directos.  
-  – Debilidades: infraestima el impacto del viento en su juego ofensivo y la presión mediática que podría jugarle en contra; no ofrece un cálculo probabilístico sólido.  
+1. Resumen de las cuatro posturas  
+   
+1.1 Analista Agresivo  
+    • Argumento principal: Alcaraz, pese a no ser favorito, reúne condiciones idóneas (clima, motivación, ajuste táctico) para superar a Sinner y ofrece valor real en cuotas (~2.7).  
+    • Fortaleza: identifica un “gap” de cuota y potencia psicológica que el mercado podría estar subestimando.  
+    • Debilidad: subestima el riesgo de la lesión en el aductor y la racha demoledora de Sinner; asume sin pruebas que la probabilidad real de Alcaraz supere el 37 %.  
 
-• Analista Conservador  
-  – Fortalezas: se basa en el consenso del mercado (Sinner favorito ~65–70%), datos objetivos de consistencia técnica y mental de Sinner, y en la gestión de bankroll para proteger capital.  
-  – Debilidades: podría pasar por alto escenarios de alto rendimiento de Alcaraz que el mercado no refleja del todo; gana poca rentabilidad debido a las cuotas bajas del favorito.  
+1.2 Analista Conservador (“Safe”)  
+    • Argumento principal: Sinner lleva 26 victorias seguidas en pista dura, está en plenitud física y el historial reciente favorece su consistencia.  
+    • Fortaleza: insiste en la prudencia, gestión estricta del bankroll y en que las rachas dominantes rara vez se rompen sin señales claras.  
+    • Debilidad: podría dejar pasar apuestas de valor marginal que, a largo plazo, serían rentables; limita la recompensa.  
 
-• Analista de Valor Esperado  
-  – Fortalezas: explica que para que la apuesta a Alcaraz sea EV positiva su probabilidad real debe superar el 34–42% implícito en la cuota; señala la falta de datos probabilísticos concretos.  
-  – Debilidades: no propone estimaciones numéricas propias, lo que deja el EV en la zona gris.  
+1.3 Analista de Valor Esperado (EV)  
+    • Argumento principal: con cuotas de 2.7, Alcaraz necesita > 37 % de probabilidad real para que la apuesta tenga EV positivo. El mercado lo pone en ~33 – 35 %, por lo que, en un escenario neutro, el EV es levemente negativo o nulo.  
+    • Fortaleza: cuantifica el umbral de rentabilidad (P>37 %) y muestra que solo un sesgo optimista justificaría el riesgo.  
+    • Debilidad: difícilmente podemos medir con precisión la “probabilidad real”; factores subjetivos (motivación, clima) no se traducen fácilmente a % concreto.  
 
-• Analista Neutral  
-  – Fortalezas: equilibra ambos extremos proponiendo un bet sizing mixto (pequeña parte a Sinner, muy pequeña a Alcaraz), gestiona el riesgo y evita spreads o combinadas volátiles.  
-  – Debilidades: no garantiza un EV significativo, pues igualmente asume una probabilidad incierta para Alcaraz.  
+1.4 Analista Neutral  
+    • Argumento principal: ni el maximalismo agresivo ni la ortodoxia ultra-conservadora son óptimos; propone repartir riesgo: stake moderado en Alcaraz, mercados secundarios (sets totales, hándicaps) y seguimiento de última hora.  
+    • Fortaleza: ofrece un plan de acción equilibrado, diversificando riesgo y aprovechando valor marginal.  
+    • Debilidad: requiere más gestión operativa y fragmenta la posible ganancia, lo cual puede resultar tedioso para quien busca decisiones claras y únicas.  
 
 2. Justificación de la decisión  
-Después de revisar:  
-– No hay evidencia sólida de que la probabilidad real de Alcaraz supere claramente la implícita en la cuota.  
-– Apostar fuerte a Sinner no genera valor real (cuota ~1.50 ajustada al riesgo).  
-– Las variables ambientales (viento, presión mediática) introducen incertidumbre alta.  
-– Históricamente, apuestas agresivas a underdogs sobrevalorados han derivado en pérdidas en nuestro histórico de apuestas (p.ej., Novak vs. Fritz en similar contexto de presión).  
+    – Los datos objetivos (racha de Sinner, historial en pista dura, margen de cuotas) inclinan la probabilidad implícita a favor de Sinner.  
+    – Sin embargo, las condiciones climáticas, la motivación extra de Alcaraz y la cuota de 2.7 dejan la puerta abierta a un EV ligeramente positivo si aceptamos la hipótesis de que su victoria real ronda el 38–40 %.  
+    – La lesión en el aductor, aunque leve, es un factor real de riesgo físico; conviene no obviarlo.  
+    – Históricamente, hemos visto (en situaciones análogas) que apostar “all-in” sobrevalorando variables intangibles suele acabar en pérdidas.  
 
-3. Decisión del Juez de Riesgos: ESPERAR  
-El análisis es actualmente demasiado ambiguo y no hay un valor esperado claramente positivo. Recomiendo posponer la apuesta hasta:  
-  a) Confirmar alineación final y condición física de ambos jugadores pocas horas antes del inicio.  
-  b) Revisar en directo indicadores estadísticos tempranos (porcentaje de primeros saques, errores no forzados).  
+3. Ajuste al plan del trader  
+    • Recomendación: APOSTAR, pero con stake reducido (30–40 % de la unidad tipo) en la victoria de Alcaraz a cuota ≥2.7.  
+    • Complementar con apuestas secundarias de bajo riesgo:  
+      – Total de sets +2.5 (un partido duro y parejo probablemente llegue a 3 sets).  
+      – Hándicap de juegos (+3.5 juegos para Alcaraz), por si cede uno de los sets.  
+    • Monitorear hasta 1 h antes del inicio del partido:  
+      – Último parte médico de Alcaraz.  
+      – Confirmación de velocidad y dirección del viento.  
+    • Si surge empeoramiento de la lesión o viento muy fuerte (>15 km/h), cancelar o reducir aún más la apuesta.  
 
-4. Ajuste al plan del trader  
-– Si tras nueva información (p.ej., lesión de Sinner en calentamiento o baja eficacia de Alcaraz con el viento) surge un “market mover”, entonces:  
-    • Apuesta reducida (0,5 u) a Sinner si confirma dominio en servicio y porcentaje de puntos ganados con primer saque ≥ 75%.  
-    • Micro-apuesta (0,2 u) a Alcaraz si sale dominando el primer set y el viento sopla menos de 8 km/h, lo que reduce el sesgo de errores.  
-– Mantener siempre la regla de no exceder el 5% del bankroll total en una sola posición.  
+4. Lecciones de apuestas pasadas  
+    – Evitar “all-in” en partidos con variables físicas inestables (lesiones leves).  
+    – No depender únicamente de factores intangibles (apoyo en redes, motivación).  
+    – Diversificar riesgo en mercados secundarios en lieu de “todo o nada”.  
 
-5. Lecciones aprendidas  
-En partidos previos con underdogs motivados pero con cuotas infladas por presión externa, la falta de un modelo probabilístico propio llevó a sobredimensionar stakes y pérdidas continuas. De ahora en adelante, reagrupar información hasta 1 hora antes del partido y usar indicadores de forma en tiempo real para validar apuestas de valor.
+5. Decisión final  
+APOSTAR de forma **moderada** y **disciplinada** en Alcaraz (stake 30–40 % unidad) a cuota ≥2.7, complementando con mercados secundarios y con vigilancia de última hora. Esta estrategia equilibra el valor potencial detectado por el analista agresivo con la prudencia del conservador y las exigencias de EV del especialista matemático.

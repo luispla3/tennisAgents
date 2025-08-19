@@ -1,42 +1,29 @@
 1. Resumen ejecutivo de las cuotas y favorito:
-El partido entre Carlos Alcaraz y Jannik Sinner en el ATP Cincinnati Open 2025-08-18 muestra a Jannik Sinner como el claro favorito según las cuotas de apuestas. Las probabilidades para Sinner oscilan aproximadamente entre 1.48 y 1.55, ligeramente favorables, mientras que para Alcaraz varían entre 2.38 y 2.9, claramente contrapuestas a la victoria. Esto indica que el mercado estima una probabilidad mayor para que Sinner gane el encuentro.
+El partido entre Carlos Alcaraz y Jannik Sinner en el ATP Cincinnati Open 2025-08-18 muestra como claro favorito en las cuotas de apuestas a Jannik Sinner, con odds en promedio aproximado de 1.5, mientras que Carlos Alcaraz presenta cuotas en torno a 2.6-2.7, indicando menor probabilidad según el mercado. El margen de ventaja para Sinner es notable y consistente en todas las casas analizadas.
 
-2. Análisis detallado por casa de apuestas:
-- Virgin Bet ofrece 2.45 para Alcaraz y 1.52 para Sinner.
-- LeoVegas: 2.38 Alcaraz, 1.48 Sinner.
-- Casumo: 2.5 Alcaraz, 1.54 Sinner; también ofrece spread con +2.5 para Alcaraz a 1.78 y -2.5 para Sinner a 1.82.
-- GTbets muestra un poco más alto para Alcaraz (2.68) y 1.48 para Sinner; spread 2.5 puntos para Alcaraz a 1.93 y -2.5 para Sinner a 1.88.
-- Nordic Bet, Betsson alrededor de 2.55 para Alcaraz y 1.51 para Sinner.
-- Betfair ex EU y UK presentan las cuotas más agresivas para Alcaraz, hasta 2.9, y para Sinner 1.53-1.55.
-- La mayoría de casas sitúan el spread entre 2.5 puntos y 1.5 puntos de ventaja para Sinner con cuotas alrededor de 1.8-1.9.
-- Los mercados de totales están centrados en rangos de puntos entre 22.5 y 23.5, con cuotas para "Over" y "Under" generalmente entre 1.7 y 2.1.
+2. Análisis detallado por casa de apuestas (selección representativa):
+- Virgin Bet: Sinner 1.49 / Alcaraz 2.55
+- LeoVegas: Sinner 1.44 / Alcaraz 2.48
+- Casumo: Sinner 1.5 / Alcaraz 2.63
+- Betfair: Sinner 1.53 / Alcaraz 2.84
+- Pinnacle: Sinner 1.53 / Alcaraz 2.71
+- Unibet (IT): Sinner 1.5 / Alcaraz 2.63
 
 3. Comparación de márgenes y diferencias:
-- Las cuotas para Sinner oscilan entre 1.45 y 1.55, un rango estrecho que muestra consenso en la favoritismo.
-- Las cuotas para Alcaraz varían más, de 2.38 (LeoVegas) hasta 2.9 (Betfair). Esto denota más diferencia de opinión sobre la probabilidad de que Alcaraz gane.
-- La diferencia de cuota máxima entre casas para Alcaraz es de 0.52 unidades, y para Sinner solo 0.10 unidades, indicando mayor confianza en Sinner.
-- Los spreads muestran puntos favoreciendo a Sinner de 1.5 a 2.5 con cuotas cercanas a 1.8-1.9.
+Tomando cuotas promedio, implícitamente el mercado sugiere una probabilidad ganadora para Sinner cercana a 67% (1/1.5), frente a 37% para Alcaraz (1/2.7). La diferencia entre las mejores y peores cuotas para Alcaraz va de 2.48 (LeoVegas) a 2.84 (Betfair), mientras que para Sinner fluctúa entre 1.44 (LeoVegas) y 1.54 (Betfair).
 
 4. Interpretación de las tendencias del mercado:
-- Hay una clara tendencia del mercado a favorecer a Jannik Sinner como ganador del partido, con las cuotas apuntando a una probabilidad implícita aproximada del 65-69%.
-- La variabilidad en las cuotas para Alcaraz sugiere que si bien es considerado el no favorito, existen casas que le otorgan más valor y podrían indicar oportunidades para apuestas de mayor retorno.
-- Los spreads sugieren que el mercado espera que Sinner gane con cierta holgura, favoreciéndole 1.5 a 2.5 juegos.
-- La coherencia entre casas en las cuotas para el ganador indica un alto nivel de confianza en la propuesta del mercado.
+El consenso general indica a Sinner como favorito sólido, reflejando confianza del mercado en su victoria. La poca variabilidad en las cuotas resalta estabilidad y ausencia de grandes movimientos o incertidumbres recientes. Las cuotas para Alcaraz más altas en algunos mercados como Betfair sugieren oportunidad para los apostantes que busquen valor con la apuesta al underdog.
 
----
+5. Tabla con cuotas organizadas:
 
-| Casa de Apuestas  | Cuota Alcaraz | Cuota Sinner | Spread (puntos) | Cuota Spread Alcaraz | Cuota Spread Sinner | Observaciones Clave                             |
-|-------------------|---------------|--------------|-----------------|----------------------|---------------------|------------------------------------------------|
-| Virgin Bet        | 2.45          | 1.52         | N/A             | N/A                  | N/A                 | Cuotas estándar, Sinner favorito claro         |
-| LeoVegas          | 2.38          | 1.48         | N/A             | N/A                  | N/A                 | Cuota más baja para Alcaraz, alta confianza en Sinner|
-| Casumo            | 2.50          | 1.54         | 2.5             | 1.78                 | 1.82                | Spread favorece a Sinner con cuotas cercanas   |
-| GTbets            | 2.68          | 1.48         | 2.5             | 1.93                 | 1.88                | Cuota más alta para Alcaraz, spread similar    |
-| Nordic Bet        | 2.55          | 1.51         | N/A             | N/A                  | N/A                 | Consistencia alta en cuota para ganador        |
-| Betfair (ex EU/UK)| 2.86 - 2.90   | 1.53 - 1.55  | N/A             | N/A                  | N/A                 | Cuotas más agresivas, mejor retorno para Alcaraz|
-| BetRivers          | 2.48          | 1.54         | 2.5             | 1.85                 | 1.91                | Mercado spread equilibrado                      |
-| Unibet (varias)   | 2.5 - 2.58    | 1.51 - 1.54  | 2.5             | 1.87 - 1.92          | 1.80 - 1.92         | Consistencia en cuotas y spreads                |
-| LowVig.ag         | 2.70          | 1.51         | 2.5             | 1.94                 | 1.88                | Spread con ligera ventaja para Alcaraz          |
-| Ladbrokes         | 2.60          | 1.48         | 1.5             | 2.25                 | 1.60                | Spread más ajustado (1.5 puntos)                 |
-| Pinnacle          | 2.71          | 1.53         | 2.5             | 2.04                 | 1.85                | Spread con alta cuota para Alcaraz               |
+| Casa de Apuestas | Carlos Alcaraz | Jannik Sinner | Observaciones                     |
+|------------------|----------------|---------------|---------------------------------|
+| Virgin Bet       | 2.55           | 1.49          | Sinner favorito consistente     |
+| LeoVegas         | 2.48           | 1.44          | Mejor cuota para Sinner         |
+| Casumo           | 2.63           | 1.5           | Cuotas estándar                 |
+| Betfair          | 2.84           | 1.53          | Mejor cuota para Alcaraz (value)|
+| Pinnacle         | 2.71           | 1.53          | Margen equilibrado              |
+| Unibet (IT)      | 2.63           | 1.5           | Cuotas estables                 |
 
-En conclusión, el mercado generaliza a Jannik Sinner como favorito sólido, con cuotas reflejando una ventaja con probabilidad implícita cercana al 65-70%. Carlos Alcaraz tiene cuota para altas ganancias con menos consenso en probabilidad. Los spreads apuntan a que Sinner debería ganar por más de 1.5 a 2.5 juegos aproximadamente. No se observan discrepancias extremas; todas las casas coinciden en esta interpretación.
+En conclusión, Jannik Sinner es claramente el favorito según el mercado para el partido en Cincinnati 2025, con márgenes de cuota sólidos y pocas discrepancias significativas. Sin embargo, existen pequeñas oportunidades de valor apostando a Carlos Alcaraz en casas como Betfair.

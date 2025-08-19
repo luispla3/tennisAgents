@@ -33,7 +33,7 @@ def create_news_analyst(llm, toolkit):
                     "Herramientas disponibles: {tool_names}\n\n"
                     "{system_message}\n\n"
                     "OBJETIVO: Identificar información crítica que pueda influir en el rendimiento de los jugadores, incluyendo:\n"
-                    "• Lesiones recientes o problemas físicos\n"
+                    "• Lesiones recientes o problemas físicos, sobretodo en los partidos anteriores de ese toreno si los hay, para ello habra que investigar bien en las noticias\n"
                     "• Cambios de entrenador o equipo técnico\n"
                     "• Declaraciones polémicas o presión mediática\n"
                     "• Estado mental o motivacional\n"

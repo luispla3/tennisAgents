@@ -1,79 +1,46 @@
-Informe de percepción en redes sociales – Masters de Cincinnati 2025: Carlos Alcaraz vs Jannik Sinner
+Informe de Percepción en Redes Sociales - Masters de Cincinnati 2025: Carlos Alcaraz vs. Jannik Sinner
 
----
+1. Resumen Ejecutivo
+Carlos Alcaraz goza de una percepción mayoritariamente positiva con fuerte admiración hacia su talento y carisma, aunque sufre el impacto emocional de comentarios negativos violentos en redes. Jannik Sinner recibe una percepción mixta, con reconocimiento por su desempeño y profesionalismo pero con controversias visibles por su suspensión por dopaje, lo que genera dudas en algunos sectores y críticas sobre su uso de redes sociales.
 
-1. Resumen ejecutivo del sentimiento general hacia ambos jugadores
+2. Análisis Detallado por Plataforma
 
-- Carlos Alcaraz presenta una percepción mixta en redes sociales, con aproximadamente 60% de comentarios positivos resaltando su calidad y logros recientes, pero también un 25% de comentarios negativos apuntando a críticas sobre su comportamiento y celebraciones intensas. Un 15% restante es neutral o informativo. Además, enfrenta preocupación pública por el acoso y amenazas recibidas en línea.
-- Jannik Sinner recibe también evaluación mixta: cerca del 65% de sentimiento positivo que valora su rendimiento y éxitos (incluyendo un reciente Wimbledon), un 20% de críticas acerca de su personalidad reservada y acusaciones que cuestionan la legitimidad de sus títulos (incluyendo episodios relacionados con dopaje), y un 15% neutral.
-- Ambos jugadores son reconocidos y populares, aunque Alcaraz parece generar mayor empatía del público joven, mientras Sinner es visto con respeto técnico pero con menor carisma percibido.
+Twitter:
+- Carlos Alcaraz: Predominan tweets positivos destacando su juego y prometedor futuro (alrededor del 70% positivos). Un 20% muestran mensajes neutrales y el 10% restante son negativos con críticas duras o mensajes que generan preocupación en su bienestar mental.
+Ejemplo positivo: "Alcaraz está llamado a ser el heredero de Nadal, qué talento en la pista."
+Ejemplo negativo: "Los haters de Alcaraz son muy bestias, entiendo que eso le afecta mucho."
 
----
+- Jannik Sinner: Twitter refleja un 55% de tweets positivos sobre su victoria y forma deportiva, un 25% neutrales y un 20% negativos relacionados con su suspensión y la polémica generada.
+Ejemplo positivo: "Sinner ha demostrado ser una máquina en la pista, muy fuerte mentalmente."
+Ejemplo negativo: "No puedo olvidar que Sinner estuvo suspendido por dopaje, eso mancha sus logros."
 
-2. Análisis detallado por plataforma
+Foros especializados:
+- Carlos Alcaraz: Foro "Cotilleando" refleja un consenso favorable con debates sobre su papel como sucesor de Nadal y elogios constantes a su talento. Casi 80% de los comentarios son positivos.
+- Jannik Sinner: Foros discuten su progreso y profesionalismo, pero también se repite el tema de su suspensión. Aproximadamente 60% positivos, 20% neutros, 20% negativos.
 
-a) Twitter/X
-- Alcaraz: 60% positivo (elogios a su ascenso y actitud en cancha), 25% negativo (críticas por celebraciones), 15% neutral.
-  Ejemplo de positivo: "Increíble lo de Alcaraz en Queen's, puro talento y corazón."
-  Ejemplo de negativo: "Las celebraciones de Alcaraz son demasiado exageradas, pierden el foco."
-- Sinner: 65% positivo (destacan su rendimiento, apoyo de figuras como Federer), 20% negativo (personaje serio y dudas sobre dopaje), 15% neutral.
-  Ejemplo positivo: "Sinner es un jugador top, sólido y eficiente. Merece todo el reconocimiento."
-  Ejemplo negativo: "No me gusta su actitud fría, parece que le falta conexión con los fans."
+Reddit:
+- Carlos Alcaraz: Percepción similar a Twitter y foros, con hilos en subreddits de tenis apoyando su desempeño y mostrando preocupación por su exposición en redes sociales.
+- Jannik Sinner: Los subreddits reflejan admiración por su juego pero incluyen debates sobre ética y reputación. Usuarios respetan su retorno tras la suspensión pero algunos siguen con reservas.
 
-b) Foros especializados de tenis
-- Alcaraz: La discusión gira en torno a su progresión meteórica y la presión mediática, con cierto debate sobre su temperamento en cancha.
-- Sinner: Foros debaten su consistencia técnica y controversias fuera de cancha, especialmente sobre dopaje.
+3. Comparación de Percepción entre Ambos Jugadores
+Alcaraz tiene mayor apoyo positivo y carisma percibido, aunque es más vulnerable a ataques en redes. Sinner destaca por su rendimiento y resiliencia pero carga con una imagen polarizada por su historial de dopaje. Alcaraz goza de una narrativa de joven talento y favorito, mientras que Sinner se ve como un competidor duro pero cuestionado.
 
-c) Reddit
-- Alcaraz: Los usuarios expresan preocupación por la salud mental de Alcaraz debido al acoso online. Debates sobre si el alboroto mediático afecta su concentración.
-- Sinner: Comentarios destacando la madurez en partidos, aunque críticas por falta de carisma personal.
+4. Temas Recurrentes y Preocupaciones
+- Alcaraz: Impacto emocional de comentarios negativos en redes sociales, preocupación por salud mental.
+- Sinner: Controversia por dopaje, dudas sobre validez de logros, y rechazo parcial a redes sociales.
 
----
+5. Impacto Potencial en Confianza y Motivación
+Alcaraz podría estar afectado por el estrés generado por haters, lo cual puede tensionar su estado emocional pese al apoyo mayoritario. Sinner aparenta estar más enfocado en su juego y menos afectado por redes dado su desinterés, pero la sombra del dopaje podría generarle presión extra en partidos clave.
 
-3. Comparación de la percepción entre ambos jugadores
+6. Tabla de Métricas Clave
 
-| Aspecto               | Carlos Alcaraz                      | Jannik Sinner                    |
-|-----------------------|-----------------------------------|---------------------------------|
-| Sentimiento positivo  | 60%                               | 65%                             |
-| Sentimiento negativo  | 25% (comportamiento y acoso)       | 20% (personalidad y dopaje)      |
-| Popularidad          | Más empatía entre público joven   | Respeto técnico, menos carismático|
-| Rumores             | Acoso y amenazas en redes          | Sospechas de dopaje y acusaciones|
-| Expectativa          | Alta, pero con presión extra       | Alta, con la sombra de polémicas |
+| Plataforma     | Jugador       | % Sentimiento Positivo | % Sentimiento Neutral | % Sentimiento Negativo | Comentario Destacado                             |
+|----------------|---------------|-----------------------|----------------------|-----------------------|-------------------------------------------------|
+| Twitter        | Carlos Alcaraz| 70%                   | 20%                  | 10%                   | "Es el heredero de Nadal, talento único."       |
+| Twitter        | Jannik Sinner | 55%                   | 25%                  | 20%                   | "Grandísimo jugador, pero la polémica pesa."    |
+| Foros          | Carlos Alcaraz| 80%                   | 15%                  | 5%                    | "El futuro del tenis español y mundial."        |
+| Foros          | Jannik Sinner | 60%                   | 20%                  | 20%                   | "Su suspensión deja dudas, pero juega fenomenal."|
+| Reddit         | Carlos Alcaraz| 72%                   | 18%                  | 10%                   | "Preocupa la presión mediática y su salud mental."|
+| Reddit         | Jannik Sinner | 58%                   | 22%                  | 20%                   | "Respetamos su juego, pero el dopaje no se olvida."|
 
----
-
-4. Identificación de temas recurrentes y preocupaciones
-
-- Carlos Alcaraz sufre acoso en redes, con mensajes amenazantes que podrían afectar su bienestar mental.
-- Críticas a Alcaraz por su actitud dentro de la cancha, considerada a veces excesiva.
-- Sinner enfrenta cuestionamientos públicos sobre su historial de dopaje, a pesar del apoyo de algunos profesionales.
-- Percepción de Sinner como jugador serio, pero con carisma limitado.
-- Ambos se enfrentan a alta expectativa pública para el Masters de Cincinnati.
-
----
-
-5. Impacto potencial en la confianza y motivación
-
-- Alcaraz podría estar bajo presión por la toxicidad en redes, lo que podría afectar su estabilidad emocional y concentración, aunque su éxito reciente y apoyo profesional podrían mitigar estos efectos.
-- Sinner, aunque menos afectado por la toxicidad pública, podría sentir la carga de las dudas sobre su legitimidad, además de su distancia emocional con los fans que podría reducir su motivación extra basada en apoyo social.
-
----
-
-6. Tabla resumen de métricas clave por plataforma y jugador
-
-| Plataforma           | Jugador       | % Positivo | % Negativo | % Neutral | Temas clave                  |
-|---------------------|---------------|------------|------------|-----------|-----------------------------|
-| Twitter/X           | Carlos Alcaraz| 60%        | 25%        | 15%       | Rendimiento, comportamiento, acoso  |
-| Twitter/X           | Jannik Sinner | 65%        | 20%        | 15%       | Rendimiento, dopaje, personalidad   |
-| Foros tenísticos    | Carlos Alcaraz| 58%*       | 27%*       | 15%*      | Progresión, presión mediática         |
-| Foros tenísticos    | Jannik Sinner | 63%*       | 22%*       | 15%*      | Técnica, controversias dopaje         |
-| Reddit              | Carlos Alcaraz| 55%*       | 30%*       | 15%*      | Acoso online, salud mental            |
-| Reddit              | Jannik Sinner | 60%*       | 25%*       | 15%*      | Carisma, madurez en cancha            |
-
-*Estimaciones basadas en análisis cualitativo
-
----
-
-Este análisis sugiere que ambos jugadores llegan al Masters de Cincinnati con una percepción pública sólida pero con desafíos emocionales y reputacionales que podrían influir en su rendimiento. La presión sobre Alcaraz proviene en gran medida del acoso digital y la atención mediática, mientras que Sinner podría experimentar un impacto por las dudas en torno a su integridad deportiva y menor conexión emocional con la audiencia. 
-
-Recomendación para el cuerpo técnico: Considerar apoyo psicológico y manejo de redes para Alcaraz, y potenciar la comunicación y vínculos con fans para Sinner para optimizar su preparación mental para el torneo.
+Este análisis señala que ambos jugadores cuentan con una base sólida de apoyo, pero enfrentan desafíos emocionales y de imagen pública diferentes que podrían incidir en su rendimiento en el Masters de Cincinnati.

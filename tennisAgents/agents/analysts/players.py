@@ -28,41 +28,7 @@ def create_player_analyst(llm, toolkit):
                 toolkit.get_injury_reports,
             ]
 
-        tournament_keys = """
-        "australian_open"
-        "french_open"
-        "wimbledon"
-        "us_open"
 
-        "indian_wells"
-        "miami_open"
-        "monte_carlo"
-        "madrid_open"
-        "italian_open"
-        "canadian_open"
-        "cincinnati_open"
-        "shanghai_masters"
-        "paris_masters"
-        "National Bank Open Presented by Rogers"
-
-        "dubai"
-        "qatar_open"
-        "china_open"
-
-        "wta_australian_open"
-        "wta_french_open"
-        "wta_wimbledon"
-        "wta_us_open"
-        "wta_indian_wells"
-        "wta_miami_open"
-        "wta_madrid_open"
-        "wta_italian_open"
-        "wta_canadian_open"
-        "wta_cincinnati_open"
-        "wta_dubai"
-        "wta_qatar_open"
-        "wta_china_open"
-        "wta_wuhan_open"""
 
         # Instrucciones del rol del agente (system_message)
         system_message = (
@@ -79,20 +45,19 @@ def create_player_analyst(llm, toolkit):
                     "Herramientas: {tool_names}\n\n"
                     "{system_message}\n\n"
                     "PROCESO OBLIGATORIO (SEGUIR EXACTAMENTE ESTE ORDEN):\n"
-                    f"KEYS DE TORNEOS DISPONIBLES:\n{tournament_keys}\n\n"
                     "1. get_tournament_surface('tournament_key_correcta') - UNA SOLA VEZ\n"
-                    f"   IMPORTANTE: Para el torneo '{tournament}', identifica la tournament_key correcta de la lista anterior\n"
+                    f"   IMPORTANTE: Para el torneo '{tournament}', identifica la tournament_key correcta\n"
                     "2. get_injury_reports() - UNA SOLA VEZ\n"
                     "3. get_atp_rankings() - UNA SOLA VEZ\n"
-                    "4. Extraer IDs del ranking para ambos jugadores\n"
-                    "5. get_recent_matches(ID_jugador1, ID_jugador2) - UNA SOLA VEZ\n"
-                    "6. get_surface_winrate(ID_jugador1, 'superficie_obtenida') - UNA SOLA VEZ\n"
-                    "7. get_surface_winrate(ID_jugador2, 'superficie_obtenida') - UNA SOLA VEZ\n"
-                    "8. get_head_to_head(ID_jugador1, ID_jugador2) - UNA SOLA VEZ\n\n"
+                    "4. get_recent_matches('{player_name}', '{opponent_name}') - UNA SOLA VEZ\n"
+                    "5. get_surface_winrate('{player_name}', 'superficie_obtenida') - UNA SOLA VEZ\n"
+                    "6. get_surface_winrate('{opponent_name}', 'superficie_obtenida') - UNA SOLA VEZ\n"
+                    "7. get_head_to_head('{player_name}', '{opponent_name}') - UNA SOLA VEZ\n\n"
                     "REGLAS ESTRICTAS:\n"
                     "• NUNCA repitas llamadas a las mismas herramientas\n"
                     "• Una vez obtenidos los datos, procede directamente al análisis\n"
-                    "• Para get_tournament_surface(), usa la tournament_key exacta, NO el nombre del torneo\n\n"
+                    "• Para get_tournament_surface(), usa la tournament_key exacta, NO el nombre del torneo\n"
+                    "• Para las funciones de jugadores, usa los nombres exactos de los jugadores\n\n"
                     "ANÁLISIS REQUERIDO:\n"
                     "• Superficie del torneo y su impacto en ambos jugadores\n"
                     "• Estado físico y reportes de lesiones recientes\n"
@@ -119,7 +84,6 @@ def create_player_analyst(llm, toolkit):
         # Inyección de variables al prompt
         prompt = prompt.partial(system_message=system_message)
         prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
-        prompt = prompt.partial(tournament_keys=tournament_keys)
         prompt = prompt.partial(match_date=match_date)
         prompt = prompt.partial(tournament=tournament)
         prompt = prompt.partial(surface=surface)

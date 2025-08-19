@@ -101,34 +101,34 @@ class Toolkit:
 
     @tool
     def get_atp_rankings() -> str:
-        """Obtiene el ranking ATP actual con los IDs de los jugadores. Usa esta herramienta primero para obtener los IDs necesarios para get_recent_matches."""
+        """Obtiene el ranking ATP actual. Usa esta herramienta para obtener información sobre el ranking de los jugadores."""
         return interface.get_atp_rankings()
 
 
     @tool
     def get_recent_matches(
-       player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
-       opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
+       player_name: Annotated[str, "Nombre del jugador"],
+       opponent_name: Annotated[str, "Nombre del oponente"],
        num_matches: Annotated[int, "Número de partidos recientes"] = 30,
     ) -> str:
-        """Obtiene los últimos partidos jugados entre dos jugadores específicos. IMPORTANTE: Primero usa get_atp_rankings para obtener los IDs de los jugadores, luego usa esos IDs aquí."""
-        return interface.get_recent_matches(player_id, opponent_id, num_matches)
+        """Obtiene los últimos partidos jugados entre dos jugadores específicos usando sus nombres."""
+        return interface.get_recent_matches(player_name, opponent_name, num_matches)
 
     @tool
     def get_surface_winrate(
-        player_id: Annotated[int, "Id del jugador"],
+        player_name: Annotated[str, "Nombre del jugador"],
         surface: Annotated[str, "Superficie (clay, hard, grass)"],
     ) -> str:
-        """Obtiene el winrate del jugador en una superficie dada."""
-        return interface.get_surface_winrate(player_id, surface)
+        """Obtiene el winrate del jugador en una superficie dada usando su nombre."""
+        return interface.get_surface_winrate(player_name, surface)
 
     @tool
     def get_head_to_head(
-        player_id: Annotated[int, "ID del jugador (obtener desde get_atp_rankings)"],
-        opponent_id: Annotated[int, "ID del oponente (obtener desde get_atp_rankings)"],
+        player_name: Annotated[str, "Nombre del jugador"],
+        opponent_name: Annotated[str, "Nombre del oponente"],
     ) -> str:
-        """Obtiene las estadisticas H2H entre dos jugadores."""
-        return interface.get_head_to_head(player_id, opponent_id)
+        """Obtiene las estadisticas H2H entre dos jugadores usando sus nombres."""
+        return interface.get_head_to_head(player_name, opponent_name)
 
     @tool
     def get_injury_reports() -> str:
