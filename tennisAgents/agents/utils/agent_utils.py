@@ -132,8 +132,7 @@ class Toolkit:
     def get_weather_forecast(
         tournament: Annotated[str, "Nombre del torneo"],
         fecha_hora: Annotated[str, "Fecha y hora del partido yyyy-mm-dd hh:mm"],
-        latitude: Annotated[float, "Latitud de la ubicación del torneo"],
-        longitude: Annotated[float, "Longitud de la ubicación del torneo"],
+        location: Annotated[str, "Ubicación del torneo (ciudad, país, etc.)"],
     ) -> str:
         """Obtiene la previsión meteorológica para el partido usando OpenAI con búsqueda web."""
-        return interface.get_weather_forecast(tournament, fecha_hora, latitude, longitude)
+        return interface.get_weather_forecast(tournament, fecha_hora, location)

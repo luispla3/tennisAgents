@@ -1,5 +1,6 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tennisAgents.utils.enumerations import *
+from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
 def create_odds_analyst(llm, toolkit):
     def odds_analyst_node(state):
@@ -13,6 +14,14 @@ def create_odds_analyst(llm, toolkit):
         else:
             tools = [toolkit.get_odds_data]
 
+        # Obtener la anatomía del prompt para analista de cuotas
+        anatomy = TennisAnalystAnatomies.odds_analyst()
+        
+        # Información de herramientas
+        tools_info = (
+            "• get_odds_data() - Obtiene cuotas de apuestas para torneos de tenis específicos"
+        )
+        
         # Lista de torneos disponibles como string para el agente
         tournament_keys = """
 TORNEOS DISPONIBLES EN THE ODDS API:
@@ -54,54 +63,39 @@ WTA Tournaments:
 - wta_china_open → tennis_wta_china_open
 - wta_wuhan_open → tennis_wta_wuhan_open
 """
-
-        system_message = (
-            f"Eres un analista de apuestas deportivas especializado en tenis. Tu tarea es examinar las cuotas ofrecidas por las casas de apuestas "
-            f"para el partido entre {player} y {opponent} que se disputa el {match_date} en el torneo {tournament}."
+        
+        # Contexto adicional específico del análisis de cuotas
+        additional_context = (
+            f"{tournament_keys}\n\n"
+            "PROCESO A SEGUIR:\n"
+            f"1. Basándote en la fecha del partido ({match_date}) y el tipo de jugadores, selecciona el torneo más relevante de la lista anterior.\n"
+            "2. IMPORTANTE: Los nombres de torneos pueden tener variaciones. Busca coincidencias parciales:\n"
+            "   - 'us open' → 'tennis_atp_us_open'\n"
+            "   - 'australian open' → 'tennis_atp_aus_open_singles'\n"
+            "   - 'french open' → 'tennis_atp_french_open'\n"
+            "   - 'wimbledon' → 'tennis_atp_wimbledon'\n"
+            "3. Usa 'get_odds_data' con el tournament_key correspondiente (la parte después de →)\n"
+            "4. Busca en los eventos del torneo el partido específico entre los jugadores.\n\n"
+            "5. MUY IMPORTANTE: Si no se encuentra el torneo, intenta con variaciones del nombre antes de generar error.\n\n"
+            "ANÁLISIS REQUERIDO:\n"
+            "• Identificación del favorito según las cuotas y margen de ventaja\n"
+            "• Comparación de cuotas entre diferentes casas de apuestas\n"
+            "• Análisis de variaciones en las cuotas (si están disponibles)\n"
+            "• Patrones que indiquen confianza del mercado en una dirección\n"
+            "• Discrepancias significativas entre casas que puedan indicar oportunidades\n"
+            "• Contexto del torneo y su impacto en las cuotas\n\n"
+            "IMPORTANTE: Proporciona análisis específico con números concretos, no generalidades. Incluye cuotas exactas, márgenes calculados y contexto específico del mercado.\n\n"
+            "SI NO PUEDES ENCONTRAR EL TORNEO O PARTIDO: Genera un reporte de error claro indicando que no se pudo obtener información de cuotas y continúa automáticamente."
         )
 
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "Actúas como parte de un sistema de IA que asiste en la predicción de partidos de tenis. "
-                    "Tu enfoque es el análisis de mercados de apuestas para proporcionar insights valiosos.\n\n"
-                    "Herramientas: {tool_names}\n\n"
-                    "{system_message}\n\n"
-                    f"{tournament_keys}\n\n"
-                    "PROCESO A SEGUIR:\n"
-                    "1. Basándote en la fecha del partido ({match_date}) y el tipo de jugadores, selecciona el torneo más relevante de la lista anterior.\n"
-                    "2. IMPORTANTE: Los nombres de torneos pueden tener variaciones. Busca coincidencias parciales:\n"
-                    "   - 'us open' → 'tennis_atp_us_open'\n"
-                    "   - 'australian open' → 'tennis_atp_aus_open_singles'\n"
-                    "   - 'french open' → 'tennis_atp_french_open'\n"
-                    "   - 'wimbledon' → 'tennis_atp_wimbledon'\n"
-                    "3. Usa 'get_odds_data' con el tournament_key correspondiente (la parte después de →)\n"
-                    "4. Busca en los eventos del torneo el partido específico entre los jugadores.\n\n"
-                    "5. MUY IMPORTANTE: Si no se encuentra el torneo, intenta con variaciones del nombre antes de generar error.\n\n"
-                    "ANÁLISIS REQUERIDO:\n"
-                    "• Identificación del favorito según las cuotas y margen de ventaja\n"
-                    "• Comparación de cuotas entre diferentes casas de apuestas\n"
-                    "• Análisis de variaciones en las cuotas (si están disponibles)\n"
-                    "• Patrones que indiquen confianza del mercado en una dirección\n"
-                    "• Discrepancias significativas entre casas que puedan indicar oportunidades\n"
-                    "• Contexto del torneo y su impacto en las cuotas\n\n"
-                    "FORMATO DEL INFORME:\n"
-                    "1. Resumen ejecutivo de las cuotas y favorito\n"
-                    "2. Análisis detallado por casa de apuestas\n"
-                    "3. Comparación de márgenes y diferencias\n"
-                    "4. Interpretación de las tendencias del mercado\n"
-                    "5. Tabla Markdown con cuotas organizadas por casa y observaciones clave\n\n"
-                    "IMPORTANTE: Proporciona análisis específico con números concretos, no generalidades. Incluye cuotas exactas, márgenes calculados y contexto específico del mercado.\n\n"
-                    "SI NO PUEDES ENCONTRAR EL TORNEO O PARTIDO: Genera un reporte de error claro indicando que no se pudo obtener información de cuotas y continúa automáticamente."
-                ),
-                ("user", "Analiza las cuotas de apuestas para el partido entre {player} y {opponent}."),
-                MessagesPlaceholder(variable_name="messages"),
-            ]
+        # Crear prompt estructurado usando la anatomía
+        prompt = PromptBuilder.create_structured_prompt(
+            anatomy=anatomy,
+            tools_info=tools_info,
+            additional_context=additional_context
         )
 
-        prompt = prompt.partial(system_message=system_message)
-        prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
+        # Inyección de variables al prompt
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(match_date=match_date)
@@ -110,7 +104,8 @@ WTA Tournaments:
         
         # Crear el input correcto como diccionario
         input_data = {
-            "messages": state[STATE.messages]
+            "messages": state[STATE.messages],
+            "user_message": f"Analiza las cuotas de apuestas para el partido entre {player} y {opponent}."
         }
         
         result = chain.invoke(input_data)

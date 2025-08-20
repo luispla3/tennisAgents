@@ -148,19 +148,18 @@ def get_tournament_data(tournament: str, category: str, date: str) -> str:
     return response
     
 
-def get_weather_forecast(tournament: str, fecha_hora: str, latitude: float, longitude: float) -> str:
+def get_weather_forecast(tournament: str, fecha_hora: str, location: str) -> str:
     """
     Obtiene el pronóstico meteorológico para un partido específico.
     
     Args:
         tournament (str): Nombre del torneo
         fecha_hora (str): Fecha y hora del partido en formato "yyyy-mm-dd hh:mm"
-        latitude (float): Latitud de la ubicación del torneo
-        longitude (float): Longitud de la ubicación del torneo
+        location (str): Ubicación del torneo (ciudad, país, etc.)
     
     Returns:
         str: Reporte meteorológico formateado
     """
     
-    weather_data = fetch_weather_forecast(latitude, longitude, fecha_hora, tournament)
+    weather_data = fetch_weather_forecast(location, fecha_hora, tournament)
     return format_weather_report(weather_data)

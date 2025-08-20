@@ -1,6 +1,7 @@
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 from tennisAgents.utils.enumerations import *
+from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
 def create_social_media_analyst(llm, toolkit):
     def social_media_analyst_node(state):
@@ -17,52 +18,39 @@ def create_social_media_analyst(llm, toolkit):
                 toolkit.get_sentiment,
             ]
 
-        # Instrucciones específicas del analista
-        system_message = (
-            f"Eres un analista especializado en recopilar y analizar la opinión pública sobre jugadores de tenis. "
-            f"Tu tarea es elaborar un informe detallado sobre la percepción actual de {player} y {opponent} en redes sociales y foros de tenis, "
-            f"de cara al partido que se jugará en el torneo {tournament}."
+        # Obtener la anatomía del prompt para analista de redes sociales
+        anatomy = TennisAnalystAnatomies.social_media_analyst()
+        
+        # Información de herramientas
+        tools_info = (
+            "• get_sentiment() - Obtiene análisis de sentimiento y percepción pública en redes sociales"
+        )
+        
+        # Contexto adicional específico del análisis de redes sociales
+        additional_context = (
+            "FUENTES A ANALIZAR:\n"
+            "• Tweets y conversaciones en Twitter/X\n"
+            "• Comentarios en foros especializados de tenis\n"
+            "• Publicaciones y discusiones en Reddit\n"
+            "• Cualquier indicio sobre estado físico, moral, confianza o rumores\n\n"
+            "TIPOS DE INFORMACIÓN A EXTRAER:\n"
+            "• Sentimiento objetivo (positivo/negativo/neutral) con métricas cuantitativas\n"
+            "• Percepción subjetiva y narrativa mediática\n"
+            "• Rumores sobre lesiones, cambios de entrenador o problemas personales\n"
+            "• Expectativas de los fans y expertos\n"
+            "• Comparación de la popularidad y apoyo en redes sociales\n\n"
+            "OBJETIVO: Proporcionar insights sobre el estado mental y la percepción pública que puedan influir en el rendimiento.\n\n"
+            "IMPORTANTE: Proporciona análisis específico con métricas concretas, no generalidades. Incluye porcentajes de sentimiento, ejemplos de comentarios relevantes y contexto específico de cada plataforma."
         )
 
-        # Prompt que incluye los mensajes anteriores y la plantilla base
-        prompt = ChatPromptTemplate.from_messages(
-            [
-                (
-                    "system",
-                    "Eres un asistente de IA experto en analizar redes sociales de jugadores de tenis, colaborando con otros agentes.\n"
-                    "Tu objetivo es extraer información valiosa sobre la percepción pública que pueda influir en el rendimiento.\n\n"
-                    "Herramientas: {tool_names}\n\n"
-                    "{system_message}\n\n"
-                    "FUENTES A ANALIZAR:\n"
-                    "• Tweets y conversaciones en Twitter/X\n"
-                    "• Comentarios en foros especializados de tenis\n"
-                    "• Publicaciones y discusiones en Reddit\n"
-                    "• Cualquier indicio sobre estado físico, moral, confianza o rumores\n\n"
-                    "TIPOS DE INFORMACIÓN A EXTRAER:\n"
-                    "• Sentimiento objetivo (positivo/negativo/neutral) con métricas cuantitativas\n"
-                    "• Percepción subjetiva y narrativa mediática\n"
-                    "• Rumores sobre lesiones, cambios de entrenador o problemas personales\n"
-                    "• Expectativas de los fans y expertos\n"
-                    "• Comparación de la popularidad y apoyo en redes sociales\n\n"
-                    "OBJETIVO: Proporcionar insights sobre el estado mental y la percepción pública que puedan influir en el rendimiento.\n\n"
-                    "FORMATO DEL INFORME:\n"
-                    "1. Resumen ejecutivo del sentimiento general hacia ambos jugadores\n"
-                    "2. Análisis detallado por plataforma (Twitter, foros, Reddit)\n"
-                    "3. Comparación de la percepción entre ambos jugadores\n"
-                    "4. Identificación de temas recurrentes y preocupaciones\n"
-                    "5. Impacto potencial en la confianza y motivación\n"
-                    "6. Tabla Markdown con métricas clave organizadas por plataforma y jugador\n\n"
-                    "IMPORTANTE: Proporciona análisis específico con métricas concretas, no generalidades. Incluye porcentajes de sentimiento, ejemplos de comentarios relevantes y contexto específico de cada plataforma.\n\n"
-                    "Fecha: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
-                ),
-                ("user", "Analiza la percepción en redes sociales de {player} y {opponent} para el torneo {tournament}."),
-                MessagesPlaceholder(variable_name="messages"),
-            ]
+        # Crear prompt estructurado usando la anatomía
+        prompt = PromptBuilder.create_structured_prompt(
+            anatomy=anatomy,
+            tools_info=tools_info,
+            additional_context=additional_context
         )
 
         # Inyección de variables dinámicas
-        prompt = prompt.partial(system_message=system_message)
-        prompt = prompt.partial(tool_names=", ".join([tool.name for tool in tools]))
         prompt = prompt.partial(current_date=match_date)
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
@@ -73,7 +61,8 @@ def create_social_media_analyst(llm, toolkit):
 
         # Crear el input correcto como diccionario
         input_data = {
-            "messages": state[STATE.messages]
+            "messages": state[STATE.messages],
+            "user_message": f"Analiza la percepción en redes sociales de {player} y {opponent} para el torneo {tournament}."
         }
 
         result = chain.invoke(input_data)

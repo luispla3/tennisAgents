@@ -1,13 +1,12 @@
 from openai import OpenAI
 from tennisAgents.dataflows.config import get_config
 
-def fetch_weather_forecast(latitude: float, longitude: float, fecha_hora: str, tournament: str) -> dict:
+def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> dict:
     """
     Obtiene el pronóstico meteorológico usando OpenAI con búsqueda web.
     
     Args:
-        latitude (float): Latitud de la ubicación del torneo
-        longitude (float): Longitud de la ubicación del torneo
+        location (str): Ubicación del torneo (ciudad, país, etc.)
         fecha_hora (str): Fecha y hora del partido en formato "yyyy-mm-dd hh:mm"
         tournament (str): Nombre del torneo 
     
@@ -20,7 +19,7 @@ def fetch_weather_forecast(latitude: float, longitude: float, fecha_hora: str, t
 
         # Crear el prompt para OpenAI
         prompt_text = f"""
-        Busca información meteorológica detallada para la ubicación con coordenadas {latitude}, {longitude} 
+        Busca información meteorológica detallada para la ubicación {location} 
         para la fecha {fecha_hora} donde se jugará el torneo {tournament}.
         
         Necesito información específica sobre:
@@ -70,8 +69,7 @@ def fetch_weather_forecast(latitude: float, longitude: float, fecha_hora: str, t
         weather_data = {
             "tournament": tournament,
             "fecha_hora": fecha_hora,
-            "latitude": latitude,
-            "longitude": longitude,
+            "location": location,
             "weather_info": weather_info,
             "source": "OpenAI Web Search",
             "timestamp": "2025-01-01 00:00:00"  # Placeholder timestamp
@@ -84,8 +82,7 @@ def fetch_weather_forecast(latitude: float, longitude: float, fecha_hora: str, t
             "error": f"Error al obtener pronóstico meteorológico: {str(e)}",
             "tournament": tournament,
             "fecha_hora": fecha_hora,
-            "latitude": latitude,
-            "longitude": longitude
+            "location": location
         }
 
 def format_weather_report(weather_data: dict) -> str:
@@ -104,13 +101,14 @@ def format_weather_report(weather_data: dict) -> str:
     try:
         tournament = weather_data.get("tournament", "Torneo desconocido")
         fecha_hora = weather_data.get("fecha_hora", "Fecha desconocida")
+        location = weather_data.get("location", "Ubicación desconocida")
         weather_info = weather_data.get("weather_info", "Información meteorológica no disponible")
         
         report = f"""
 # PRONÓSTICO METEOROLÓGICO - {tournament.upper()}
 
 **Fecha del partido:** {fecha_hora}
-**Ubicación:** Coordenadas {weather_data.get('latitude', 'N/A')}, {weather_data.get('longitude', 'N/A')}
+**Ubicación:** {location}
 
 ## CONDICIONES CLIMÁTICAS ESPERADAS
 
