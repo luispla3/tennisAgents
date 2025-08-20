@@ -150,6 +150,8 @@ def select_shallow_thinking_agent(provider) -> str:
             ("GPT-4.1-nano - Ultra-lightweight model for basic operations", "gpt-4.1-nano"),
             ("GPT-4.1-mini - Compact model with good performance", "gpt-4.1-mini"),
             ("GPT-4o - Standard model with solid capabilities", "gpt-4o"),
+            ("GPT-5-mini - Next generation model with enhanced capabilities", "gpt-5-mini"),
+            ("GPT-5-nano - Ultra-lightweight model for basic operations", "gpt-5-nano")
         ],
         "anthropic": [
             ("Claude Haiku 3.5 - Fast inference and standard capabilities", "claude-3-5-haiku-latest"),
@@ -170,6 +172,7 @@ def select_shallow_thinking_agent(provider) -> str:
         "ollama": [
             ("llama3.1 local", "llama3.1"),
             ("llama3.2 local", "llama3.2"),
+            ("gpt oss 20b", "gpt-oss:20b")
         ]
     }
 
@@ -211,6 +214,7 @@ def select_deep_thinking_agent(provider) -> str:
             ("o3-mini - Advanced reasoning model (lightweight)", "o3-mini"),
             ("o3 - Full advanced reasoning model", "o3"),
             ("o1 - Premier reasoning and problem-solving model", "o1"),
+            ("GPT-5 - Next generation model with enhanced capabilities", "gpt-5")
         ],
         "anthropic": [
             ("Claude Haiku 3.5 - Fast inference and standard capabilities", "claude-3-5-haiku-latest"),
@@ -232,6 +236,7 @@ def select_deep_thinking_agent(provider) -> str:
         "ollama": [
             ("llama3.1 local", "llama3.1"),
             ("qwen3", "qwen3"),
+            ("gpt oss 20b", "gpt-oss:20b")
         ]
     }
     

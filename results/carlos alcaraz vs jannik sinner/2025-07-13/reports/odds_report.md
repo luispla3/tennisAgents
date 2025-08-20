@@ -1,3 +1,0 @@
-No se encontraron datos de cuotas para un partido entre Carlos Alcaraz y Jannik Sinner en el torneo de Wimbledon para la fecha mencionada. 
-
-Podríamos intentar buscar en otros torneos próximos o relacionadas con esta temporada, o bien confirmar si el partido está programado en algún otro torneo ATP alrededor de esa fecha. ¿Quieres que intente revisar en otro torneo o buscar alguna otra información?
