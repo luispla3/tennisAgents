@@ -6,7 +6,7 @@ def create_tournament_analyst(llm, toolkit):
     def tournament_analyst_node(state):
         match_date = state[STATE.match_date]
         tournament = state[STATE.tournament]
-        location = state.get(STATE.location, "London")
+        location = state.get(STATE.location, "Ubicación no especificada")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
 
@@ -14,7 +14,7 @@ def create_tournament_analyst(llm, toolkit):
         if toolkit.config["online_tools"]:
             tools = [toolkit.get_tournament_info]
         else:
-            tools = [toolkit.get_mock_tournament_data]
+            tools = [toolkit.get_tournament_info]
 
         # Mensaje principal
         system_message = (

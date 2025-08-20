@@ -85,19 +85,15 @@ class TennisAgentsGraph:
             "news": ToolNode(
                 [
                     self.toolkit.get_news,
-                    self.toolkit.get_atp_news,
-                    self.toolkit.get_tennisworld_news,
                 ]
             ),
             "odds": ToolNode(
                 [
                     self.toolkit.get_odds_data,
-                    self.toolkit.get_mock_odds_data,
                 ]
             ),
             "players": ToolNode(
                 [
-                    self.toolkit.get_tournament_surface,
                     self.toolkit.get_atp_rankings,
                     self.toolkit.get_recent_matches,
                     self.toolkit.get_surface_winrate,
@@ -108,27 +104,21 @@ class TennisAgentsGraph:
             "sentiment": ToolNode(
                 [
                     self.toolkit.get_sentiment,
-                    self.toolkit.get_tennis_forum_sentiment,
-                    self.toolkit.get_reddit_sentiment,
                 ]
             ),
             "social": ToolNode(
                 [
                     self.toolkit.get_sentiment,
-                    self.toolkit.get_tennis_forum_sentiment,
-                    self.toolkit.get_reddit_sentiment,
                 ]
             ),
             "tournament": ToolNode(
                 [
                     self.toolkit.get_tournament_info,
-                    self.toolkit.get_mock_tournament_data,
                 ]
             ),
             "weather": ToolNode(
                 [
                     self.toolkit.get_weather_forecast,
-                    self.toolkit.get_mock_weather_data,
                 ]
             ),
         }

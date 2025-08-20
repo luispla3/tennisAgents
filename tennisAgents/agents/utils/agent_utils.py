@@ -1,20 +1,9 @@
-from langchain_core.messages import BaseMessage, HumanMessage, ToolMessage, AIMessage
-from typing import List
+from langchain_core.messages import HumanMessage, RemoveMessage
 from typing import Annotated
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-from langchain_core.messages import RemoveMessage
 from langchain_core.tools import tool
-from datetime import date, timedelta, datetime
-import functools
-import pandas as pd
-import os
-from dateutil.relativedelta import relativedelta
-from langchain_openai import ChatOpenAI
 from tennisAgents.dataflows import interface
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.utils.enumerations import STATE
-
-from langchain_core.messages import HumanMessage
 
 
 def create_msg_delete():
@@ -48,8 +37,11 @@ class Toolkit:
     def __init__(self, config=None):
         if config:
             self.update_config(config)
+
             
     # NEWS ANALYST TOOLS
+
+
     @tool
     def get_news(
         query: Annotated[str, "Consulta para buscar en Google News noticias relevantes de tenis"],
@@ -58,21 +50,9 @@ class Toolkit:
         """Obtiene noticias de Google News sobre tenis."""
         return interface.get_news(query, curr_date)
 
-    @tool
-    def get_atp_news(
-        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
-    ) -> str:
-        """Obtiene noticias recientes de la web oficial ATP."""
-        return interface.get_atp_news(curr_date)
-
-    @tool
-    def get_tennisworld_news(
-        curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
-    ) -> str:
-        """Obtiene noticias recientes de TennisWorld."""
-        return interface.get_tennisworld_news(curr_date)
 
     # ODDS ANALYST TOOLS
+
     
     @tool
     def get_odds_data(
@@ -81,29 +61,14 @@ class Toolkit:
         """Obtiene las cuotas de apuestas para un torneo específico usando su clave de API."""
         return interface.get_tennis_odds(tournament_key)
 
-    @tool
-    def get_tournament_surface(
-        tournament_key: Annotated[str, "key del torneo (ej: 'Canadian Open', 'US Open', 'Wimbledon')"]
-    ) -> str:
-        """Obtiene la superficie (hard, clay, grass) donde se juega un torneo específico y actualiza el estado."""
-        surface = interface.get_tournament_surface(tournament_key)
-        return f"La superficie del torneo {tournament_key} es: {surface}"
-
-    @tool
-    def get_mock_odds_data(
-        player1: Annotated[str, "Nombre del jugador 1"],
-        player2: Annotated[str, "Nombre del jugador 2"],
-    ) -> str:
-        """Devuelve cuotas simuladas para pruebas."""
-        return interface.get_mock_odds_data(player1, player2)
 
     # PLAYERS ANALYST TOOLS
+
 
     @tool
     def get_atp_rankings() -> str:
         """Obtiene el ranking ATP actual. Usa esta herramienta para obtener información sobre el ranking de los jugadores."""
         return interface.get_atp_rankings()
-
 
     @tool
     def get_recent_matches(
@@ -135,7 +100,9 @@ class Toolkit:
         """Obtiene reportes de lesiones para un jugador específico"""
         return interface.get_injury_reports()
 
+
     # SOCIAL MEDIA ANALYST TOOLS
+
 
     @tool
     def get_sentiment(
@@ -143,22 +110,11 @@ class Toolkit:
     ) -> str:
         """Analiza sentimiento en Twitter sobre el jugador."""
         return interface.get_sentiment(player_name)
-
-    @tool
-    def get_tennis_forum_sentiment(
-        player_name: Annotated[str, "Nombre del jugador"],
-    ) -> str:
-        """Analiza sentimiento en foros de tenis."""
-        return interface.get_tennis_forum_sentiment(player_name)
-
-    @tool
-    def get_reddit_sentiment(
-        player_name: Annotated[str, "Nombre del jugador"],
-    ) -> str:
-        """Analiza sentimiento en Reddit sobre el jugador."""
-        return interface.get_reddit_posts("tennis", player_name)
+        
 
     # TOURNAMENT ANALYST TOOLS
+
+
     @tool
     def get_tournament_info(
         tournament: Annotated[str, "Nombre del torneo"],
@@ -168,14 +124,10 @@ class Toolkit:
         """Obtiene información y estadísticas del torneo."""
         return interface.get_tournament_data(tournament, category, date)
 
-    @tool
-    def get_mock_tournament_data(
-        tournament: Annotated[str, "Nombre del torneo"],
-    ) -> str:
-        """Devuelve datos simulados de torneo para pruebas."""
-        return interface.get_mock_tournament_data(tournament, year=2025 )
 
     # WEATHER ANALYST TOOLS
+
+    
     @tool
     def get_weather_forecast(
         tournament: Annotated[str, "Nombre del torneo"],
@@ -183,12 +135,5 @@ class Toolkit:
         latitude: Annotated[float, "Latitud de la ubicación del torneo"],
         longitude: Annotated[float, "Longitud de la ubicación del torneo"],
     ) -> str:
-        """Obtiene la previsión meteorológica para el partido usando la API de Open-Meteo."""
+        """Obtiene la previsión meteorológica para el partido usando OpenAI con búsqueda web."""
         return interface.get_weather_forecast(tournament, fecha_hora, latitude, longitude)
-
-    @tool
-    def get_mock_weather_data(
-        location: Annotated[str, "Ubicación textual o ciudad"],
-    ) -> str:
-        """Devuelve datos meteorológicos simulados para pruebas."""
-        return interface.get_mock_weather_data(location)

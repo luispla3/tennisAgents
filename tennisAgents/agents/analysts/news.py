@@ -14,8 +14,6 @@ def create_news_analyst(llm, toolkit):
             tools = [toolkit.get_news]
         else:
             tools = [
-                toolkit.get_atp_news,
-                toolkit.get_tennisworld_news,
                 toolkit.get_news,
             ]
 

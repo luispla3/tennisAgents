@@ -5,7 +5,7 @@ from tennisAgents.utils.enumerations import *
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
         match_date = state[STATE.match_date]
-        location = state.get(STATE.location, "Wimbledon")
+        location = state.get(STATE.location, "Ubicación no especificada")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
@@ -14,7 +14,7 @@ def create_weather_analyst(llm, toolkit):
         if toolkit.config["online_tools"]:
             tools = [toolkit.get_weather_forecast]
         else:
-            tools = [toolkit.get_mock_weather_data]  # Para testing o entorno offline
+            tools = [toolkit.get_weather_forecast]  # Para testing o entorno offline
 
         # Mensaje al sistema para enfocar el análisis
         system_message = (

@@ -14,9 +14,7 @@ def create_social_media_analyst(llm, toolkit):
             tools = [toolkit.get_sentiment]
         else:
             tools = [
-                toolkit.get_twitter_sentiment,
-                toolkit.get_tennis_forum_sentiment,
-                toolkit.get_reddit_sentiment,
+                toolkit.get_sentiment,
             ]
 
         # Instrucciones específicas del analista

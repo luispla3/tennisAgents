@@ -1,0 +1,3 @@
+No se pudo encontrar el torneo "augsburg challenger" en la base de datos de The Odds API, por lo que no es posible obtener las cuotas de apuestas para el partido entre Juan Carlos Prado Angelo y Gilles Arnaud Bailly en ese torneo. 
+
+Dado que el torneo no está disponible en las opciones conocidas, no puedo continuar con el análisis solicitado. Si quieres, puedo ayudarte con análisis para otro torneo o partido. ¿Te gustaría eso?
