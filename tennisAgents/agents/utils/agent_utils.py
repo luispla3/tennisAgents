@@ -56,10 +56,21 @@ class Toolkit:
     
     @tool
     def get_odds_data(
-        tournament_key: Annotated[str, "Clave del torneo de The Odds API (ej: 'tennis_atp_canadian_open', 'tennis_wta_us_open')"]
+        player_a: Annotated[str, "Nombre del primer jugador"],
+        player_b: Annotated[str, "Nombre del segundo jugador"],
+        tournament: Annotated[str, "Nombre del torneo"]
     ) -> str:
-        """Obtiene las cuotas de apuestas para un torneo específico usando su clave de API."""
-        return interface.get_tennis_odds(tournament_key)
+        """Obtiene las cuotas de apuestas de Betfair para un partido específico usando OpenAI."""
+        return interface.get_tennis_odds(player_a, player_b, tournament)
+
+    @tool
+    def mock_tennis_odds(
+        player_a: Annotated[str, "Nombre del primer jugador"],
+        player_b: Annotated[str, "Nombre del segundo jugador"],
+        tournament: Annotated[str, "Nombre del torneo"]
+    ) -> str:
+        """Genera cuotas ficticias realistas para un partido específico."""
+        return interface.mock_tennis_odds(player_a, player_b, tournament)
 
 
     # PLAYERS ANALYST TOOLS

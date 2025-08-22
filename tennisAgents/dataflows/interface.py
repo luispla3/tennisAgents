@@ -1,7 +1,7 @@
 from tennisAgents.dataflows.config import get_config
 from .news_utils import fetch_news
 
-from .odds_utils import fetch_tennis_odds
+from .odds_utils import fetch_tennis_odds, mock_tennis_odds as fetch_mock_odds
 from .player_utils import fetch_atp_rankings
 from .player_utils import fetch_recent_matches
 from .player_utils import fetch_surface_winrate
@@ -32,14 +32,79 @@ def get_news(query: str, curr_date: str) -> str:
 # ODDS ANALYST TOOLS
 
 
-def get_tennis_odds(tournament_key: str) -> str:
+def get_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
     """
-    Consulta las cuotas de apuestas reales para un torneo específico usando una API.
+    Consulta las cuotas de apuestas de Betfair para un partido específico usando OpenAI.
     """
-    import json
+    odds_data = fetch_tennis_odds(player_a, player_b, tournament)
     
-    odds_data = fetch_tennis_odds(tournament_key)
-    return json.dumps(odds_data, indent=2)
+    if not odds_data or odds_data.get("success") == False:
+        error_msg = odds_data.get("error", "Error desconocido") if odds_data else "No se pudieron obtener datos"
+        result = f"Error al obtener cuotas para {player_a} vs {player_b} en {tournament}: {error_msg}"
+        return result
+    
+    # Formatear los datos de cuotas
+    result = f"## Cuotas de Apuestas - {tournament}\n\n"
+    result += f"**Partido:** {player_a} vs {player_b}\n\n"
+    
+    # Mostrar cada mercado disponible
+    for market_name, market_data in odds_data.items():
+        if market_name in ["success", "fetched_at"]:
+            continue
+            
+        result += f"### {market_name}\n"
+        
+        if market_data == "No disponible":
+            result += "**Estado:** No disponible para este partido\n\n"
+        elif isinstance(market_data, dict):
+            for key, value in market_data.items():
+                result += f"**{key}:** {value}\n"
+            result += "\n"
+        else:
+            result += f"**Cuota:** {market_data}\n\n"
+    
+    result += f"\n**Obtenido el:** {odds_data.get('fetched_at', 'N/A')}\n"
+    
+    return result
+
+
+def mock_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
+    """
+    Genera cuotas ficticias de apuestas para un partido específico.
+    """
+    odds_data = fetch_mock_odds(player_a, player_b, tournament)
+    
+    if not odds_data or odds_data.get("success") == False:
+        error_msg = odds_data.get("error", "Error desconocido") if odds_data else "No se pudieron generar datos"
+        result = f"Error al generar cuotas ficticias para {player_a} vs {player_b} en {tournament}: {error_msg}"
+        return result
+    
+    # Formatear los datos de cuotas ficticias
+    result = f"## Cuotas de Apuestas (Ficticias) - {tournament}\n\n"
+    result += f"**Partido:** {player_a} vs {player_b}\n\n"
+    result += f"**Favorito:** {odds_data.get('favorite', 'N/A')}\n"
+    result += f"**Underdog:** {odds_data.get('underdog', 'N/A')}\n\n"
+    
+    # Mostrar cada mercado disponible
+    for market_name, market_data in odds_data.items():
+        if market_name in ["success", "fetched_at", "player_a", "player_b", "tournament", "favorite", "underdog", "note"]:
+            continue
+            
+        result += f"### {market_name}\n"
+        
+        if market_data == "No disponible":
+            result += "**Estado:** No disponible para este partido\n\n"
+        elif isinstance(market_data, dict):
+            for key, value in market_data.items():
+                result += f"**{key}:** {value}\n"
+            result += "\n"
+        else:
+            result += f"**Cuota:** {market_data}\n\n"
+    
+    result += f"\n**Obtenido el:** {odds_data.get('fetched_at', 'N/A')}\n"
+    result += f"\n**Nota:** {odds_data.get('note', '')}\n"
+    
+    return result
 
 
 # PLAYER ANALYST TOOLS

@@ -89,7 +89,8 @@ class TennisAgentsGraph:
             ),
             "odds": ToolNode(
                 [
-                    self.toolkit.get_odds_data,
+                    #self.toolkit.get_odds_data,
+                    self.toolkit.mock_tennis_odds,
                 ]
             ),
             "players": ToolNode(
