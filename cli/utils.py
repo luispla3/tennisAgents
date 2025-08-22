@@ -82,6 +82,28 @@ def get_date() -> str:
     return date.strip()
 
 
+def get_wallet_balance() -> float:
+    """Solicita el saldo de la cartera del usuario para apostar."""
+    def validate_balance(balance_str: str) -> bool:
+        try:
+            balance = float(balance_str.strip())
+            return balance > 0
+        except ValueError:
+            return False
+    
+    balance = questionary.text(
+        "Introduce el saldo de tu cartera para apostar (€):",
+        validate=lambda x: validate_balance(x) or "Por favor, introduce un saldo válido mayor a 0.",
+        style=questionary.Style([("text", "fg:green")]),
+    ).ask()
+    
+    if not balance:
+        print("\n[red]No se introdujo el saldo. Saliendo...[/red]")
+        exit(1)
+    
+    return float(balance.strip())
+
+
 def select_analysts() -> List[AnalystType]:
     """Select analysts using an interactive checkbox."""
     choices = questionary.checkbox(

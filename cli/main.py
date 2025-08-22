@@ -457,10 +457,18 @@ def get_user_selections():
     )
     analysis_date = get_date()
 
-    # Step 4: Select analysts
+    # Step 4: Wallet balance
     console.print(
         create_question_box(
-            "Step 4: Analysts Team", "Select your LLM analyst agents for the analysis"
+            "Step 4: Wallet Balance", "Enter your wallet balance for betting"
+        )
+    )
+    wallet_balance = get_wallet_balance()
+
+    # Step 5: Select analysts
+    console.print(
+        create_question_box(
+            "Step 5: Analysts Team", "Select your LLM analyst agents for the analysis"
         )
     )
     selected_analysts = select_analysts()
@@ -468,26 +476,26 @@ def get_user_selections():
         f"[green]Selected analysts:[/green] {', '.join(analyst.value for analyst in selected_analysts)}"
     )
 
-    # Step 5: Research depth
+    # Step 6: Research depth
     console.print(
         create_question_box(
-            "Step 5: Research Depth", "Select your research depth level"
+            "Step 6: Research Depth", "Select your research depth level"
         )
     )
     selected_research_depth = select_research_depth()
 
-    # Step 6: OpenAI backend
+    # Step 7: OpenAI backend
     console.print(
         create_question_box(
-            "Step 6: OpenAI backend", "Select which service to talk to"
+            "Step 7: OpenAI backend", "Select which service to talk to"
         )
     )
     selected_llm_provider, backend_url = select_llm_provider()
     
-    # Step 7: Thinking agents
+    # Step 8: Thinking agents
     console.print(
         create_question_box(
-            "Step 7: Thinking Agents", "Select your thinking agents for analysis"
+            "Step 8: Thinking Agents", "Select your thinking agents for analysis"
         )
     )
     selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
@@ -498,6 +506,7 @@ def get_user_selections():
         "player2": player2,
         "tournament": tournament,
         "analysis_date": analysis_date,
+        "wallet_balance": wallet_balance,
         "analysts": selected_analysts,
         "research_depth": selected_research_depth,
         "llm_provider": selected_llm_provider.lower(),
@@ -768,6 +777,9 @@ def run_analysis():
             "System", f"Analysis date: {selections['analysis_date']}"
         )
         message_buffer.add_message(
+            "System", f"Wallet balance: €{selections['wallet_balance']:.2f}"
+        )
+        message_buffer.add_message(
             "System",
             f"Selected analysts: {', '.join(analyst.value for analyst in selections['analysts'])}",
         )
@@ -800,7 +812,8 @@ def run_analysis():
             selections["player1"], 
             selections["player2"], 
             selections["analysis_date"],
-            selections["tournament"]
+            selections["tournament"],
+            selections["wallet_balance"]
         )
         args = graph.propagator.get_graph_args()
         

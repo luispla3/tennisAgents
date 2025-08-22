@@ -49,6 +49,7 @@ class STATE:
     tournament = "tournament"
     surface = "surface"
     location = "location"
+    wallet_balance = "wallet_balance"
 
     messages = "messages"
 

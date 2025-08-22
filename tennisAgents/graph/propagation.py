@@ -18,6 +18,7 @@ class Propagator:
         opponent_name: str,
         match_date: str,
         tournament: str,
+        wallet_balance: float,
     ) -> Dict[str, Any]:
         """Crea el estado inicial para el grafo de agentes deportivos."""
         return {
@@ -26,6 +27,7 @@ class Propagator:
             STATE.opponent: opponent_name,
             STATE.match_date: str(match_date),
             STATE.tournament: tournament,
+            STATE.wallet_balance: wallet_balance,
             STATE.risk_debate_state: RiskDebateState({
                 HISTORYS.history: "",
                 RESPONSES.aggressive: "",

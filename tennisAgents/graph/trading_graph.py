@@ -125,10 +125,16 @@ class TennisAgentsGraph:
         }
 
 
-    def propagate(self, player_pair, match_date):
+    def propagate(self, player_pair, match_date, tournament, wallet_balance):
         self.match = player_pair
 
-        init_agent_state = self.propagator.create_initial_state(player_pair, match_date)
+        init_agent_state = self.propagator.create_initial_state(
+            player_pair.split(" vs ")[0].strip(), 
+            player_pair.split(" vs ")[1].strip(), 
+            match_date,
+            tournament,
+            wallet_balance
+        )
         args = self.propagator.get_graph_args()
 
         if self.debug:
@@ -152,6 +158,7 @@ class TennisAgentsGraph:
         STATE.player_of_interest: final_state[STATE.player_of_interest],
         STATE.opponent: final_state[STATE.opponent],
         STATE.tournament: final_state[STATE.tournament],
+        STATE.wallet_balance: final_state[STATE.wallet_balance],
         STATE.messages: final_state[STATE.messages],
         STATE.risk_debate_state: {
             HISTORYS.aggressive_history: final_state[STATE.risk_debate_state].get(HISTORYS.aggressive_history, ""),
