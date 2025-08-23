@@ -95,6 +95,10 @@ class AgentState(MessagesState):
         Optional[str], "Informe de torneo"
     ]
 
+    match_live_report: Annotated[
+        Optional[str], "Informe de partido en vivo"
+    ]
+
     # Decisión final
     final_bet_decision: Annotated[
         Optional[str], "Decisión final de apuesta"

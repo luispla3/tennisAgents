@@ -8,6 +8,7 @@ from .analysts.tournament import create_tournament_analyst
 from .analysts.odds import create_odds_analyst
 from .analysts.news import create_news_analyst
 from .analysts.social_media import create_social_media_analyst
+from .analysts.match_live import create_match_live_analyst
 
 from .risk_mgmt.aggressive_debator import create_aggressive_debator
 from .risk_mgmt.neutral_debator import create_neutral_debator
@@ -28,6 +29,7 @@ __all__ = [
     "create_odds_analyst",
     "create_news_analyst",
     "create_social_media_analyst",
+    "create_match_live_analyst",
     "create_aggressive_debator",
     "create_neutral_debator",
     "create_conservative_debator",

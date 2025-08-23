@@ -147,3 +147,25 @@ class Toolkit:
     ) -> str:
         """Obtiene la previsión meteorológica para el partido usando OpenAI con búsqueda web."""
         return interface.get_weather_forecast(tournament, fecha_hora, location)
+
+
+    # MATCH LIVE ANALYST TOOLS
+
+    
+    @tool
+    def get_match_live_data(
+        player_a: Annotated[str, "Nombre del primer jugador"],
+        player_b: Annotated[str, "Nombre del segundo jugador"],
+        tournament: Annotated[str, "Nombre del torneo"]
+    ) -> str:
+        """Obtiene datos en tiempo real del partido actual incluyendo score, estadísticas y momentum."""
+        return interface.get_match_live_data(player_a, player_b, tournament)
+
+    @tool
+    def get_mock_match_live_data(
+        player_a: Annotated[str, "Nombre del primer jugador"],
+        player_b: Annotated[str, "Nombre del segundo jugador"],
+        tournament: Annotated[str, "Nombre del torneo"]
+    ) -> str:
+        """Genera datos ficticios realistas de partido en vivo para un partido específico."""
+        return interface.get_mock_match_live_data(player_a, player_b, tournament)

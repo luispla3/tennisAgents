@@ -421,3 +421,55 @@ class TennisAnalystAnatomies:
                 "Informe estructurado respetando privacidad"
             ]
         )
+
+    @staticmethod
+    def match_live_analyst() -> PromptAnatomy:
+        """Anatomía para el analista de partidos en vivo"""
+        return PromptAnatomy(
+            role="Analista especializado en análisis en tiempo real de partidos de tenis con enfoque en trading y ajustes de estrategia",
+            
+            task="Analizar el desarrollo del partido en tiempo real para identificar oportunidades de trading y ajustes de estrategia",
+            
+            task_steps=[
+                "Obtener datos en tiempo real del partido actual (score, estadísticas, momentum)",
+                "Analizar cambios en el ritmo y momentum del partido",
+                "Evaluar adaptaciones tácticas de ambos jugadores",
+                "Identificar patrones de juego emergentes durante el partido",
+                "Analizar estadísticas en tiempo real (aces, dobles faltas, puntos ganados)",
+                "Evaluar impacto de condiciones externas en el desarrollo del juego",
+                "Predicción de posibles cambios en el desarrollo del partido"
+            ],
+            
+            context="Análisis en tiempo real de partidos de tenis para identificar oportunidades de trading y ajustes de estrategia basados en el desarrollo actual del juego",
+            
+            exclusions=[
+                "Análisis histórico o retrospectivo del partido",
+                "Información no relacionada con el desarrollo actual del juego",
+                "Predicciones basadas únicamente en datos históricos"
+            ],
+            
+            reasoning_priorities=[
+                "Priorizar información en tiempo real y actualizada",
+                "Enfocarse en cambios significativos que afecten las cuotas",
+                "Considerar el momentum y ritmo actual del partido",
+                "Identificar patrones emergentes durante el juego"
+            ],
+            
+            verification_requirements=[
+                "Verificar que los datos provengan de fuentes en tiempo real",
+                "Confirmar timestamps de la información obtenida",
+                "Validar estadísticas actuales del partido",
+                "Contrastar información con múltiples fuentes cuando sea posible"
+            ],
+            
+            output_format="Informe estructurado con análisis en tiempo real del partido, estadísticas actuales, momentum y predicciones basadas en el desarrollo del juego",
+            
+            output_structure="1. Estado actual del partido\n2. Análisis de momentum\n3. Estadísticas en tiempo real\n4. Adaptaciones tácticas\n5. Predicciones y oportunidades",
+            
+            completion_criteria=[
+                "Análisis completo del estado actual del partido",
+                "Identificación de cambios significativos en momentum",
+                "Evaluación de estadísticas en tiempo real",
+                "Predicciones fundamentadas en el desarrollo actual del juego"
+            ]
+        )

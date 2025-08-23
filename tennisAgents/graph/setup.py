@@ -9,6 +9,7 @@ from tennisAgents.agents.analysts.players import create_player_analyst
 from tennisAgents.agents.analysts.social_media import create_social_media_analyst
 from tennisAgents.agents.analysts.tournament import create_tournament_analyst
 from tennisAgents.agents.analysts.weather import create_weather_analyst
+from tennisAgents.agents.analysts.match_live import create_match_live_analyst
 
 from tennisAgents.agents.managers.manager import create_risk_manager
 
@@ -42,7 +43,7 @@ class GraphSetup:
         self.conditional_logic = conditional_logic
 
     def setup_graph(
-        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.odds, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather]
+        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.odds, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live]
     ):
         if len(selected_analysts) == 0:
             raise ValueError("Tennis Agents Graph Setup Error: no analysts selected!")
@@ -80,6 +81,11 @@ class GraphSetup:
             analyst_nodes["weather"] = create_weather_analyst(self.quick_thinking_llm, self.toolkit)
             delete_nodes["weather"] = create_msg_delete()
             tool_nodes["weather"] = self.tool_nodes.get("weather")
+
+        if "match_live" in selected_analysts:
+            analyst_nodes["match_live"] = create_match_live_analyst(self.quick_thinking_llm, self.toolkit)
+            delete_nodes["match_live"] = create_msg_delete()
+            tool_nodes["match_live"] = self.tool_nodes.get("match_live")
 
         aggressive_debator = create_aggressive_debator(self.quick_thinking_llm)
         safe_debator = create_conservative_debator(self.quick_thinking_llm)

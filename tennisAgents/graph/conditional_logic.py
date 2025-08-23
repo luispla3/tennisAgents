@@ -19,7 +19,7 @@ class ConditionalLogic:
 
     def should_continue_odds(self, state: AgentState):
         """Determina si el análisis de cuotas debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_odds"
@@ -27,7 +27,7 @@ class ConditionalLogic:
 
     def should_continue_players(self, state: AgentState):
         """Determina si el análisis de jugadores debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_players"
@@ -35,7 +35,7 @@ class ConditionalLogic:
 
     def should_continue_social(self, state: AgentState):
         """Determina si el análisis de redes sociales debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_social"
@@ -43,7 +43,7 @@ class ConditionalLogic:
 
     def should_continue_tournament(self, state: AgentState):
         """Determina si el análisis de torneo debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_tournament"
@@ -51,11 +51,19 @@ class ConditionalLogic:
 
     def should_continue_weather(self, state: AgentState):
         """Determina si el análisis de clima debe continuar."""
-        messages = state["messages"]
+        messages = state[STATE.messages]
         last_message = messages[-1]
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_weather"
         return "Msg Clear Weather"
+
+    def should_continue_match_live(self, state: AgentState):
+        """Determina si el análisis de partido en vivo debe continuar."""
+        messages = state[STATE.messages]
+        last_message = messages[-1]
+        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+            return "tools_match_live"
+        return "Msg Clear Match_live"
 
     def should_continue_risk_analysis(self, state: AgentState) -> str:
         """Determina el siguiente paso en el debate de riesgo."""

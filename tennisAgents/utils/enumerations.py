@@ -26,6 +26,7 @@ class REPORTS:
     players_report = "players_report"
     tournament_report = "tournament_report"
     risk_analysis_report = "risk_analysis_report"
+    match_live_report = "match_live_report"
 
 class ANALYSTS:
     aggressive = "Aggressive Analyst"
@@ -41,6 +42,7 @@ class ANALYST_NODES:
     social = "social_media"
     tournament = "tournament"
     weather = "weather"
+    match_live = "match_live"
 
 class STATE:
     match_date = "match_date"

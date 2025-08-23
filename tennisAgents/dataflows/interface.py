@@ -1,15 +1,11 @@
 from tennisAgents.dataflows.config import get_config
-from .news_utils import fetch_news
-
 from .odds_utils import fetch_tennis_odds, mock_tennis_odds as fetch_mock_odds
-from .player_utils import fetch_atp_rankings
-from .player_utils import fetch_recent_matches
-from .player_utils import fetch_surface_winrate
-from .player_utils import fetch_head_to_head
-from .player_utils import fetch_injury_reports
+from .match_live_utils import fetch_match_live_data, format_match_live_report, mock_match_live_data, format_mock_match_live_report
+from .news_utils import fetch_news
+from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
+from .weather_utils import fetch_weather_forecast, format_weather_report
 from .sentiment_utils import get_sentiment_openai
 from .tournament_utils import get_tournament_info_openai
-from .weather_utils import fetch_weather_forecast, format_weather_report
 
 
 
@@ -228,3 +224,64 @@ def get_weather_forecast(tournament: str, fecha_hora: str, location: str) -> str
     
     weather_data = fetch_weather_forecast(location, fecha_hora, tournament)
     return format_weather_report(weather_data)
+
+
+# MATCH LIVE ANALYST TOOLS
+
+
+def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
+    """
+    Obtiene datos en tiempo real del partido actual incluyendo score, estadísticas y momentum.
+    
+    Args:
+        player_a (str): Nombre del primer jugador
+        player_b (str): Nombre del segundo jugador
+        tournament (str): Nombre del torneo
+    
+    Returns:
+        str: Reporte en tiempo real del partido con estadísticas y análisis
+    """
+    
+    try:
+        # Obtener datos del partido usando las utilidades
+        match_data = fetch_match_live_data(player_a, player_b, tournament)
+        
+        if not match_data or match_data.get("success") == False:
+            return f"Error al obtener datos del partido en vivo entre {player_a} y {player_b} en {tournament}."
+        
+        # Formatear el reporte
+        result = format_match_live_report(match_data)
+        
+        return result
+        
+    except Exception as e:
+        return f"Error al obtener datos del partido en vivo: {str(e)}"
+
+
+def get_mock_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
+    """
+    Genera datos ficticios de partido en vivo para un partido específico.
+    
+    Args:
+        player_a (str): Nombre del primer jugador
+        player_b (str): Nombre del segundo jugador
+        tournament (str): Nombre del torneo
+    
+    Returns:
+        str: Reporte en tiempo real ficticio del partido con estadísticas y análisis
+    """
+    
+    try:
+        # Obtener datos ficticios del partido usando las utilidades
+        match_data = mock_match_live_data(player_a, player_b, tournament)
+        
+        if not match_data or match_data.get("success") == False:
+            return f"Error al generar datos ficticios del partido en vivo entre {player_a} y {player_b} en {tournament}."
+        
+        # Formatear el reporte
+        result = format_mock_match_live_report(match_data)
+        
+        return result
+        
+    except Exception as e:
+        return f"Error al generar datos ficticios del partido en vivo: {str(e)}"

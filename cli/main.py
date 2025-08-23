@@ -48,6 +48,7 @@ class MessageBuffer:
             "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
+            "Match Live Analyst": "pending",
             "Aggressive Analyst": "pending",
             "Safe Analyst": "pending",
             "Neutral Analyst": "pending",
@@ -61,6 +62,7 @@ class MessageBuffer:
             "sentiment_report": None,
             "tournament_report": None,
             "weather_report": None,
+            "match_live_report": None,
             "risk_analysis_report": None,
             "final_bet_decision": None,
         }
@@ -103,6 +105,7 @@ class MessageBuffer:
                 "sentiment_report": "Social Sentiment",
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
+                "match_live_report": "Match Live Analysis",
                 "risk_analysis_report": "Risk Analysis",
                 "final_bet_decision": "Final Bet Decision",
             }
@@ -126,6 +129,7 @@ class MessageBuffer:
                 "sentiment_report",
                 "tournament_report",
                 "weather_report",
+                "match_live_report",
             ]
         ):
             report_parts.append("## Analyst Team Reports")
@@ -152,6 +156,10 @@ class MessageBuffer:
             if self.report_sections["weather_report"]:
                 report_parts.append(
                     f"### Weather Analysis\n{self.report_sections['weather_report']}"
+                )
+            if self.report_sections["match_live_report"]:
+                report_parts.append(
+                    f"### Match Live Analysis\n{self.report_sections['match_live_report']}"
                 )
 
         # Risk Management Team Report
@@ -222,6 +230,7 @@ def update_display(layout, spinner_text=None):
             "Social Analyst",
             "Tournament Analyst",
             "Weather Analyst",
+            "Match Live Analyst",
         ],
         "Risk Management": [
             "Aggressive Analyst",
@@ -589,6 +598,17 @@ def display_complete_report(final_state):
             )
         )
 
+    # Match Live Analyst Report
+    if final_state.get("match_live_report"):
+        analyst_reports.append(
+            Panel(
+                Markdown(final_state["match_live_report"]),
+                title="Match Live Analyst",
+                border_style="blue",
+                padding=(1, 2),
+            )
+        )
+
     if analyst_reports:
         console.print(
             Panel(
@@ -911,6 +931,17 @@ def run_analysis():
                         "weather_report", chunk["weather_report"]
                     )
                     message_buffer.update_agent_status("Weather Analyst", "completed")
+                    # Set next analyst to in_progress
+                    if "match_live" in selections["analysts"]:
+                        message_buffer.update_agent_status(
+                            "Match Live Analyst", "in_progress"
+                        )
+
+                if "match_live_report" in chunk and chunk["match_live_report"]:
+                    message_buffer.update_report_section(
+                        "match_live_report", chunk["match_live_report"]
+                    )
+                    message_buffer.update_agent_status("Match Live Analyst", "completed")
                     # Set first risk management analyst to in_progress
                     message_buffer.update_agent_status("Aggressive Analyst", "in_progress")
 

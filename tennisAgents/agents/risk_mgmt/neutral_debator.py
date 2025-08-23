@@ -17,33 +17,70 @@ def create_neutral_debator(llm):
         sentiment_report = state[REPORTS.sentiment_report]
         tournament_report = state[REPORTS.tournament_report]
         weather_report = state[REPORTS.weather_report]
+        match_live_report = state.get(REPORTS.match_live_report, "")
+        
+        # Información del usuario y partido
+        wallet_balance = state.get(STATE.wallet_balance, 0)
+        match_date = state.get(STATE.match_date, "")
+        player_of_interest = state.get(STATE.player_of_interest, "")
+        opponent = state.get(STATE.opponent, "")
+        tournament = state.get(STATE.tournament, "")
+        surface = state.get(STATE.surface, "")
+        location = state.get(STATE.location, "")
 
         prompt = f"""
 Como analista de riesgo neutral, tu función es ofrecer una perspectiva equilibrada sobre la propuesta del Trader, considerando tanto las oportunidades como los riesgos de forma objetiva.
 
-Tu objetivo es **evaluar de forma crítica las posturas del analista conservador y del agresivo**, destacando sus puntos fuertes y débiles, para construir una estrategia moderada que combine potencial de éxito y control del riesgo.
+**INFORMACIÓN DEL USUARIO Y PARTIDO:**
+- Saldo disponible: ${wallet_balance}
+- Fecha del partido: {match_date}
+- Jugador de interés: {player_of_interest}
+- Oponente: {opponent}
+- Torneo: {tournament}
+- Superficie: {surface}
+- Ubicación: {location}
 
-Usa la siguiente información:
+**TU TAREA PRINCIPAL:**
+Basándote en la información de los analistas, debes decidir cuánto dinero invertir en cada uno de los siguientes tipos de apuestas, usando técnicas matemáticas y probabilísticas, pero con un enfoque EQUILIBRADO:
+
+1. **CUOTAS DE PARTIDO**: Decidir cuál de ambos jugadores gana el partido
+2. **APUESTAS A SETS**: Si no es Grand Slam (mejor de 3 sets), decidir:
+   - Jugador A 2-0, Jugador A 2-1, Jugador B 2-0, Jugador B 2-1
+3. **GANADOR DEL ACTUAL SET**: Si se está jugando el primer set, decidir quién lo gana
+4. **RESULTADO DEL ACTUAL SET**: Si se está jugando el segundo set, decidir quién lo gana y el resultado (6-0, 6-1, 6-2, 6-3, 6-4, 7-5)
+5. **JUGADOR GANA AL MENOS UN SET**: Jugador A SI/NO, Jugador B SI/NO
+6. **PARTIDO Y AMBOS JUGADORES GANAN UN SET**: Jugador A gana partido + ambos ganan set, o Jugador B gana partido + ambos ganan set
+
+**INFORMES DISPONIBLES:**
 - Informe meteorológico: {weather_report}
 - Cuotas de apuestas: {odds_report}
 - Sentimiento en redes sociales: {sentiment_report}
 - Noticias recientes: {news_report}
 - Estado físico/mental de jugadores: {players_report}
 - Información del torneo: {tournament_report}
+- Estado del partido en vivo: {match_live_report}
 
-Últimos argumentos:
+**ARGUMENTOS PREVIOS:**
 - Analista agresivo: {current_aggressive_response}
 - Analista seguro: {current_safe_response}
 - Analista de probabilidades: {current_expected_response}
 
-Historial de debate: {history}
+**HISTORIAL DE DEBATE:** {history}
+
+**REQUISITOS DE TU RESPUESTA:**
+1. **EVALÚA** de forma crítica las posturas del analista conservador y del agresivo
+2. **CALCULA** el porcentaje del saldo a invertir en cada apuesta usando análisis probabilístico EQUILIBRADO
+3. **DESTACA** los puntos fuertes y débiles de cada postura
+4. **CONSTRUYE** una estrategia moderada que combine potencial de éxito y control del riesgo
+5. **USA** técnicas matemáticas y probabilísticas para justificar el enfoque equilibrado
+6. **REBATE** ideas extremas (riesgo excesivo o prudencia extrema)
 
 Tu respuesta debe:
-- Rebatir ideas extremas (riesgo excesivo o prudencia extrema)
-- Proponer un enfoque equilibrado y justificado
 - Ser conversacional, directa y sin formato especial
-
-No inventes respuestas si faltan voces en el debate. Céntrate en el análisis comparativo y busca un equilibrio racional en las apuestas.
+- No inventar respuestas si faltan voces en el debate
+- Céntrate en el análisis comparativo y busca un equilibrio racional en las apuestas
+- Usar análisis probabilístico para demostrar por qué el enfoque equilibrado es matemáticamente superior
+- Mostrar cómo combinar lo mejor de ambas estrategias (agresiva y conservadora)
 """
 
         response = llm.invoke(prompt)

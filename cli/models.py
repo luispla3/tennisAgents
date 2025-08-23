@@ -7,3 +7,4 @@ class AnalystType(str, Enum):
     social = "social"
     tournament = "tournament"
     weather = "weather"
+    match_live = "match_live"
