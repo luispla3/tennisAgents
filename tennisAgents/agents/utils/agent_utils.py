@@ -55,13 +55,13 @@ class Toolkit:
 
     
     @tool
-    def get_odds_data(
+    def fetch_tennis_odds(
         player_a: Annotated[str, "Nombre del primer jugador"],
         player_b: Annotated[str, "Nombre del segundo jugador"],
         tournament: Annotated[str, "Nombre del torneo"]
     ) -> str:
-        """Obtiene las cuotas de apuestas de Betfair para un partido específico usando OpenAI."""
-        return interface.get_tennis_odds(player_a, player_b, tournament)
+        """Consulta cuotas reales (Betfair o mejor comparador) para un partido específico."""
+        return interface.fetch_tennis_odds(player_a, player_b, tournament)
 
     @tool
     def mock_tennis_odds(

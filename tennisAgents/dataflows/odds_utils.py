@@ -60,24 +60,45 @@ Devuelve únicamente un objeto JSON con esta estructura:
 
 IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después."""
 
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model=config["quick_think_llm"],
-            messages=[
+            input=[
+            {
+                "role": "system",
+                "content": [
                 {
-                    "role": "system",
-                    "content": "Eres un experto en apuestas deportivas especializado en tenis. Tu tarea es obtener cuotas reales de Betfair para partidos de tenis y devolverlas en formato JSON estructurado. NO inventes datos - si algo no está disponible, indícalo claramente."
-                },
-                {
-                    "role": "user",
-                    "content": prompt_text
+                    "type": "input_text",
+                    "text": "Eres un experto en apuestas deportivas especializado en tenis. Tu tarea es obtener cuotas reales de Betfair para partidos de tenis y devolverlas en formato JSON estructurado. NO inventes datos - si algo no está disponible, indícalo claramente.",
                 }
+                ],
+            },
+            {
+                "role": "user",
+                "content": [
+                {
+                    "type": "input_text",
+                    "text": prompt_text,
+                }
+                ],
+            }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+            {
+                "type": "web_search_preview",
+                "user_location": {"type": "approximate"},
+                "search_context_size": "medium",
+            }
             ],
             temperature=0.1,
-            max_tokens=2000
+            max_output_tokens=2000,
+            top_p=1,
+            store=True,
         )
 
         # Extraer la respuesta del modelo
-        response_text = response.choices[0].message.content.strip()
+        response_text = response.output[1].content[0].text
         
         # Intentar parsear el JSON de la respuesta
         try:

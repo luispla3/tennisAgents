@@ -9,32 +9,33 @@ def create_odds_analyst(llm, toolkit):
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
 
-        tools = [toolkit.mock_tennis_odds]
+        tools = [toolkit.fetch_tennis_odds]
         # Obtener la anatomía del prompt para analista de cuotas
         anatomy = TennisAnalystAnatomies.odds_analyst()
-        
+
         # Información de herramientas
         tools_info = (
-            "• mock_tennis_odds(player_a, player_b, tournament) - Genera cuotas ficticias realistas para un partido específico"
+            "• fetch_tennis_odds(player_a, player_b, tournament) - Consulta cuotas reales para un partido específico"
         )
-        
+
         # Información sobre la herramienta de odds
         odds_info = """
         HERRAMIENTA DE CUOTAS DISPONIBLE:
 
-        mock_tennis_odds(player_a, player_b, tournament)
+        fetch_tennis_odds(player_a, player_b, tournament)
         - player_a: Nombre del primer jugador
         - player_b: Nombre del segundo jugador
         - tournament: Nombre del torneo
 
-        Esta herramienta genera cuotas ficticias realistas para el partido especificado, incluyendo los mismos mercados que la herramienta real pero con datos simulados basados en el ranking de los jugadores.
+        Esta herramienta consulta cuotas REALES para el partido especificado.
+        Si algún mercado no está disponible, devolverá "No disponible". No inventes datos.
         """
-        
+
         # Contexto adicional específico del análisis de cuotas
         additional_context = (
             f"{odds_info}\n\n"
             "PROCESO OBLIGATORIO:\n"
-            f"1. DEBES usar UNA UNICA VEZ la herramienta 'mock_tennis_odds' con estos parámetros EXACTOS:\n"
+            f"1. DEBES usar UNA UNICA VEZ la herramienta 'fetch_tennis_odds' con estos parámetros EXACTOS:\n"
             f"   - player_a: '{player}'\n"
             f"   - player_b: '{opponent}'\n"
             f"   - tournament: '{tournament}'\n"
@@ -49,7 +50,7 @@ def create_odds_analyst(llm, toolkit):
             "• Evaluación de las cuotas Combined Bet para combinaciones específicas\n"
             "• Identificación de mercados no disponibles y su impacto\n\n"
             "IMPORTANTE: Proporciona análisis específico con números concretos, no generalidades. Incluye cuotas exactas y contexto específico del mercado.\n\n"
-            "OBLIGATORIO: Llama mock_tennis_odds antes de hacer cualquier análisis."
+            "OBLIGATORIO: Llama fetch_tennis_odds antes de hacer cualquier análisis."
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -65,19 +66,19 @@ def create_odds_analyst(llm, toolkit):
         prompt = prompt.partial(match_date=match_date)
 
         chain = prompt | llm.bind_tools(tools)
-        
+
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
             "user_message": f"Analiza las cuotas de apuestas para el partido entre {player} y {opponent}."
         }
-        
+
         result = chain.invoke(input_data)
 
         # Debug: imprimir información sobre el resultado
         print(f"DEBUG - Result tool_calls: {len(result.tool_calls)}")
         print(f"DEBUG - Result content: {result.content[:200]}...")
-        
+
         report = ""
         report = result.content
 

@@ -10,22 +10,21 @@ def create_match_live_analyst(llm, toolkit):
         player_b = state[STATE.opponent]
         tournament = state[STATE.tournament]
         surface = state.get(STATE.surface, "")
+        # Herramienta para obtener datos reales del partido en vivo
+        tools = [toolkit.get_match_live_data]
 
-        # Herramienta para obtener datos ficticios del partido en vivo
-        tools = [toolkit.get_mock_match_live_data]
-        
         # Obtener la anatomía del prompt para analista de partidos en vivo
         anatomy = TennisAnalystAnatomies.match_live_analyst()
-        
+
         # Información de herramientas
         tools_info = (
-            "• get_mock_match_live_data(player_a, player_b, tournament) - Genera datos ficticios realistas del partido en vivo incluyendo score, estadísticas y momentum"
+            "• get_match_live_data(player_a, player_b, tournament) - Obtiene datos REALES del partido en vivo (score, estadísticas y momentum)"
         )
-        
+
         # Contexto adicional específico del análisis en tiempo real
         additional_context = (
             "PROCESO OBLIGATORIO:\n"
-            f"1. DEBES usar UNA UNICA VEZ la herramienta 'get_mock_match_live_data' con estos parámetros EXACTOS:\n"
+            f"1. DEBES usar UNA UNICA VEZ la herramienta 'get_match_live_data' con estos parámetros EXACTOS:\n"
             f"   - player_a: '{player_a}'\n"
             f"   - player_b: '{player_b}'\n"
             f"   - tournament: '{tournament}'\n"

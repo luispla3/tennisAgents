@@ -1,4 +1,9 @@
 .env
+
+# Python caches and bytecode
 __pycache__/
-cli/__pycache__/
+*.py[cod]
+*$py.class
+
+# Project outputs
 results/

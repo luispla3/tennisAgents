@@ -28,48 +28,61 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
     client = OpenAI(base_url=config["backend_url"])
     
     try:
-        response = client.chat.completions.create(
+        response = client.responses.create(
             model=config["quick_think_llm"],
-            messages=[
+            input=[
+            {
+                "role": "system",
+                "content": [
                 {
-                    "role": "system",
-                    "content": f"""Obtén toda la información disponible y en tiempo real sobre el partido de tenis {player_a} vs {player_b} en {tournament}. Usa preferiblemente la web: https://www.flashscore.es/tenis/ en partido en vivo.
+                    "type": "input_text",
+                    "text": f"""Obtén toda la información disponible y en tiempo real sobre el partido de tenis {player_a} vs {player_b} en {tournament}. Usa preferiblemente la web: https://www.flashscore.es/tenis/ en partido en vivo.
 
-La salida debe incluir:
+    La salida debe incluir:
 
-1. Información general:
-   - Nombre del torneo y la fase (ej. US Open – Qualifying Round).
-   - Fecha y lugar de juego (si está disponible).
-   - Estado del partido (en curso, finalizado, próximo).
+    1. Información general:
+       - Nombre del torneo y la fase (ej. US Open – Qualifying Round).
+       - Fecha y lugar de juego (si está disponible).
+       - Estado del partido (en curso, finalizado, próximo).
 
-2. Marcador en vivo:
-   - Resultados por set (ejemplo: 7-6, 3-6, 4-2 en curso).
-   - Tie-breaks detallados si se jugaron.
-   - Indicar si un set o el partido está en curso.
+    2. Marcador en vivo:
+       - Resultados por set (ejemplo: 7-6, 3-6, 4-2 en curso).
+       - Tie-breaks detallados si se jugaron.
+       - Indicar si un set o el partido está en curso.
 
-3. Estadísticas del partido:
-   - Aces, dobles faltas.
-   - Porcentaje de primeros y segundos saques.
-   - Puntos ganados con primer/segundo saque.
-   - Break points convertidos / totales.
-   - Total de puntos ganados.
-   - Juegos de servicio ganados/perdidos.
-   - Rachas de puntos o juegos (si están disponibles).
+    3. Estadísticas del partido:
+       - Aces, dobles faltas.
+       - Porcentaje de primeros y segundos saques.
+       - Puntos ganados con primer/segundo saque.
+       - Break points convertidos / totales.
+       - Total de puntos ganados.
+       - Juegos de servicio ganados/perdidos.
+       - Rachas de puntos o juegos (si están disponibles).
 
-IMPORTANTE:
-- Si alguna de estas categorías no está disponible para este partido, indícalo explícitamente con "No disponible".
-- No inventes datos: solo devuelve lo que esté públicamente accesible.
+    IMPORTANTE:
+    - Si alguna de estas categorías no está disponible para este partido, indícalo explícitamente con "No disponible".
+    - No inventes datos: solo devuelve lo que esté públicamente accesible.
 
-El resultado debe ser claro, estructurado y preferiblemente en formato JSON o tabla, para poder procesarlo fácilmente en una aplicación."""
+    El resultado debe ser claro, estructurado y preferiblemente en formato JSON o tabla, para poder procesarlo fácilmente en una aplicación."""
                 }
+                ],
+            }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+            {
+                "type": "web_search_preview",
+                "user_location": {"type": "approximate"},
+                "search_context_size": "medium",
+            }
             ],
             temperature=0.3,
-            max_tokens=4096,
-            top_p=1
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
         )
-        
-        match_info = response.choices[0].message.content
-        
+        match_info = response.output[1].content[0].text
         # Construir el resultado estructurado
         result = {
             "success": True,

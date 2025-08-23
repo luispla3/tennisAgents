@@ -1,5 +1,5 @@
 from tennisAgents.dataflows.config import get_config
-from .odds_utils import fetch_tennis_odds, mock_tennis_odds as fetch_mock_odds
+from .odds_utils import fetch_tennis_odds as fetch_tennis_odds_dataflow, mock_tennis_odds as fetch_mock_odds
 from .match_live_utils import fetch_match_live_data, format_match_live_report, mock_match_live_data, format_mock_match_live_report
 from .news_utils import fetch_news
 from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
@@ -28,11 +28,11 @@ def get_news(query: str, curr_date: str) -> str:
 # ODDS ANALYST TOOLS
 
 
-def get_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
+def fetch_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
     """
     Consulta las cuotas de apuestas de Betfair para un partido específico usando OpenAI.
     """
-    odds_data = fetch_tennis_odds(player_a, player_b, tournament)
+    odds_data = fetch_tennis_odds_dataflow(player_a, player_b, tournament)
     
     if not odds_data or odds_data.get("success") == False:
         error_msg = odds_data.get("error", "Error desconocido") if odds_data else "No se pudieron obtener datos"

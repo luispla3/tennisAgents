@@ -89,7 +89,7 @@ class TennisAgentsGraph:
             ),
             "odds": ToolNode(
                 [
-                    #self.toolkit.get_odds_data,
+                    self.toolkit.fetch_tennis_odds,
                     self.toolkit.mock_tennis_odds,
                 ]
             ),
@@ -124,6 +124,7 @@ class TennisAgentsGraph:
             ),
             "match_live": ToolNode(
                 [
+                    self.toolkit.get_match_live_data,
                     self.toolkit.get_mock_match_live_data,
                 ]
             ),

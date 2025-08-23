@@ -1,6 +1,6 @@
 from .interface import (
     get_news,
-    get_tennis_odds,
+    fetch_tennis_odds,
     get_atp_rankings,
     get_recent_matches,
     get_surface_winrate,
@@ -14,7 +14,7 @@ from .interface import (
 
 __all__ = [
     "get_news",
-    "get_tennis_odds",
+    "fetch_tennis_odds",
     "get_atp_rankings",
     "get_recent_matches",
     "get_surface_winrate",
