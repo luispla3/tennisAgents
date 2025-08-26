@@ -62,6 +62,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
     IMPORTANTE:
     - Si alguna de estas categorías no está disponible para este partido, indícalo explícitamente con "No disponible".
     - No inventes datos: solo devuelve lo que esté públicamente accesible.
+    - Revisa paginas como: flashscore, ESPN
 
     El resultado debe ser claro, estructurado y preferiblemente en formato JSON o tabla, para poder procesarlo fácilmente en una aplicación."""
                 }
