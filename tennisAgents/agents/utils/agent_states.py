@@ -70,6 +70,10 @@ class AgentState(MessagesState):
         str, "Nombre del torneo"
     ]
 
+    wallet_balance: Annotated[
+        float, "Saldo disponible de la cartera para apostar"
+    ]
+
     # Todos los REPORTS
     news_report: Annotated[
         Optional[str], "Informe de noticias"

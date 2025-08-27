@@ -406,18 +406,19 @@ def update_display(layout, spinner_text=None):
 
 def get_user_selections():
     """Get all user selections before starting the analysis display."""
-    # Display ASCII art welcome message
     welcome_content = """
-    ╔══════════════════════════════════════════════════════════════════════════════╗
-    ║                           TENNIS AGENTS CLI                                  ║
-    ║                Multi-Agents LLM Tennis Betting Framework                     ║
-    ╚══════════════════════════════════════════════════════════════════════════════╝
+████████╗███████╗███╗   ██╗███╗   ██╗██╗███████╗     █████╗  ██████╗ ███████╗███╗   ██╗████████╗
+╚══██╔══╝██╔════╝████╗  ██║████╗  ██║██║██╔════╝    ██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝
+   ██║   █████╗  ██╔██╗ ██║██╔██╗ ██║██║███████╗    ███████║██║ ████╗█████╗  ██╔██╗ ██║   ██║
+   ██║   ██╔══╝  ██║╚██╗██║██║╚██╗██║██║╚════██║    ██╔══██║██║ ╚═██║██╔══╝  ██║╚██╗██║   ██║
+   ██║   ███████╗██║ ╚████║██║ ╚████║██║███████║    ██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║
+   ╚═╝   ╚══════╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚═╝╚══════╝    ╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝
     """
-    welcome_content += "[bold green]TennisAgents: Multi-Agents LLM Tennis Betting Framework - CLI[/bold green]\n\n"
+    welcome_content += "[bold green]            TennisAgents: Multi-Agents LLM Tennis Betting Framework - CLI[/bold green]\n\n"
     welcome_content += "[bold]Workflow Steps:[/bold]\n"
     welcome_content += "I. Analyst Team → II. Risk Management → III. Final Bet Decision\n\n"
     welcome_content += (
-        "[dim]Built by [Tauric Research](https://github.com/TauricResearch)[/dim]"
+        "[dim]Built by [Luis Planella Hernandez](https://github.com/luispla3) &\n[Eduard Gil Magraner](https://github.com/EduardGilM)[/dim]"
     )
 
     # Create and center the welcome box
