@@ -36,7 +36,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
                 "content": [
                 {
                     "type": "input_text",
-                    "text": f"""Obtén toda la información disponible y en tiempo real sobre el partido de tenis {player_a} vs {player_b} en {tournament}. Usa preferiblemente la web: https://www.flashscore.es/tenis/ en partido en vivo.
+                    "text": f"""Obtén toda la información disponible y en tiempo real sobre el partido de tenis {player_a} vs {player_b} en {tournament}. Usa únicamente la siguiente pagina web: https://www.aiscore.com/tennis/, busca en ella tanto estadisticas, punto por punto, aces, etc.
 
     La salida debe incluir:
 
@@ -59,11 +59,17 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
        - Juegos de servicio ganados/perdidos.
        - Rachas de puntos o juegos (si están disponibles).
 
+    4. URL:
+    
+    - La URL que hayas usado para buscarlo. Ejemplo: https://www.aiscore.com/tennis/match-alex-molcan-nicolas-mejia/edq03u2zpeoaeqx?utm_source=chatgpt.com
+
     IMPORTANTE:
     - Si alguna de estas categorías no está disponible para este partido, indícalo explícitamente con "No disponible".
     - No inventes datos: solo devuelve lo que esté públicamente accesible.
-    - Revisa paginas como: flashscore, ESPN
-
+    - Busca exclusivamente en aiscore (https://www.aiscore.com/tennis). 
+    - Ten en cuenta que aiscore siempre usa el mismo formato para las URLs de los partidos, https://www.aiscore.com/tennis/match-nombre-jugador1-nombre-jugador2/idpartido?utm_source=chatgpt.com. Asegurate de seguir ese formato, puede que los jugadores esten cambiados de lugar.
+    - Aqui tienes un ejemplo de URL real de un partido en aiscore: https://www.aiscore.com/tennis/match-alex-molcan-nicolas-mejia/edq03u2zpeoaeqx?utm_source=chatgpt.com
+    
     El resultado debe ser claro, estructurado y preferiblemente en formato JSON o tabla, para poder procesarlo fácilmente en una aplicación."""
                 }
                 ],
@@ -75,7 +81,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
             {
                 "type": "web_search_preview",
                 "user_location": {"type": "approximate"},
-                "search_context_size": "medium",
+                "search_context_size": "high",
             }
             ],
             temperature=0.3,
@@ -84,6 +90,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
             store=True,
         )
         match_info = response.output[1].content[0].text
+        print(f"[DEBUG] Raw match info response: {match_info}")
         # Construir el resultado estructurado
         result = {
             "success": True,
@@ -95,7 +102,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
             "source": "OpenAI Web Search",
             "note": "Información obtenida en tiempo real mediante búsqueda web."
         }
-        
+
         return result
         
     except Exception as e:
