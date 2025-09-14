@@ -36,41 +36,140 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
                 "content": [
                 {
                     "type": "input_text",
-                    "text": f"""Obtén toda la información disponible y en tiempo real sobre el partido de tenis {player_a} vs {player_b} en {tournament}. Usa únicamente la siguiente pagina web: https://www.aiscore.com/tennis/, busca en ella tanto estadisticas, punto por punto, aces, etc.
+                    "text": f"""ANÁLISIS DE PARTIDO DE TENIS - FLASHCORE
 
-    La salida debe incluir:
+OBJETIVO: Obtener información completa y actualizada del partido de tenis desde Flashcore.
 
-    1. Información general:
-       - Nombre del torneo y la fase (ej. US Open – Qualifying Round).
-       - Fecha y lugar de juego (si está disponible).
-       - Estado del partido (en curso, finalizado, próximo).
+INSTRUCCIONES ESPECÍFICAS:
+1. PRIMERO intenta acceder a esta URL específica de Flashcore: https://www.flashscore.es/partido/tenis/alcaraz-garfia-carlos-UkhgIFEq/sinner-jannik-6HdC3z4H/resumen/estadisticas/0/?mid=4EAVYPi5
+2. SEGUNDO, intenta acceder a esta URL específica de SofaScore: https://www.sofascore.com/tennis/match/carlos-alcaraz-jannik-sinner/vGHbsytkc#id:14494928,tab:statistics
+3. Ambas URLs contienen el partido: Jannik Sinner vs Carlos Alcaraz del 07/09/2025
+4. Si NO puedes acceder a esas URLs o no encuentras información, busca en otras fuentes deportivas confiables (ESPN, ATP, BBC Sport, etc.)
+5. Analiza toda la información disponible en las fuentes que puedas acceder
+6. Extrae todos los datos del partido disponibles
+7. El objetivo es obtener información real y actualizada del partido
 
-    2. Marcador en vivo:
-       - Resultados por set (ejemplo: 7-6, 3-6, 4-2 en curso).
-       - Tie-breaks detallados si se jugaron.
-       - Indicar si un set o el partido está en curso.
+ENFOQUE DEL ANÁLISIS:
+- PRIORIZA la URL específica de Flashcore
+- SEGUNDO, consulta la URL específica de SofaScore
+- Si no puedes acceder a ninguna de estas URLs, busca en otras fuentes deportivas confiables
+- Analiza el partido Jannik Sinner vs Carlos Alcaraz del 07/09/2025
+- Extrae todos los datos disponibles: resultado, estadísticas, resumen
+- Confirma el estado del partido (finalizado, en vivo, programado)
+- El objetivo es obtener información real y completa del partido
 
-    3. Estadísticas del partido:
-       - Aces, dobles faltas.
-       - Porcentaje de primeros y segundos saques.
-       - Puntos ganados con primer/segundo saque.
-       - Break points convertidos / totales.
-       - Total de puntos ganados.
-       - Juegos de servicio ganados/perdidos.
-       - Rachas de puntos o juegos (si están disponibles).
+ESTRUCTURA DE DATOS A EXTRAER (BASADO EN EL FORMATO DE FLASHCORE):
 
-    4. URL:
-    
-    - La URL que hayas usado para buscarlo. Ejemplo: https://www.aiscore.com/tennis/match-alex-molcan-nicolas-mejia/edq03u2zpeoaeqx?utm_source=chatgpt.com
+**SECCIÓN SERVICIO (SERVICIO):**
+- Aces: [número para cada jugador]
+- Dobles faltas: [número para cada jugador] 
+- Porcentaje 1er servicio: [% para cada jugador]
+- Pts. ganados 1er serv.: [% (X/Y) para cada jugador]
+- Pts. ganados 2º serv.: [% (X/Y) para cada jugador]
+- Puntos break salvados: [% (X/Y) para cada jugador]
+- Velocidad media del primer servicio: [km/h para cada jugador]
+- Velocidad media del segundo servicio: [km/h para cada jugador]
 
-    IMPORTANTE:
-    - Si alguna de estas categorías no está disponible para este partido, indícalo explícitamente con "No disponible".
-    - No inventes datos: solo devuelve lo que esté públicamente accesible.
-    - Busca exclusivamente en aiscore (https://www.aiscore.com/tennis). 
-    - Ten en cuenta que aiscore siempre usa el mismo formato para las URLs de los partidos, https://www.aiscore.com/tennis/match-nombre-jugador1-nombre-jugador2/idpartido?utm_source=chatgpt.com. Asegurate de seguir ese formato, puede que los jugadores esten cambiados de lugar.
-    - Aqui tienes un ejemplo de URL real de un partido en aiscore: https://www.aiscore.com/tennis/match-alex-molcan-nicolas-mejia/edq03u2zpeoaeqx?utm_source=chatgpt.com
-    
-    El resultado debe ser claro, estructurado y preferiblemente en formato JSON o tabla, para poder procesarlo fácilmente en una aplicación."""
+**SECCIÓN RESTO (RETURN):**
+- Pts. ganados 1ª devoluc.: [% (X/Y) para cada jugador]
+- Pts. ganados 2ª devoluc.: [% (X/Y) para cada jugador]
+- Puntos break convertidos: [% (X/Y) para cada jugador]
+
+**SECCIÓN PUNTOS (PUNTOS):**
+- Golpes Ganadores: [número para cada jugador]
+- Errores No Forzados: [número para cada jugador]
+- Puntos ganados en red: [% (X/Y) para cada jugador]
+- Puntos ganados servicio: [% (X/Y) para cada jugador]
+- Puntos ganados resto: [% (X/Y) para cada jugador]
+- Total puntos ganados: [% (X/Y) para cada jugador]
+- Últimos diez puntos: [número para cada jugador]
+- Puntos de partido salvados: [número para cada jugador]
+
+**SECCIÓN JUEGOS (JUEGOS):**
+- Juegos ganados servicio: [% (X/Y) para cada jugador]
+- Juegos ganados resto: [% (X/Y) para cada jugador]
+- Total juegos ganados: [% (X/Y) para cada jugador]
+
+INFORMACIÓN A REPORTAR:
+
+1. **CONFIRMACIÓN DE ACCESO:**
+   - ¿Pudiste acceder a la URL de Flashcore? (SÍ/NO)
+   - ¿Pudiste acceder a la URL de SofaScore? (SÍ/NO)
+   - Si NO pudiste acceder a ninguna de estas URLs, ¿qué otras fuentes consultaste? (ESPN, ATP, BBC Sport, etc.)
+   - URL(es) consultada(s)
+   - Estado de acceso a cada fuente
+
+2. **INFORMACIÓN DEL PARTIDO:**
+   - ¿Encontraste el partido Jannik Sinner vs Carlos Alcaraz del 07/09/2025? (SÍ/NO)
+   - Estado del partido: "FINALIZADO", "EN VIVO", "PROGRAMADO"
+   - Fecha y hora del partido
+   - Resultado final por sets 
+
+3. **ESTADÍSTICAS COMPLETAS (OBLIGATORIO - SOLO DATOS REALES DE LA PÁGINA):**
+
+**IMPORTANTE: SOLO reporta datos que veas REALMENTE en la página. Si no ves un dato, escribe "NO DISPONIBLE".**
+
+**SERVICIO:**
+- Aces: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+- Dobles faltas: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+- Porcentaje 1er servicio: Carlos Alcaraz: [X% - SOLO si lo ves en la página], Jannik Sinner: [Y% - SOLO si lo ves en la página]
+- Pts. ganados 1er serv.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Pts. ganados 2º serv.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Puntos break salvados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Velocidad media 1er serv.: Carlos Alcaraz: [X km/h - SOLO si lo ves en la página], Jannik Sinner: [Y km/h - SOLO si lo ves en la página]
+- Velocidad media 2º serv.: Carlos Alcaraz: [X km/h - SOLO si lo ves en la página], Jannik Sinner: [Y km/h - SOLO si lo ves en la página]
+
+**RESTO:**
+- Pts. ganados 1ª devoluc.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Pts. ganados 2ª devoluc.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Puntos break convertidos: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+
+**PUNTOS:**
+- Golpes Ganadores: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+- Errores No Forzados: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+- Puntos ganados en red: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Puntos ganados servicio: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Puntos ganados resto: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Total puntos ganados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Últimos diez puntos: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+- Puntos de partido salvados: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
+
+**JUEGOS:**
+- Juegos ganados servicio: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Juegos ganados resto: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+- Total juegos ganados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
+
+4. **EVIDENCIA DE ACCESO:**
+   - Descripción detallada de lo encontrado en la página
+   - Confirmación de que los datos son reales de Flashcore
+   - Cualquier error o problema de acceso
+
+5. **VALIDACIÓN DE DATOS:**
+   - Confirma que cada estadística reportada fue vista REALMENTE en la página
+   - Si no pudiste acceder a la página, escribe "ERROR DE ACCESO - NO SE PUDO OBTENER DATOS"
+   - Si la página no carga o hay errores, escribe "PÁGINA NO DISPONIBLE - NO SE PUDO OBTENER DATOS"
+   - Si no ves estadísticas específicas, escribe "NO DISPONIBLE" para cada dato faltante
+   - NO inventes, estimes o generes datos ficticios
+
+INSTRUCCIONES CRÍTICAS - SOLO DATOS REALES:
+- NUNCA inventes o generes estadísticas ficticias
+- SOLO reporta datos que veas REALMENTE en las fuentes consultadas
+- Si no puedes acceder a Flashcore o SofaScore, busca en otras fuentes deportivas confiables
+- Si no puedes acceder a ninguna fuente o no ves datos, escribe "NO DISPONIBLE" o "ERROR DE ACCESO"
+- En Flashcore, busca específicamente las secciones "SERVICIO", "RESTO", "PUNTOS" y "JUEGOS"
+- En SofaScore, busca la pestaña "Statistics" y las estadísticas detalladas del partido
+- En otras fuentes, busca estadísticas similares (aces, dobles faltas, porcentajes, etc.)
+- Extrae ÚNICAMENTE los valores numéricos que aparezcan REALMENTE en las fuentes
+- Los valores aparecen como números enteros o porcentajes con fracciones (X/Y)
+- Si no encuentras un dato específico, escribe "NO DISPONIBLE" - NO lo inventes
+- Confirma qué fuentes pudiste consultar y cuáles no
+- Los datos deben ser reales y actualizados del partido
+- Si ves estadísticas en las fuentes, extrae esos números exactos
+- Si no puedes acceder a las fuentes o hay errores, reporta el problema específico
+- NO generes números aleatorios o estimaciones
+- NO uses datos de partidos anteriores o de tu conocimiento
+- SOLO datos extraídos directamente de las fuentes web consultadas
+- SIEMPRE indica claramente qué información NO pudiste encontrar"""
                 }
                 ],
             }
@@ -84,13 +183,24 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
                 "search_context_size": "high",
             }
             ],
-            temperature=0.3,
+            temperature=0.1,
             max_output_tokens=4096,
-            top_p=1,
+            top_p=0.9,
             store=True,
         )
         match_info = response.output[1].content[0].text
         print(f"[DEBUG] Raw match info response: {match_info}")
+        
+        # Extraer URLs de las fuentes si están presentes
+        sources = []
+        if "FUENTES:" in match_info:
+            sources_section = match_info.split("FUENTES:")[1].strip()
+            # Buscar URLs en el texto
+            import re
+            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
+            urls = re.findall(url_pattern, sources_section)
+            sources.extend(urls)
+        
         # Construir el resultado estructurado
         result = {
             "success": True,
@@ -99,6 +209,7 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict
             "player_a": player_a,
             "player_b": player_b,
             "match_information": match_info,
+            "sources": sources,
             "source": "OpenAI Web Search",
             "note": "Información obtenida en tiempo real mediante búsqueda web."
         }
@@ -147,6 +258,15 @@ def format_match_live_report(match_data: Dict[str, Any]) -> str:
     result += f"- **Última Actualización:** {match_data['fetched_at']}\n"
     result += f"- **Fuente:** {match_data['source']}\n"
     result += f"- **Nota:** {match_data['note']}\n"
+    
+    # Fuentes consultadas
+    if match_data.get('sources'):
+        result += f"\n### Fuentes Consultadas\n"
+        for i, source_url in enumerate(match_data['sources'], 1):
+            result += f"{i}. {source_url}\n"
+    else:
+        result += f"\n### Fuentes Consultadas\n"
+        result += f"- No se pudieron extraer URLs de fuentes específicas\n"
     
     return result
 
