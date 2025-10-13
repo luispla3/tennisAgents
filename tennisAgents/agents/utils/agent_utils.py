@@ -154,18 +154,46 @@ class Toolkit:
     
     @tool
     def get_match_live_data(
-        player_a: Annotated[str, "Nombre del primer jugador"],
-        player_b: Annotated[str, "Nombre del segundo jugador"],
-        tournament: Annotated[str, "Nombre del torneo"]
+        player_a: Annotated[str, "Nombre del primer jugador (puede ser parcial, ej: 'Alcaraz' o 'Djokovic')"],
+        player_b: Annotated[str, "Nombre del segundo jugador (puede ser parcial, ej: 'Sinner' o 'Medvedev')"],
+        tournament: Annotated[str, "Nombre del torneo (opcional, ej: 'Australian Open' o 'US Open')"]
     ) -> str:
-        """Obtiene datos en tiempo real del partido actual incluyendo score, estadísticas y momentum."""
+        """
+        Obtiene datos en tiempo real del partido usando Sportradar API.
+        
+        Sistema Automático con Sportradar Live Summaries:
+        Esta herramienta obtiene y formatea datos en vivo directamente desde Sportradar:
+        
+        1. Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
+        2. Busca el partido específico entre los dos jugadores (búsqueda flexible)
+        3. Extrae y formatea la información del partido en texto estructurado:
+           - Información básica (jugadores, torneo, fecha, estado)
+           - Marcador actual (sets ganados, desglose por sets, tie-breaks)
+           - Estadísticas detalladas por jugador (servicio, break points, puntos, rachas)
+        
+        Características:
+        - ✅ Datos en tiempo real: Actualización cada 1 segundo (TTL)
+        - ✅ Búsqueda flexible: Maneja variaciones de nombres y acentos
+        - ✅ Completo: Marcador actual y estadísticas detalladas
+        - ✅ Estructurado: Datos formateados listos para análisis
+        
+        Args:
+            player_a: Nombre del jugador (ej: "Carlos Alcaraz", "Alcaraz", o "Carlos")
+            player_b: Nombre del oponente (ej: "Jannik Sinner", "Sinner", o "Jannik")
+            tournament: Nombre del torneo (opcional, para filtrar si hay múltiples partidos)
+        
+        Returns:
+            Datos estructurados del partido con:
+            - Información básica del partido (torneo, jugadores, fecha, estado)
+            - Marcador actual y desglose por sets (con tie-breaks si aplica)
+            - Estadísticas detalladas de ambos jugadores:
+              * Servicio: aces, dobles faltas, primer servicio, segundo servicio
+              * Break points: ganados, total, efectividad
+              * Puntos y juegos: totales, ganados, rachas máximas
+            
+        Note:
+            - La API de Sportradar actualiza los datos cada 1 segundo durante partidos en vivo
+            - Los nombres de jugadores en la API vienen en formato "Apellido, Nombre"
+            - Los datos vienen formateados y listos para que el agente los analice
+        """
         return interface.get_match_live_data(player_a, player_b, tournament)
-
-    @tool
-    def get_mock_match_live_data(
-        player_a: Annotated[str, "Nombre del primer jugador"],
-        player_b: Annotated[str, "Nombre del segundo jugador"],
-        tournament: Annotated[str, "Nombre del torneo"]
-    ) -> str:
-        """Genera datos ficticios realistas de partido en vivo para un partido específico."""
-        return interface.get_mock_match_live_data(player_a, player_b, tournament)

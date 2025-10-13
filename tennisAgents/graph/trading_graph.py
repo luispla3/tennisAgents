@@ -125,7 +125,6 @@ class TennisAgentsGraph:
             "match_live": ToolNode(
                 [
                     self.toolkit.get_match_live_data,
-                    self.toolkit.get_mock_match_live_data,
                 ]
             ),
         }

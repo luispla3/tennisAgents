@@ -73,22 +73,30 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-- Cuotas de Partido: $[cantidad] ([porcentaje]%)
-- Apuestas a Sets: $[cantidad] ([porcentaje]%)
-- Ganador del Actual Set: $[cantidad] ([porcentaje]%)
-- Resultado del Actual Set: $[cantidad] ([porcentaje]%)
-- Jugador Gana al Menos un Set: $[cantidad] ([porcentaje]%)
-- Partido y Ambos Ganan un Set: $[cantidad] ([porcentaje]%)
+[Solo incluye los tipos de apuesta que consideres recomendables. Puedes omitir cualquier tipo si no aporta valor o es demasiado arriesgado]
+- Cuotas de Partido ([Nombre del Jugador]): $[cantidad] ([porcentaje]%)
+- Apuestas a Sets ([especificar resultado exacto y jugador, ej: "2-1 Martineau"]): $[cantidad] ([porcentaje]%)
+- Ganador del Actual Set ([Nombre del Jugador, Set #]): $[cantidad] ([porcentaje]%)
+- Resultado del Actual Set ([score específico y jugador, ej: "6-4 Martineau"]): $[cantidad] ([porcentaje]%)
+- Jugador Gana al Menos un Set ([Nombre del Jugador]): $[cantidad] ([porcentaje]%)
+- Partido y Ambos Ganan un Set ([Nombre del jugador ganador]): $[cantidad] ([porcentaje]%)
+
+**TOTAL APOSTADO: $[suma de todas las apuestas] ([porcentaje]% del bankroll)**
 
 **JUSTIFICACIÓN:**
-[Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los debators y los informes disponibles]
+[Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los debators y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
 
 **NIVEL DE CONFIANZA: [ALTO/MEDIO/BAJO]**
 
 **RECOMENDACIONES ADICIONALES:**
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
-IMPORTANTE: Usa análisis matemático y probabilístico para justificar la distribución del dinero. No inventes información, usa solo los datos disponibles en el debate y los informes.
+IMPORTANTE: 
+- NO estás obligado a apostar en TODOS los tipos de apuesta. Solo apuesta donde veas valor esperado positivo claro.
+- SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
+- Puedes poner $0 en cualquier tipo de apuesta o simplemente omitirla de la lista si no la recomiendas.
+- Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
+- No inventes información, usa solo los datos disponibles en el debate y los informes.
 """
 
         response = llm.invoke(prompt)

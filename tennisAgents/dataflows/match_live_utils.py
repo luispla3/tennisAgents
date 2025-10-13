@@ -1,601 +1,552 @@
 """
-Match Live Utilities - Herramientas para obtener datos en tiempo real de partidos de tenis
+Match Live Utilities - Herramientas para obtener datos en tiempo real de partidos de tenis usando Sportradar API
 """
 
-from openai import OpenAI
+import os
+import json
+import time
+import requests
+import unicodedata
 from dotenv import load_dotenv
 from datetime import datetime
-from typing import Dict, Any
-from tennisAgents.dataflows.config import get_config
+from typing import Dict, Any, Optional, List
 
 load_dotenv()
 
 
-def fetch_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict[str, Any]:
+def get_sportradar_api_key() -> str:
     """
-    Obtiene datos en tiempo real del partido actual usando OpenAI con búsqueda web.
+    Obtiene la API key de Sportradar desde las variables de entorno.
+    
+    Returns:
+        str: API key de Sportradar
+        
+    Raises:
+        ValueError: Si no se encuentra la API key
+    """
+    api_key = os.getenv("SPORTRADAR_API_KEY")
+    if not api_key:
+        raise ValueError("SPORTRADAR_API_KEY no está configurada en las variables de entorno")
+    return api_key
+
+
+def normalize_name(name: str) -> str:
+    """
+    Normaliza un nombre eliminando acentos y convirtiendo a minúsculas para comparación.
+    
+    Args:
+        name (str): Nombre a normalizar
+    
+    Returns:
+        str: Nombre normalizado sin acentos y en minúsculas
+    """
+    # Eliminar acentos y caracteres especiales
+    nfkd_form = unicodedata.normalize('NFKD', name)
+    normalized = ''.join([c for c in nfkd_form if not unicodedata.combining(c)])
+    return normalized.lower().strip()
+
+
+def player_name_matches(api_name: str, search_name: str) -> bool:
+    """
+    Verifica si un nombre de jugador de la API coincide con el nombre buscado.
+    
+    La API de Sportradar devuelve nombres en formato "Apellido, Nombre" o variaciones.
+    Esta función maneja diferentes formatos y normaliza los nombres para comparación.
+    
+    Args:
+        api_name (str): Nombre del jugador como viene de la API (ej: "Djokovic, Novak")
+        search_name (str): Nombre buscado (ej: "Djokovic" o "Novak Djokovic")
+    
+    Returns:
+        bool: True si los nombres coinciden
+    """
+    # Normalizar ambos nombres
+    api_normalized = normalize_name(api_name)
+    search_normalized = normalize_name(search_name)
+    
+    # Si el nombre buscado está en el nombre de la API, es una coincidencia
+    if search_normalized in api_normalized:
+        return True
+    
+    # Si el nombre de la API tiene formato "Apellido, Nombre", intentar invertirlo
+    if ',' in api_name:
+        parts = [normalize_name(p.strip()) for p in api_name.split(',')]
+        # Probar "Nombre Apellido"
+        reversed_name = ' '.join(reversed(parts))
+        if search_normalized in reversed_name or reversed_name in search_normalized:
+            return True
+    
+    # Probar si alguna palabra del nombre buscado está en el nombre de la API
+    search_words = search_normalized.split()
+    for word in search_words:
+        if len(word) >= 3 and word in api_normalized:  # Solo palabras de 3+ caracteres
+            return True
+    
+    return False
+
+
+def fetch_live_summaries() -> Dict[str, Any]:
+    """
+    Obtiene todos los resúmenes de partidos en vivo desde la API de Sportradar.
+    
+    Returns:
+        Dict[str, Any]: Diccionario con:
+            - success (bool): Si la operación fue exitosa
+            - data (Dict): Datos completos de la API
+            - total_matches (int): Número total de partidos en vivo
+            - fetched_at (str): Timestamp de la consulta
+            - error (str): Mensaje de error si falló
+    """
+    try:
+        api_key = get_sportradar_api_key()
+        
+        url = "https://api.sportradar.com/tennis/trial/v3/en/schedules/live/summaries.json"
+        headers = {
+            "accept": "application/json",
+            "x-api-key": api_key
+        }
+        
+        print(f"[INFO] Consultando Sportradar Live Summaries API...")
+        
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        
+        data = response.json()
+        summaries = data.get("summaries", [])
+        
+        print(f"[SUCCESS] Se obtuvieron {len(summaries)} partidos en vivo")
+        
+        return {
+            "success": True,
+            "data": data,
+            "total_matches": len(summaries),
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except ValueError as ve:
+        print(f"[ERROR] Error de configuración: {str(ve)}")
+        return {
+            "success": False,
+            "error": str(ve),
+            "data": {},
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": "Verifica que SPORTRADAR_API_KEY esté configurada en el archivo .env"
+        }
+        
+    except requests.exceptions.HTTPError as http_err:
+        print(f"[ERROR] Error HTTP al consultar Sportradar: {str(http_err)}")
+        return {
+            "success": False,
+            "error": f"Error HTTP: {str(http_err)}",
+            "data": {},
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": f"Código de estado: {response.status_code if 'response' in locals() else 'N/A'}"
+        }
+        
+    except requests.exceptions.RequestException as req_err:
+        print(f"[ERROR] Error de conexión al consultar Sportradar: {str(req_err)}")
+        return {
+            "success": False,
+            "error": f"Error de conexión: {str(req_err)}",
+            "data": {},
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Error inesperado: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Error inesperado: {str(e)}",
+            "data": {},
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+
+def tournament_name_matches(api_tournament: str, search_tournament: str) -> bool:
+    """
+    Verifica si un nombre de torneo de la API coincide con el nombre buscado.
+    
+    Maneja:
+    - Variaciones de idioma (Masculino/Men, Femenino/Women)
+    - Nombres parciales (Roanne vs ATP Challenger Roanne, France)
+    - Diferentes formatos
+    
+    Args:
+        api_tournament (str): Nombre del torneo como viene de la API
+        search_tournament (str): Nombre del torneo buscado
+    
+    Returns:
+        bool: True si los nombres coinciden
+    """
+    # Normalizar ambos nombres
+    api_normalized = normalize_name(api_tournament)
+    search_normalized = normalize_name(search_tournament)
+    
+    # Mapeo de traducciones comunes
+    translations = {
+        'masculino': 'men',
+        'femenino': 'women',
+        'mens': 'men',
+        'womens': 'women',
+        'singles': 'individual',
+        'doubles': 'dobles',
+    }
+    
+    # Aplicar traducciones al nombre buscado
+    for spanish, english in translations.items():
+        search_normalized = search_normalized.replace(spanish, english)
+        api_normalized = api_normalized.replace(spanish, english)
+    
+    # Estrategia 1: El nombre buscado está contenido en el nombre de la API
+    if search_normalized in api_normalized:
+        return True
+    
+    # Estrategia 2: Extraer palabras clave significativas (3+ caracteres) y verificar que la mayoría coincidan
+    search_words = [w for w in search_normalized.split() if len(w) >= 3]
+    api_words = set([w for w in api_normalized.split() if len(w) >= 3])
+    
+    # Si al menos el 60% de las palabras clave están presentes, considerar match
+    if search_words:
+        matches = sum(1 for word in search_words if word in api_words)
+        match_ratio = matches / len(search_words)
+        if match_ratio >= 0.6:
+            return True
+    
+    return False
+
+
+def find_match_in_summaries(
+    summaries_data: Dict[str, Any],
+    player_a: str,
+    player_b: str,
+    tournament: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Busca un partido específico dentro de los resúmenes de partidos en vivo.
+    
+    Args:
+        summaries_data (Dict[str, Any]): Datos obtenidos de fetch_live_summaries()
+        player_a (str): Nombre del primer jugador
+        player_b (str): Nombre del segundo jugador
+        tournament (Optional[str]): Nombre del torneo (opcional para filtrar)
+    
+    Returns:
+        Optional[Dict[str, Any]]: Datos del partido encontrado o None si no se encuentra
+    """
+    if not summaries_data.get("success"):
+        return None
+    
+    summaries = summaries_data.get("data", {}).get("summaries", [])
+    
+    print(f"[INFO] Buscando partido entre '{player_a}' y '{player_b}'")
+    if tournament:
+        print(f"[INFO] Filtrando por torneo: '{tournament}'")
+    
+    for summary in summaries:
+        sport_event = summary.get("sport_event", {})
+        competitors = sport_event.get("competitors", [])
+        
+        # Verificar si tenemos exactamente 2 competidores
+        if len(competitors) != 2:
+            continue
+        
+        competitor_names = [comp.get("name", "") for comp in competitors]
+        
+        # Verificar si ambos jugadores están en el partido
+        player_a_found = any(player_name_matches(name, player_a) for name in competitor_names)
+        player_b_found = any(player_name_matches(name, player_b) for name in competitor_names)
+        
+        if player_a_found and player_b_found:
+            # Si se especificó torneo, verificar que coincida
+            if tournament:
+                competition_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "")
+                
+                if not tournament_name_matches(competition_name, tournament):
+                    print(f"[INFO] Partido encontrado pero torneo no coincide: '{competition_name}' vs '{tournament}'")
+                    continue
+            
+            print(f"[SUCCESS] Partido encontrado: {competitor_names[0]} vs {competitor_names[1]}")
+            return summary
+    
+    print(f"[WARNING] No se encontró el partido entre '{player_a}' y '{player_b}'")
+    return None
+
+
+def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str] = None) -> Dict[str, Any]:
+    """
+    Obtiene datos en tiempo real de un partido específico usando Sportradar API.
+    
+    Flujo:
+    1. Obtiene todos los partidos en vivo desde Sportradar
+    2. Busca el partido específico entre los dos jugadores
+    3. Extrae y estructura la información relevante del partido
     
     Args:
         player_a (str): Nombre del primer jugador
         player_b (str): Nombre del segundo jugador
-        tournament (str): Nombre del torneo
+        tournament (Optional[str]): Nombre del torneo (opcional)
     
     Returns:
-        Dict[str, Any]: Datos del partido en tiempo real
+        Dict[str, Any]: Diccionario con:
+            - success (bool): Si la operación fue exitosa
+            - player_a (str): Nombre del jugador A
+            - player_b (str): Nombre del jugador B
+            - tournament (str): Nombre del torneo
+            - match_data (Dict): Datos estructurados del partido
+            - formatted_data (str): Datos formateados en texto para el agente
+            - fetched_at (str): Timestamp de la consulta
+            - error (str): Mensaje de error si falló
     """
-    
-    config = get_config()
-    client = OpenAI(base_url=config["backend_url"])
-    
     try:
-        response = client.responses.create(
-            model=config["quick_think_llm"],
-            input=[
-            {
-                "role": "system",
-                "content": [
-                {
-                    "type": "input_text",
-                    "text": f"""ANÁLISIS DE PARTIDO DE TENIS - FLASHCORE
-
-OBJETIVO: Obtener información completa y actualizada del partido de tenis desde Flashcore.
-
-INSTRUCCIONES ESPECÍFICAS:
-1. PRIMERO intenta acceder a esta URL específica de Flashcore: https://www.flashscore.es/partido/tenis/alcaraz-garfia-carlos-UkhgIFEq/sinner-jannik-6HdC3z4H/resumen/estadisticas/0/?mid=4EAVYPi5
-2. SEGUNDO, intenta acceder a esta URL específica de SofaScore: https://www.sofascore.com/tennis/match/carlos-alcaraz-jannik-sinner/vGHbsytkc#id:14494928,tab:statistics
-3. Ambas URLs contienen el partido: Jannik Sinner vs Carlos Alcaraz del 07/09/2025
-4. Si NO puedes acceder a esas URLs o no encuentras información, busca en otras fuentes deportivas confiables (ESPN, ATP, BBC Sport, etc.)
-5. Analiza toda la información disponible en las fuentes que puedas acceder
-6. Extrae todos los datos del partido disponibles
-7. El objetivo es obtener información real y actualizada del partido
-
-ENFOQUE DEL ANÁLISIS:
-- PRIORIZA la URL específica de Flashcore
-- SEGUNDO, consulta la URL específica de SofaScore
-- Si no puedes acceder a ninguna de estas URLs, busca en otras fuentes deportivas confiables
-- Analiza el partido Jannik Sinner vs Carlos Alcaraz del 07/09/2025
-- Extrae todos los datos disponibles: resultado, estadísticas, resumen
-- Confirma el estado del partido (finalizado, en vivo, programado)
-- El objetivo es obtener información real y completa del partido
-
-ESTRUCTURA DE DATOS A EXTRAER (BASADO EN EL FORMATO DE FLASHCORE):
-
-**SECCIÓN SERVICIO (SERVICIO):**
-- Aces: [número para cada jugador]
-- Dobles faltas: [número para cada jugador] 
-- Porcentaje 1er servicio: [% para cada jugador]
-- Pts. ganados 1er serv.: [% (X/Y) para cada jugador]
-- Pts. ganados 2º serv.: [% (X/Y) para cada jugador]
-- Puntos break salvados: [% (X/Y) para cada jugador]
-- Velocidad media del primer servicio: [km/h para cada jugador]
-- Velocidad media del segundo servicio: [km/h para cada jugador]
-
-**SECCIÓN RESTO (RETURN):**
-- Pts. ganados 1ª devoluc.: [% (X/Y) para cada jugador]
-- Pts. ganados 2ª devoluc.: [% (X/Y) para cada jugador]
-- Puntos break convertidos: [% (X/Y) para cada jugador]
-
-**SECCIÓN PUNTOS (PUNTOS):**
-- Golpes Ganadores: [número para cada jugador]
-- Errores No Forzados: [número para cada jugador]
-- Puntos ganados en red: [% (X/Y) para cada jugador]
-- Puntos ganados servicio: [% (X/Y) para cada jugador]
-- Puntos ganados resto: [% (X/Y) para cada jugador]
-- Total puntos ganados: [% (X/Y) para cada jugador]
-- Últimos diez puntos: [número para cada jugador]
-- Puntos de partido salvados: [número para cada jugador]
-
-**SECCIÓN JUEGOS (JUEGOS):**
-- Juegos ganados servicio: [% (X/Y) para cada jugador]
-- Juegos ganados resto: [% (X/Y) para cada jugador]
-- Total juegos ganados: [% (X/Y) para cada jugador]
-
-INFORMACIÓN A REPORTAR:
-
-1. **CONFIRMACIÓN DE ACCESO:**
-   - ¿Pudiste acceder a la URL de Flashcore? (SÍ/NO)
-   - ¿Pudiste acceder a la URL de SofaScore? (SÍ/NO)
-   - Si NO pudiste acceder a ninguna de estas URLs, ¿qué otras fuentes consultaste? (ESPN, ATP, BBC Sport, etc.)
-   - URL(es) consultada(s)
-   - Estado de acceso a cada fuente
-
-2. **INFORMACIÓN DEL PARTIDO:**
-   - ¿Encontraste el partido Jannik Sinner vs Carlos Alcaraz del 07/09/2025? (SÍ/NO)
-   - Estado del partido: "FINALIZADO", "EN VIVO", "PROGRAMADO"
-   - Fecha y hora del partido
-   - Resultado final por sets 
-
-3. **ESTADÍSTICAS COMPLETAS (OBLIGATORIO - SOLO DATOS REALES DE LA PÁGINA):**
-
-**IMPORTANTE: SOLO reporta datos que veas REALMENTE en la página. Si no ves un dato, escribe "NO DISPONIBLE".**
-
-**SERVICIO:**
-- Aces: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-- Dobles faltas: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-- Porcentaje 1er servicio: Carlos Alcaraz: [X% - SOLO si lo ves en la página], Jannik Sinner: [Y% - SOLO si lo ves en la página]
-- Pts. ganados 1er serv.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Pts. ganados 2º serv.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Puntos break salvados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Velocidad media 1er serv.: Carlos Alcaraz: [X km/h - SOLO si lo ves en la página], Jannik Sinner: [Y km/h - SOLO si lo ves en la página]
-- Velocidad media 2º serv.: Carlos Alcaraz: [X km/h - SOLO si lo ves en la página], Jannik Sinner: [Y km/h - SOLO si lo ves en la página]
-
-**RESTO:**
-- Pts. ganados 1ª devoluc.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Pts. ganados 2ª devoluc.: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Puntos break convertidos: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-
-**PUNTOS:**
-- Golpes Ganadores: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-- Errores No Forzados: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-- Puntos ganados en red: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Puntos ganados servicio: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Puntos ganados resto: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Total puntos ganados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Últimos diez puntos: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-- Puntos de partido salvados: Carlos Alcaraz: [X - SOLO si lo ves en la página], Jannik Sinner: [Y - SOLO si lo ves en la página]
-
-**JUEGOS:**
-- Juegos ganados servicio: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Juegos ganados resto: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-- Total juegos ganados: Carlos Alcaraz: [X% (A/B) - SOLO si lo ves en la página], Jannik Sinner: [Y% (C/D) - SOLO si lo ves en la página]
-
-4. **EVIDENCIA DE ACCESO:**
-   - Descripción detallada de lo encontrado en la página
-   - Confirmación de que los datos son reales de Flashcore
-   - Cualquier error o problema de acceso
-
-5. **VALIDACIÓN DE DATOS:**
-   - Confirma que cada estadística reportada fue vista REALMENTE en la página
-   - Si no pudiste acceder a la página, escribe "ERROR DE ACCESO - NO SE PUDO OBTENER DATOS"
-   - Si la página no carga o hay errores, escribe "PÁGINA NO DISPONIBLE - NO SE PUDO OBTENER DATOS"
-   - Si no ves estadísticas específicas, escribe "NO DISPONIBLE" para cada dato faltante
-   - NO inventes, estimes o generes datos ficticios
-
-INSTRUCCIONES CRÍTICAS - SOLO DATOS REALES:
-- NUNCA inventes o generes estadísticas ficticias
-- SOLO reporta datos que veas REALMENTE en las fuentes consultadas
-- Si no puedes acceder a Flashcore o SofaScore, busca en otras fuentes deportivas confiables
-- Si no puedes acceder a ninguna fuente o no ves datos, escribe "NO DISPONIBLE" o "ERROR DE ACCESO"
-- En Flashcore, busca específicamente las secciones "SERVICIO", "RESTO", "PUNTOS" y "JUEGOS"
-- En SofaScore, busca la pestaña "Statistics" y las estadísticas detalladas del partido
-- En otras fuentes, busca estadísticas similares (aces, dobles faltas, porcentajes, etc.)
-- Extrae ÚNICAMENTE los valores numéricos que aparezcan REALMENTE en las fuentes
-- Los valores aparecen como números enteros o porcentajes con fracciones (X/Y)
-- Si no encuentras un dato específico, escribe "NO DISPONIBLE" - NO lo inventes
-- Confirma qué fuentes pudiste consultar y cuáles no
-- Los datos deben ser reales y actualizados del partido
-- Si ves estadísticas en las fuentes, extrae esos números exactos
-- Si no puedes acceder a las fuentes o hay errores, reporta el problema específico
-- NO generes números aleatorios o estimaciones
-- NO uses datos de partidos anteriores o de tu conocimiento
-- SOLO datos extraídos directamente de las fuentes web consultadas
-- SIEMPRE indica claramente qué información NO pudiste encontrar"""
-                }
-                ],
-            }
-            ],
-            text={"format": {"type": "text"}},
-            reasoning={},
-            tools=[
-            {
-                "type": "web_search_preview",
-                "user_location": {"type": "approximate"},
-                "search_context_size": "high",
-            }
-            ],
-            temperature=0.1,
-            max_output_tokens=4096,
-            top_p=0.9,
-            store=True,
-        )
-        match_info = response.output[1].content[0].text
-        print(f"[DEBUG] Raw match info response: {match_info}")
+        print(f"\n[INFO] Iniciando búsqueda de partido en vivo: {player_a} vs {player_b}")
+        if tournament:
+            print(f"[INFO] Torneo: {tournament}")
         
-        # Extraer URLs de las fuentes si están presentes
-        sources = []
-        if "FUENTES:" in match_info:
-            sources_section = match_info.split("FUENTES:")[1].strip()
-            # Buscar URLs en el texto
-            import re
-            url_pattern = r'https?://[^\s<>"{}|\\^`\[\]]+'
-            urls = re.findall(url_pattern, sources_section)
-            sources.extend(urls)
+        # 1. Obtener todos los partidos en vivo
+        summaries_data = fetch_live_summaries()
         
-        # Construir el resultado estructurado
-        result = {
+        if not summaries_data.get("success"):
+            return {
+                "success": False,
+                "error": summaries_data.get("error", "Error al obtener partidos en vivo"),
+                "player_a": player_a,
+                "player_b": player_b,
+                "tournament": tournament or "N/A",
+                "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+        
+        # 2. Buscar el partido específico
+        match_summary = find_match_in_summaries(summaries_data, player_a, player_b, tournament)
+        
+        if not match_summary:
+            return {
+                "success": False,
+                "error": f"No se encontró el partido entre {player_a} y {player_b} en los partidos en vivo",
+                "player_a": player_a,
+                "player_b": player_b,
+                "tournament": tournament or "N/A",
+                "total_live_matches": summaries_data.get("total_matches", 0),
+                "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                "note": "Verifica que el partido esté en curso y que los nombres de los jugadores sean correctos"
+            }
+        
+        # 3. Formatear los datos de manera estructurada
+        formatted_data = format_match_data_structured(match_summary)
+        
+        return {
             "success": True,
-            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            "tournament": tournament,
             "player_a": player_a,
             "player_b": player_b,
-            "match_information": match_info,
-            "sources": sources,
-            "source": "OpenAI Web Search",
-            "note": "Información obtenida en tiempo real mediante búsqueda web."
+            "tournament": match_summary.get("sport_event", {}).get("sport_event_context", {}).get("competition", {}).get("name", "N/A"),
+            "match_data": match_summary,
+            "formatted_data": formatted_data,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
-
-        return result
         
     except Exception as e:
+        print(f"[ERROR] Error en fetch_match_live_data: {str(e)}")
         return {
             "success": False,
             "error": f"Error al obtener datos del partido: {str(e)}",
-            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            "tournament": tournament,
             "player_a": player_a,
-            "player_b": player_b
+            "player_b": player_b,
+            "tournament": tournament or "N/A",
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
+
+
+def format_match_data_structured(match_summary: Dict[str, Any]) -> str:
+    """
+    Formatea los datos del partido de Sportradar en un formato estructurado y legible.
+    
+    Args:
+        match_summary (Dict[str, Any]): Datos del partido de Sportradar
+    
+    Returns:
+        str: Datos formateados en texto estructurado para análisis
+    """
+    try:
+        sport_event = match_summary.get("sport_event", {})
+        sport_event_status = match_summary.get("sport_event_status", {})
+        statistics = match_summary.get("statistics", {})
+        
+        # Extraer información básica
+        competitors = sport_event.get("competitors", [])
+        sport_event_context = sport_event.get("sport_event_context", {})
+        venue = sport_event.get("venue", {})
+        
+        # Información del torneo
+        competition = sport_event_context.get("competition", {})
+        season = sport_event_context.get("season", {})
+        
+        # Construir el reporte estructurado
+        result = "# DATOS DEL PARTIDO EN VIVO (Sportradar API)\n\n"
+        
+        # 1. INFORMACIÓN BÁSICA
+        result += "## 1. INFORMACIÓN BÁSICA DEL PARTIDO\n\n"
+        
+        if len(competitors) >= 2:
+            home_player = competitors[0]
+            away_player = competitors[1]
+            
+            result += f"**Jugador Local (Home):** {home_player.get('name', 'N/A')}\n"
+            result += f"- País: {home_player.get('country', 'N/A')} ({home_player.get('country_code', 'N/A')})\n"
+            result += f"- ID: {home_player.get('id', 'N/A')}\n\n"
+            
+            result += f"**Jugador Visitante (Away):** {away_player.get('name', 'N/A')}\n"
+            result += f"- País: {away_player.get('country', 'N/A')} ({away_player.get('country_code', 'N/A')})\n"
+            result += f"- ID: {away_player.get('id', 'N/A')}\n\n"
+        
+        result += f"**Torneo:** {competition.get('name', 'N/A')}\n"
+        result += f"**Tipo:** {competition.get('type', 'N/A')} - {competition.get('gender', 'N/A')}\n"
+        result += f"**Temporada:** {season.get('name', 'N/A')} ({season.get('year', 'N/A')})\n\n"
+        
+        result += f"**Fecha de inicio:** {sport_event.get('start_time', 'N/A')}\n"
+        result += f"**Estado del partido:** {sport_event_status.get('status', 'N/A')}\n"
+        result += f"**Match status:** {sport_event_status.get('match_status', 'N/A')}\n\n"
+        
+        result += f"**Ubicación:** {venue.get('name', 'N/A')}\n"
+        result += f"**Ciudad:** {venue.get('city_name', 'N/A')}, {venue.get('country_name', 'N/A')}\n"
+        result += f"**Timezone:** {venue.get('timezone', 'N/A')}\n\n"
+        
+        # 2. MARCADOR ACTUAL
+        result += "## 2. MARCADOR ACTUAL\n\n"
+        result += f"**Sets ganados:**\n"
+        result += f"- Home: {sport_event_status.get('home_score', 0)} sets\n"
+        result += f"- Away: {sport_event_status.get('away_score', 0)} sets\n\n"
+        
+        # Ganador (si existe)
+        winner_id = sport_event_status.get('winner_id')
+        if winner_id:
+            result += f"**Ganador ID:** {winner_id}\n\n"
+        
+        # Desglose por sets
+        period_scores = sport_event_status.get('period_scores', [])
+        if period_scores:
+            result += "**Desglose por Sets:**\n\n"
+            for period in period_scores:
+                set_num = period.get('number', 'N/A')
+                home_score = period.get('home_score', 0)
+                away_score = period.get('away_score', 0)
+                result += f"- Set {set_num}: Home {home_score} - {away_score} Away"
+                
+                # Tie-breaks
+                if 'home_tiebreak_score' in period or 'away_tiebreak_score' in period:
+                    home_tb = period.get('home_tiebreak_score', 0)
+                    away_tb = period.get('away_tiebreak_score', 0)
+                    result += f" (Tiebreak: {home_tb}-{away_tb})"
+                result += "\n"
+            result += "\n"
+    
+        # 3. ESTADÍSTICAS DETALLADAS
+        result += "## 3. ESTADÍSTICAS DETALLADAS\n\n"
+        
+        totals = statistics.get('totals', {})
+        competitors_stats = totals.get('competitors', [])
+        
+        if competitors_stats:
+            for i, comp_stats in enumerate(competitors_stats):
+                player_type = "HOME" if comp_stats.get('qualifier') == 'home' else "AWAY"
+                player_name = comp_stats.get('name', 'N/A')
+                stats = comp_stats.get('statistics', {})
+                
+                result += f"### Jugador {player_type}: {player_name}\n\n"
+                
+                result += "**Servicio:**\n"
+                result += f"- Aces: {stats.get('aces', 0)}\n"
+                result += f"- Dobles faltas: {stats.get('double_faults', 0)}\n"
+                result += f"- Primer servicio exitoso: {stats.get('first_serve_successful', 0)}\n"
+                result += f"- Puntos ganados con primer servicio: {stats.get('first_serve_points_won', 0)}\n"
+                result += f"- Segundo servicio exitoso: {stats.get('second_serve_successful', 0)}\n"
+                result += f"- Puntos ganados con segundo servicio: {stats.get('second_serve_points_won', 0)}\n"
+                result += f"- Juegos de servicio ganados: {stats.get('service_games_won', 0)}\n"
+                result += f"- Puntos de servicio ganados: {stats.get('service_points_won', 0)}\n"
+                result += f"- Puntos de servicio perdidos: {stats.get('service_points_lost', 0)}\n\n"
+                
+                result += "**Break Points:**\n"
+                result += f"- Break points ganados: {stats.get('breakpoints_won', 0)}\n"
+                result += f"- Total de break points: {stats.get('total_breakpoints', 0)}\n"
+                if stats.get('total_breakpoints', 0) > 0:
+                    bp_pct = (stats.get('breakpoints_won', 0) / stats.get('total_breakpoints', 1)) * 100
+                    result += f"- Efectividad: {bp_pct:.1f}%\n"
+                result += "\n"
+                
+                result += "**Puntos y Juegos:**\n"
+                result += f"- Total de puntos ganados: {stats.get('points_won', 0)}\n"
+                result += f"- Juegos ganados: {stats.get('games_won', 0)}\n"
+                result += f"- Tie-breaks ganados: {stats.get('tiebreaks_won', 0)}\n\n"
+                
+                result += "**Rachas:**\n"
+                result += f"- Máximos puntos seguidos: {stats.get('max_points_in_a_row', 0)}\n"
+                result += f"- Máximos juegos seguidos: {stats.get('max_games_in_a_row', 0)}\n\n"
+                
+                result += "---\n\n"
+        else:
+            result += "*No hay estadísticas detalladas disponibles para este partido*\n\n"
+        
+        # Información de cobertura
+        coverage = sport_event.get('coverage', {})
+        if coverage:
+            result += "## 4. INFORMACIÓN DE COBERTURA\n\n"
+            sport_event_props = coverage.get('sport_event_properties', {})
+            result += f"- Enhanced stats: {sport_event_props.get('enhanced_stats', False)}\n"
+            result += f"- Scores: {sport_event_props.get('scores', 'N/A')}\n"
+            result += f"- Play by play: {sport_event_props.get('play_by_play', False)}\n\n"
+        
+        result += "---\n"
+        result += "*Datos obtenidos de Sportradar Live Summaries API (actualización cada 1 segundo)*\n"
+        
+        return result
+        
+    except Exception as e:
+        print(f"[ERROR] Error al formatear datos del partido: {str(e)}")
+        # Fallback: devolver JSON crudo
+        return f"""
+## Error al Formatear Datos del Partido
+
+**Error:** {str(e)}
+
+### Datos Crudos (JSON)
+
+```json
+{json.dumps(match_summary, indent=2, ensure_ascii=False)}
+```
+"""
 
 
 def format_match_live_report(match_data: Dict[str, Any]) -> str:
     """
-    Formatea los datos del partido en vivo en un reporte legible.
+    Formatea los datos del partido en vivo para presentación final.
     
     Args:
-        match_data (Dict[str, Any]): Datos del partido obtenidos de fetch_match_live_data
+        match_data (Dict[str, Any]): Datos obtenidos de fetch_match_live_data()
     
     Returns:
-        str: Reporte formateado del partido en vivo
+        str: Reporte formateado del partido
     """
-    
     if not match_data or match_data.get("success") == False:
-        error_msg = match_data.get("error", "Error desconocido al obtener datos del partido en vivo.")
-        return f"Error al obtener datos del partido en vivo: {error_msg}"
-    
-    player_a = match_data["player_a"]
-    player_b = match_data["player_b"]
-    tournament = match_data["tournament"]
-    
-    result = f"## Información en Tiempo Real - {tournament}\n\n"
-    result += f"**{player_a} vs {player_b}**\n\n"
-    
-    # Información del partido obtenida por OpenAI
-    result += f"### Información del Partido\n"
-    result += f"{match_data['match_information']}\n\n"
-    
-    # Metadatos
-    result += f"### Metadatos\n"
-    result += f"- **Última Actualización:** {match_data['fetched_at']}\n"
-    result += f"- **Fuente:** {match_data['source']}\n"
-    result += f"- **Nota:** {match_data['note']}\n"
-    
-    # Fuentes consultadas
-    if match_data.get('sources'):
-        result += f"\n### Fuentes Consultadas\n"
-        for i, source_url in enumerate(match_data['sources'], 1):
-            result += f"{i}. {source_url}\n"
-    else:
-        result += f"\n### Fuentes Consultadas\n"
-        result += f"- No se pudieron extraer URLs de fuentes específicas\n"
-    
-    return result
-
-
-def mock_match_live_data(player_a: str, player_b: str, tournament: str) -> Dict[str, Any]:
-    """
-    Genera datos ficticios de partido en vivo para un partido específico.
-    
-    Reglas del tenis para sets:
-    - Un set termina cuando un jugador alcanza 6 juegos con diferencia de 2
-    - Posibles resultados: 6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6
-    - 7-6 solo es posible en tie-break
-    - 7-5 solo es posible si el oponente tiene 5 juegos
-    
-    Args:
-        player_a (str): Nombre del primer jugador
-        player_b (str): Nombre del segundo jugador
-        tournament (str): Nombre del torneo
-    
-    Returns:
-        Dict[str, Any]: Datos ficticios del partido en vivo
-    """
-    
-    import random
-    from datetime import datetime, timedelta
-    
-    # Generar estado del partido aleatorio
-    match_states = ["en curso", "finalizado", "próximo"]
-    current_state = random.choice(match_states)
-    
-    # Generar sets aleatorios
-    if current_state == "en curso":
-        # Partido en curso - generar sets parciales
-        sets_completed = random.randint(1, 4)
-        current_set = random.randint(1, 5)
-        current_game = random.randint(1, 6)
+        error_msg = match_data.get("error", "Error desconocido")
+        note = match_data.get("note", "")
         
-        sets = []
-        for i in range(sets_completed):
-            if i == current_set - 1:
-                # Set actual en curso
-                sets.append(f"{current_game}-{random.randint(0, 5)} en curso")
-            else:
-                # Sets completados - deben seguir las reglas del tenis
-                # Un set termina en 6-0, 6-1, 6-2, 6-3, 6-4, 7-5, o 7-6
-                set_winner = random.choice([player_a, player_b])
-                if set_winner == player_a:
-                    # Player A gana el set
-                    if random.random() < 0.3:  # 30% probabilidad de 7-6
-                        sets.append("7-6")
-                    elif random.random() < 0.2:  # 20% probabilidad de 7-5
-                        sets.append("7-5")
-                    else:  # 50% probabilidad de 6-X
-                        opponent_score = random.randint(0, 4)
-                        sets.append(f"6-{opponent_score}")
-                else:
-                    # Player B gana el set
-                    if random.random() < 0.3:  # 30% probabilidad de 7-6
-                        sets.append("6-7")
-                    elif random.random() < 0.2:  # 20% probabilidad de 7-5
-                        sets.append("5-7")
-                    else:  # 50% probabilidad de 6-X
-                        opponent_score = random.randint(0, 4)
-                        sets.append(f"{opponent_score}-6")
+        result = f"## Error al Obtener Datos del Partido en Vivo\n\n"
+        result += f"**Error:** {error_msg}\n\n"
+        result += f"**Jugadores:** {match_data.get('player_a', 'N/A')} vs {match_data.get('player_b', 'N/A')}\n"
+        result += f"**Torneo:** {match_data.get('tournament', 'N/A')}\n"
+        result += f"**Fecha:** {match_data.get('fetched_at', 'N/A')}\n"
         
-        # Agregar set actual si no está en la lista
-        if current_set > sets_completed:
-            sets.append(f"{current_game}-{random.randint(0, 5)} en curso")
-            
-    elif current_state == "finalizado":
-        # Partido finalizado - generar resultado completo
-        sets = []
-        player_a_sets = 0
-        player_b_sets = 0
+        if note:
+            result += f"\n**Nota:** {note}\n"
         
-        # Generar 3-5 sets
-        total_sets = random.choice([3, 5])
-        for i in range(total_sets):
-            if player_a_sets >= 3 or player_b_sets >= 3:
-                break
-                
-            # Generar set siguiendo las reglas del tenis
-            set_winner = random.choice([player_a, player_b])
-            if set_winner == player_a:
-                # Player A gana el set
-                if random.random() < 0.3:  # 30% probabilidad de 7-6
-                    sets.append("7-6")
-                elif random.random() < 0.2:  # 20% probabilidad de 7-5
-                    sets.append("7-5")
-                else:  # 50% probabilidad de 6-X
-                    opponent_score = random.randint(0, 4)
-                    sets.append(f"6-{opponent_score}")
-                player_a_sets += 1
-            else:
-                # Player B gana el set
-                if random.random() < 0.3:  # 30% probabilidad de 7-6
-                    sets.append("6-7")
-                elif random.random() < 0.2:  # 20% probabilidad de 7-5
-                    sets.append("5-7")
-                else:  # 50% probabilidad de 6-X
-                    opponent_score = random.randint(0, 4)
-                    sets.append(f"{opponent_score}-6")
-                player_b_sets += 1
-                
-    else:
-        # Partido próximo
-        sets = ["Próximo"]
+        if match_data.get("total_live_matches"):
+            result += f"\n**Partidos en vivo encontrados:** {match_data.get('total_live_matches')}\n"
+        
+        return result
     
-    # Generar estadísticas aleatorias
-    aces_player_a = random.randint(2, 15)
-    aces_player_b = random.randint(2, 15)
-    double_faults_player_a = random.randint(0, 8)
-    double_faults_player_b = random.randint(0, 8)
+    # Los datos ya vienen formateados de manera estructurada
+    formatted_data = match_data.get("formatted_data", "No se pudieron formatear los datos")
     
-    first_serve_percentage_a = random.randint(55, 85)
-    first_serve_percentage_b = random.randint(55, 85)
-    
-    first_serve_points_won_a = random.randint(65, 90)
-    first_serve_points_won_b = random.randint(65, 90)
-    
-    second_serve_points_won_a = random.randint(45, 75)
-    second_serve_points_won_b = random.randint(45, 75)
-    
-    break_points_converted_a = random.randint(1, 8)
-    break_points_total_a = random.randint(3, 12)
-    break_points_converted_b = random.randint(1, 8)
-    break_points_total_b = random.randint(3, 12)
-    
-    total_points_won_a = random.randint(80, 150)
-    total_points_won_b = random.randint(80, 150)
-    
-    service_games_won_a = random.randint(8, 15)
-    service_games_total_a = random.randint(12, 20)
-    service_games_won_b = random.randint(8, 15)
-    service_games_total_b = random.randint(12, 20)
-    
-    # Generar momentum y análisis táctico
-    momentum_indicators = [
-        f"{player_a} está dominando con su servicio",
-        f"{player_b} está ganando puntos clave en momentos importantes",
-        f"Ambos jugadores están muy equilibrados",
-        f"{player_a} está aprovechando los errores de {player_b}",
-        f"{player_b} está defendiendo muy bien",
-        f"{player_a} está jugando de manera agresiva",
-        f"{player_b} está controlando el ritmo del partido"
-    ]
-    
-    tactical_analysis = [
-        f"{player_a} está usando su revés de slice para variar el juego",
-        f"{player_b} está atacando la red en momentos clave",
-        f"{player_a} está sacando muy bien en momentos de presión",
-        f"{player_b} está defendiendo muy bien desde el fondo",
-        f"{player_a} está usando dropshots para sorprender",
-        f"{player_b} está jugando con mucha consistencia"
-    ]
-    
-    # Generar información del torneo
-    tournament_phases = [
-        "Primera Ronda", "Segunda Ronda", "Tercera Ronda", "Cuartos de Final",
-        "Semifinal", "Final", "Qualifying Round", "Round Robin"
-    ]
-    
-    tournament_phase = random.choice(tournament_phases)
-    
-    # Generar ubicación
-    locations = [
-        "Melbourne, Australia", "Paris, Francia", "Londres, Reino Unido", 
-        "Nueva York, Estados Unidos", "Madrid, España", "Roma, Italia",
-        "Miami, Estados Unidos", "Toronto, Canadá", "Shanghai, China"
-    ]
-    
-    location = random.choice(locations)
-    
-    # Generar fecha
-    match_date = datetime.now() - timedelta(hours=random.randint(0, 48))
-    
-    # Construir el resultado estructurado
-    result = {
-        "success": True,
-        "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        "tournament": tournament,
-        "tournament_phase": tournament_phase,
-        "player_a": player_a,
-        "player_b": player_b,
-        "match_state": current_state,
-        "location": location,
-        "match_date": match_date.strftime('%Y-%m-%d %H:%M:%S'),
-        "sets": sets,
-        "statistics": {
-            "aces": {
-                player_a: aces_player_a,
-                player_b: aces_player_b
-            },
-            "double_faults": {
-                player_a: double_faults_player_a,
-                player_b: double_faults_player_b
-            },
-            "first_serve_percentage": {
-                player_a: f"{first_serve_percentage_a}%",
-                player_b: f"{first_serve_percentage_b}%"
-            },
-            "first_serve_points_won": {
-                player_a: f"{first_serve_points_won_a}%",
-                player_b: f"{first_serve_points_won_b}%"
-            },
-            "second_serve_points_won": {
-                player_a: f"{second_serve_points_won_a}%",
-                player_b: f"{second_serve_points_won_b}%"
-            },
-            "break_points": {
-                player_a: f"{break_points_converted_a}/{break_points_total_a}",
-                player_b: f"{break_points_converted_b}/{break_points_total_b}"
-            },
-            "total_points_won": {
-                player_a: total_points_won_a,
-                player_b: total_points_won_b
-            },
-            "service_games": {
-                player_a: f"{service_games_won_a}/{service_games_total_a}",
-                player_b: f"{service_games_won_b}/{service_games_total_b}"
-            }
-        },
-        "momentum": random.choice(momentum_indicators),
-        "tactical_analysis": random.choice(tactical_analysis),
-        "source": "Datos Ficticios Generados",
-        "note": "Información generada para propósitos de demostración y testing."
-    }
-    
-    return result
-
-
-def format_mock_match_live_report(match_data: Dict[str, Any]) -> str:
-    """
-    Formatea los datos ficticios del partido en vivo en un reporte legible.
-    
-    Args:
-        match_data (Dict[str, Any]): Datos ficticios del partido obtenidos de mock_match_live_data
-    
-    Returns:
-        str: Reporte formateado del partido en vivo con datos ficticios
-    """
-    
-    if not match_data or match_data.get("success") == False:
-        error_msg = match_data.get("error", "Error desconocido al generar datos ficticios del partido.")
-        return f"Error al generar datos ficticios del partido: {error_msg}"
-    
-    player_a = match_data["player_a"]
-    player_b = match_data["player_b"]
-    tournament = match_data["tournament"]
-    tournament_phase = match_data.get("tournament_phase", "N/A")
-    match_state = match_data.get("match_state", "N/A")
-    location = match_data.get("location", "N/A")
-    match_date = match_data.get("match_date", "N/A")
-    sets = match_data.get("sets", [])
-    statistics = match_data.get("statistics", {})
-    momentum = match_data.get("momentum", "N/A")
-    tactical_analysis = match_data.get("tactical_analysis", "N/A")
-    
-    result = f"## Información en Tiempo Real (Ficticia) - {tournament}\n\n"
-    result += f"**{player_a} vs {player_b}**\n\n"
-    
-    # Información general
-    result += f"### Información General\n"
-    result += f"- **Torneo:** {tournament} - {tournament_phase}\n"
-    result += f"- **Ubicación:** {location}\n"
-    result += f"- **Fecha del Partido:** {match_date}\n"
-    result += f"- **Estado:** {match_state.capitalize()}\n\n"
-    
-    # Marcador en vivo
-    result += f"### Marcador en Vivo\n"
-    if sets and sets != ["Próximo"]:
-        for i, set_score in enumerate(sets, 1):
-            result += f"- **Set {i}:** {set_score}\n"
-    else:
-        result += f"- **Estado:** {sets[0] if sets else 'N/A'}\n"
-    result += "\n"
-    
-    # Estadísticas del partido
-    result += f"### Estadísticas del Partido\n"
-    
-    if "aces" in statistics:
-        result += f"**Aces:**\n"
-        result += f"- {player_a}: {statistics['aces'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['aces'].get(player_b, 'N/A')}\n\n"
-    
-    if "double_faults" in statistics:
-        result += f"**Dobles Faltas:**\n"
-        result += f"- {player_a}: {statistics['double_faults'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['double_faults'].get(player_b, 'N/A')}\n\n"
-    
-    if "first_serve_percentage" in statistics:
-        result += f"**Porcentaje de Primer Servicio:**\n"
-        result += f"- {player_a}: {statistics['first_serve_percentage'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['first_serve_percentage'].get(player_b, 'N/A')}\n\n"
-    
-    if "first_serve_points_won" in statistics:
-        result += f"**Puntos Ganados con Primer Servicio:**\n"
-        result += f"- {player_a}: {statistics['first_serve_points_won'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['first_serve_points_won'].get(player_b, 'N/A')}\n\n"
-    
-    if "second_serve_points_won" in statistics:
-        result += f"**Puntos Ganados con Segundo Servicio:**\n"
-        result += f"- {player_a}: {statistics['second_serve_points_won'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['second_serve_points_won'].get(player_b, 'N/A')}\n\n"
-    
-    if "break_points" in statistics:
-        result += f"**Break Points:**\n"
-        result += f"- {player_a}: {statistics['break_points'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['break_points'].get(player_b, 'N/A')}\n\n"
-    
-    if "total_points_won" in statistics:
-        result += f"**Total de Puntos Ganados:**\n"
-        result += f"- {player_a}: {statistics['total_points_won'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['total_points_won'].get(player_b, 'N/A')}\n\n"
-    
-    if "service_games" in statistics:
-        result += f"**Juegos de Servicio:**\n"
-        result += f"- {player_a}: {statistics['service_games'].get(player_a, 'N/A')}\n"
-        result += f"- {player_b}: {statistics['service_games'].get(player_b, 'N/A')}\n\n"
-    
-    # Análisis táctico y momentum
-    result += f"### Análisis del Partido\n"
-    result += f"**Momentum Actual:** {momentum}\n\n"
-    result += f"**Análisis Táctico:** {tactical_analysis}\n\n"
-    
-    # Metadatos
-    result += f"### Metadatos\n"
-    result += f"- **Última Actualización:** {match_data['fetched_at']}\n"
-    result += f"- **Fuente:** {match_data['source']}\n"
-    result += f"- **Nota:** {match_data['note']}\n"
-    
-    return result
+    return formatted_data
