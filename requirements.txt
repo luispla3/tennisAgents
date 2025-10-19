@@ -44,3 +44,7 @@ chainlit
 # Si usas validación de modelos
 pydantic
 google-generativeai
+
+# RAG multimodal
+raganything
+raganything[all]

@@ -1,5 +1,5 @@
 .env
-
+dataset/
 # Python caches and bytecode
 **/__pycache__/
 *.py[cod]
@@ -7,3 +7,5 @@
 
 # Project outputs
 results/
+rag_storage/
+output/

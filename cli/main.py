@@ -19,11 +19,21 @@ from rich.tree import Tree
 from rich import box
 from rich.align import Align
 from rich.rule import Rule
+import asyncio
+import os
+
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass  # dotenv is optional
 
 from tennisAgents.graph.trading_graph import TennisAgentsGraph
 from tennisAgents.default_config import DEFAULT_CONFIG
 from cli.models import AnalystType
 from cli.utils import *
+from tennisAgents.utils.rag_manager import initialize_rag, RAGManager
 
 console = Console()
 
@@ -176,6 +186,9 @@ class MessageBuffer:
 
 
 message_buffer = MessageBuffer()
+
+# Global RAG Manager instance
+rag_manager: Optional[RAGManager] = None
 
 
 def create_layout():
@@ -717,7 +730,59 @@ def extract_content_string(content):
     else:
         return str(content)
 
+async def initialize_rag_system():
+    """
+    Initialize the RAG system asynchronously.
+    This function is called at the start of the program.
+    """
+    global rag_manager
+    
+    try:
+        console.print("\n[bold cyan]Initializing RAG System...[/bold cyan]")
+        
+        # Get API key from environment
+        api_key = os.getenv("OPENAI_API_KEY")
+        base_url = os.getenv("OPENAI_BASE_URL")
+        
+        if not api_key:
+            console.print("[yellow]⚠ Warning: No OPENAI_API_KEY found in environment[/yellow]")
+            console.print("[yellow]RAG functionality will be limited. Set OPENAI_API_KEY in .env file[/yellow]")
+            return None
+        
+        # Initialize RAG and process datasets
+        # This will load all CSV, JSON, and JSONL files from the dataset folder into the RAG
+        rag_manager = await initialize_rag(
+            api_key=api_key,
+            base_url=base_url,
+            process_datasets=True,  # Process dataset files and load them into RAG
+            dataset_path="dataset"
+        )
+        
+        if rag_manager and rag_manager.is_initialized():
+            console.print("[bold green]✓ RAG System initialized and datasets loaded successfully![/bold green]")
+            console.print("[dim]All CSV, JSON, and JSONL files from dataset folder are now available in the RAG[/dim]\n")
+            return rag_manager
+        else:
+            console.print("[red]✗ Failed to initialize RAG System[/red]\n")
+            return None
+            
+    except Exception as e:
+        console.print(f"[red]Error initializing RAG: {e}[/red]\n")
+        return None
+
+
 def run_analysis():
+    """Main analysis function that runs the tennis betting analysis."""
+    global rag_manager
+    
+    # Initialize RAG system if not already initialized
+    if rag_manager is None:
+        try:
+            rag_manager = asyncio.run(initialize_rag_system())
+        except Exception as e:
+            console.print(f"[yellow]Warning: Could not initialize RAG system: {e}[/yellow]")
+            console.print("[yellow]Continuing without RAG functionality...[/yellow]\n")
+    
     # First get all user selections
     selections = get_user_selections()
 
