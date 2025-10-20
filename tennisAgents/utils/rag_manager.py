@@ -66,9 +66,9 @@ class RAGManager:
         self.config = RAGAnythingConfig(
             working_dir=self.working_dir,
             parser="mineru",  # Docling can handle CSV and tabular data well
-            parse_method="auto",  # Use text parsing for CSV
+            parse_method="txt",  # Use text parsing for CSV
             enable_image_processing=False,  # Not needed for CSV
-            enable_table_processing=True,  # Keep table processing for CSV structure
+            enable_table_processing=False,  # Keep table processing for CSV structure
             enable_equation_processing=False,  # Not needed for CSV
         )
         
@@ -143,7 +143,7 @@ class RAGManager:
     
     async def process_dataset_folder(
         self,
-        dataset_path: str = "./dataset/dataset",
+        dataset_path: str = "./dataset",
         output_dir: str = "./output",
         file_extensions: List[str] = None,
         recursive: bool = True,
@@ -163,7 +163,7 @@ class RAGManager:
             Dictionary with processing results
         """
         if file_extensions is None:
-            file_extensions = [".pdf", ".txt"]
+            file_extensions = [".md", ".txt"]
         
         print(f"Starting batch processing of dataset folder: {dataset_path}")
         print(f"File extensions: {file_extensions}")
@@ -275,7 +275,7 @@ async def initialize_rag(
     base_url: Optional[str] = None,
     working_dir: str = "./rag_storage",
     process_datasets: bool = False,
-    dataset_path: str = "./dataset/dataset",
+    dataset_path: str = "./dataset",
     llm_model: str = "gpt-4o-mini",
     embedding_model: str = "text-embedding-3-large",
 ) -> Optional[RAGManager]:
@@ -312,7 +312,7 @@ async def initialize_rag(
                 await rag_manager.process_dataset_folder(
                     dataset_path=str(dataset_full_path),
                     output_dir="./output",
-                    file_extensions=[".pdf", ".txt"],
+                    file_extensions=[".md", ".txt"],
                     recursive=True,
                     max_workers=1
                 )
@@ -345,7 +345,7 @@ if __name__ == "__main__":
         # Initialize RAG with dataset processing
         rag = await initialize_rag(
             process_datasets=True,
-            dataset_path="./dataset/dataset"
+            dataset_path="./dataset"
         )
         
         if rag:

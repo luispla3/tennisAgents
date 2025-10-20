@@ -4,7 +4,6 @@ dataset/
 **/__pycache__/
 *.py[cod]
 *$py.class
-
 # Project outputs
 results/
 rag_storage/
