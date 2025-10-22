@@ -29,7 +29,7 @@ def create_expected_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como Analista de Valor Esperado, tu papel es **evaluar racionalmente si la propuesta de apuesta del Trader es rentable** a largo plazo, teniendo en cuenta la **probabilidad implícita** en las cuotas y la calidad de la información disponible.
+Como Analista de Valor Esperado, tu papel es **evaluar racionalmente si las propuestas de los risk managers son rentables** a largo plazo, teniendo en cuenta la **probabilidad implícita** en las cuotas y la calidad de la información disponible.
 
 **INFORMACIÓN DEL USUARIO Y PARTIDO:**
 - Saldo disponible: ${wallet_balance}
