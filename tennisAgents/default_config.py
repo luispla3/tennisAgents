@@ -20,6 +20,9 @@ DEFAULT_CONFIG = {
     # Tool settings
     "online_tools": True,
     
+    # RAG settings
+    "enable_rag": False,  # Set to True to enable RAG functionality
+    
     # Sportradar API settings
     "sportradar_base_url": "https://api.sportradar.com/tennis/trial/v3/en",
     "sportradar_api_timeout": 30,  # segundos

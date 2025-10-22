@@ -55,22 +55,19 @@ class Toolkit:
 
     
     @tool
-    def fetch_tennis_odds(
-        player_a: Annotated[str, "Nombre del primer jugador"],
-        player_b: Annotated[str, "Nombre del segundo jugador"],
-        tournament: Annotated[str, "Nombre del torneo"]
+    def get_betfair_odds_scraper(
+        player_name: Annotated[str, "Nombre del jugador a buscar (puede ser parcial)"]
     ) -> str:
-        """Consulta cuotas reales (Betfair o mejor comparador) para un partido específico."""
-        return interface.fetch_tennis_odds(player_a, player_b, tournament)
-
-    @tool
-    def mock_tennis_odds(
-        player_a: Annotated[str, "Nombre del primer jugador"],
-        player_b: Annotated[str, "Nombre del segundo jugador"],
-        tournament: Annotated[str, "Nombre del torneo"]
-    ) -> str:
-        """Genera cuotas ficticias realistas para un partido específico."""
-        return interface.mock_tennis_odds(player_a, player_b, tournament)
+        """
+        Obtiene cuotas reales de Betfair mediante web scraping directo.
+        
+        Busca un partido en vivo que incluya al jugador especificado
+        y extrae todas las cuotas disponibles de Betfair España en tiempo real.
+        
+        IMPORTANTE: Esta herramienta solo funciona para partidos que están actualmente
+        'En Juego' en Betfair. No requiere especificar el oponente o torneo.
+        """
+        return interface.get_betfair_odds_scraper(player_name)
 
 
     # PLAYERS ANALYST TOOLS

@@ -1,238 +1,402 @@
-from openai import OpenAI
-from tennisAgents.dataflows.config import get_config
 from datetime import datetime
-import json
-import random
+from betfair_scraper.scraper import BetfairScraper
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from webdriver_manager.chrome import ChromeDriverManager
+import time
+import re
 
-def fetch_tennis_odds(player_a: str, player_b: str, tournament: str) -> dict:
+
+# ============================================================================
+# SCRAPER DE BETFAIR - FUNCIONES PRINCIPALES
+# ============================================================================
+
+def extraer_apellido(nombre_completo):
     """
-    Consulta cuotas de apuestas de Betfair para un partido específico usando OpenAI.
+    Extrae el apellido (última palabra) del nombre completo.
+    
+    Ejemplos:
+        "Maxim Mrva" -> "Mrva"
+        "Carlos Alcaraz Garfia" -> "Garfia"
+        "Medvedev" -> "Medvedev"
     
     Args:
-        player_a (str): Nombre del primer jugador
-        player_b (str): Nombre del segundo jugador
-        tournament (str): Nombre del torneo
+        nombre_completo (str): Nombre completo del jugador
     
     Returns:
-        dict: Cuotas estructuradas para el partido consultado
+        str: El apellido (última palabra del nombre)
     """
-    try:
-        config = get_config()
-        client = OpenAI(base_url=config["backend_url"])
+    partes = nombre_completo.strip().split()
+    # Si solo hay una palabra, es el apellido
+    if len(partes) == 1:
+        return partes[0]
+    # Si hay varias palabras, tomar la última (apellido)
+    return partes[-1]
 
-        # Crear el prompt para OpenAI
-        prompt_text = f"""Obtén las cuotas de apuestas de Betfair (o del mejor comparador disponible que muestre las cuotas de Betfair) para el partido de tenis {player_a} vs {player_b} en {tournament}.
 
-Necesito los siguientes mercados en formato estructurado (JSON):
-
-1. Match Winner:
-   Apuesta sobre quién gana el partido completo (ejemplo: "{player_a} gana el partido", "{player_b} gana el partido").
-
-2. Set Betting:
-   Cuotas para resultados en sets (ejemplo: 2-0 gana {player_a}, 2-1 gana {player_b}, 3-1 gana {player_a}, etc.).
-
-3. Set Score:
-   Cuotas para marcadores específicos de un determinadoset para un jugador (ejemplo: "{player_a} set 1 gana 6-4").
-
-4. Both Win Set:
-   Cuota de que ambos jugadores ganan al menos un set.
-
-5. Player Set Win:
-   Cuota de que cada jugador gana al menos un set (ejemplo: "{player_a} gana 1 set", "{player_b} gana 1 set").
-
-6. Combined Bet:
-   Combinaciones de quién gana el set y cuál es el resultado en juegos (ejemplo: "{player_a} gana el set 1 por 6-4").
-
-IMPORTANTE:  
-- Es posible que alguno de estos mercados no esté disponible para este partido en Betfair.  
-- En ese caso, debes indicarlo explícitamente en el JSON con el valor "No disponible" en lugar de inventar datos.  
-
-Devuelve únicamente un objeto JSON con esta estructura:
-
-{{
-  "Match Winner": {{ "{player_a}": cuota, "{player_b}": cuota }} o "No disponible",
-  "Set Betting": {{ "2-0 gana {player_a}": cuota, "2-1 gana {player_b}": cuota, "3-1 gana {player_a}": cuota, ... }} o "No disponible",
-  "Set Score": {{ "{player_a} set 1 gana 6-4": cuota, "{player_b} set 1 gana 6-4": cuota, ... }} o "No disponible",
-  "Both Win Set": {{ "{player_a} y {player_b} ganan al menos un set": cuota }} o "No disponible",
-  "Player Set Win": {{ "{player_a} gana 1 set": cuota, "{player_b} gana 1 set": cuota }} o "No disponible",
-  "Combined Bet": {{ "{player_a} gana el set 1 por 6-4": cuota, "{player_b} gana el set 1 por 6-4": cuota, ... }} o "No disponible"
-}}
-
-IMPORTANTE: Responde SOLO con el JSON, sin texto adicional antes o después."""
-
-        response = client.responses.create(
-            model=config["quick_think_llm"],
-            input=[
-            {
-                "role": "system",
-                "content": [
-                {
-                    "type": "input_text",
-                    "text": "Eres un experto en apuestas deportivas especializado en tenis. Tu tarea es obtener cuotas reales de Betfair para partidos de tenis y devolverlas en formato JSON estructurado. NO inventes datos - si algo no está disponible, indícalo claramente.",
-                }
-                ],
-            },
-            {
-                "role": "user",
-                "content": [
-                {
-                    "type": "input_text",
-                    "text": prompt_text,
-                }
-                ],
-            }
-            ],
-            text={"format": {"type": "text"}},
-            reasoning={},
-            tools=[
-            {
-                "type": "web_search_preview",
-                "user_location": {"type": "approximate"},
-                "search_context_size": "medium",
-            }
-            ],
-            temperature=0.1,
-            max_output_tokens=2000,
-            top_p=1,
-            store=True,
-        )
-
-        # Extraer la respuesta del modelo
-        response_text = response.output[1].content[0].text
+def buscar_jugador(nombre_jugador):
+    """
+    Busca un jugador y devuelve información de su partido.
+    
+    Betfair suele listar los partidos solo con el apellido de los jugadores,
+    por lo que esta función intenta buscar primero con el apellido y luego
+    con el nombre completo como fallback.
+    
+    Args:
+        nombre_jugador (str): Nombre completo del jugador o apellido
+    
+    Returns:
+        dict: Información del partido encontrado, o None si no se encuentra
+    """
+    
+    print(f"\n🔍 Buscando partidos de '{nombre_jugador}' en tenis...")
+    
+    scraper = BetfairScraper()
+    
+    # Buscar en partidos en juego
+    markets = list(scraper.get_inplay_markets(sport='tennis', market_type='match_odds', live_stats=False))
+    
+    print(f"   📊 Total de partidos en juego: {len(markets)}")
+    
+    # Extraer el apellido para la búsqueda principal
+    apellido = extraer_apellido(nombre_jugador)
+    apellido_lower = apellido.lower()
+    nombre_completo_lower = nombre_jugador.lower()
+    
+    print(f"   🔎 Buscando con apellido: '{apellido}'")
+    if apellido != nombre_jugador:
+        print(f"   🔎 También intentaré con nombre completo: '{nombre_jugador}'")
+    
+    # Buscar el jugador (primero por apellido, luego por nombre completo)
+    for market in markets:
+        event = market.get('event', '').lower()
         
-        # Intentar parsear el JSON de la respuesta
-        try:
-            # Limpiar la respuesta para extraer solo el JSON
-            if "```json" in response_text:
-                json_start = response_text.find("```json") + 7
-                json_end = response_text.find("```", json_start)
-                if json_end != -1:
-                    response_text = response_text[json_start:json_end].strip()
-            elif "```" in response_text:
-                json_start = response_text.find("```") + 3
-                json_end = response_text.find("```", json_start)
-                if json_end != -1:
-                    response_text = response_text[json_start:json_end].strip()
+        # Intentar primero con el apellido (más probable en Betfair)
+        if apellido_lower in event:
+            print(f"\n✅ PARTIDO ENCONTRADO! (búsqueda por apellido)")
+            print(f"   Partido: {market.get('event')}")
+            print(f"   Competición: {market.get('competition', 'N/A')}")
+            print(f"   Event ID: {market.get('event_id')}")
             
-            odds_data = json.loads(response_text)
-            
-            # Agregar metadatos
-            odds_data["success"] = True
-            odds_data["fetched_at"] = datetime.now().isoformat()
-            odds_data["player_a"] = player_a
-            odds_data["player_b"] = player_b
-            odds_data["tournament"] = tournament
-            
-            return odds_data
-            
-        except json.JSONDecodeError as e:
             return {
-                "error": f"Error al parsear JSON de OpenAI: {str(e)}",
-                "raw_response": response_text,
-                "player_a": player_a,
-                "player_b": player_b,
-                "tournament": tournament,
-                "success": False
+                'event_name': market.get('event'),
+                'event_id': market.get('event_id'),
+                'competition': market.get('competition', 'N/A'),
+                'market_id': market.get('market_id')
             }
         
-    except Exception as e:
-        return {
-            "error": f"Error al consultar OpenAI: {str(e)}",
-            "player_a": player_a,
-            "player_b": player_b,
-            "tournament": tournament,
-            "success": False
+        # Fallback: intentar con nombre completo
+        elif nombre_completo_lower in event:
+            print(f"\n✅ PARTIDO ENCONTRADO! (búsqueda por nombre completo)")
+            print(f"   Partido: {market.get('event')}")
+            print(f"   Competición: {market.get('competition', 'N/A')}")
+            print(f"   Event ID: {market.get('event_id')}")
+            
+            return {
+                'event_name': market.get('event'),
+                'event_id': market.get('event_id'),
+                'competition': market.get('competition', 'N/A'),
+                'market_id': market.get('market_id')
+            }
+    
+    print(f"\n❌ No se encontró ningún partido de '{nombre_jugador}' (ni con '{apellido}') en juego")
+    return None
+
+
+def setup_driver():
+    """Configura Selenium WebDriver"""
+    chrome_options = Options()
+    chrome_options.add_argument('--start-maximized')
+    chrome_options.add_argument('--disable-gpu')
+    chrome_options.add_argument('--no-sandbox')
+    chrome_options.add_argument('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36')
+    
+    service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    return driver
+
+
+def scrapear_partido(event_id, event_name):
+    """Scrapea la página del partido y extrae todo el texto visible"""
+    
+    print(f"\n🌐 Accediendo a la página del partido...")
+    
+    # Construir URL
+    url = f'https://www.betfair.es/sport/tennis?eventId={event_id}'
+    
+    # Inicializar driver
+    driver = setup_driver()
+    
+    try:
+        # Primero ir a la página de tenis
+        driver.get('https://www.betfair.es/sport/tennis')
+        time.sleep(3)
+        
+        # Buscar el enlace del partido
+        print("   Buscando enlace del partido...")
+        
+        try:
+            # Buscar elementos que contengan el nombre del evento
+            elements = driver.find_elements(By.TAG_NAME, 'a')
+            
+            for elem in elements:
+                try:
+                    href = elem.get_attribute('href')
+                    if href and str(event_id) in href and '/sport/tennis/' in href:
+                        url = href
+                        print(f"   ✅ URL encontrada: {url}")
+                        break
+                except:
+                    pass
+        except Exception as e:
+            print(f"   ⚠️  No se pudo encontrar URL específica, usando genérica")
+        
+        # Navegar a la página del partido
+        print(f"\n📄 Cargando página: {url}")
+        driver.get(url)
+        
+        print("⏳ Esperando 10 segundos para carga completa...")
+        time.sleep(10)
+        
+        # Scroll completo
+        print("\n📜 Haciendo scroll por toda la página...")
+        total_height = driver.execute_script("return document.body.scrollHeight")
+        
+        for scroll_pos in range(0, total_height, 800):
+            driver.execute_script(f"window.scrollTo(0, {scroll_pos});")
+            time.sleep(0.5)
+        
+        print("   ✅ Scroll completado")
+        
+        # Volver arriba
+        driver.execute_script("window.scrollTo(0, 0);")
+        time.sleep(2)
+        
+        # Expandir elementos
+        print("\n🔽 Expandiendo mercados...")
+        try:
+            buttons = driver.find_elements(By.TAG_NAME, 'button')
+            expanded = 0
+            for btn in buttons[:200]:
+                try:
+                    if btn.is_displayed():
+                        text = btn.text.lower()
+                        if any(word in text for word in ['más', 'more', 'ver', 'mostrar', 'all', 'todo']):
+                            driver.execute_script("arguments[0].click();", btn)
+                            time.sleep(0.3)
+                            expanded += 1
+                except:
+                    pass
+            print(f"   ✅ {expanded} elementos expandidos")
+        except Exception as e:
+            print(f"   ⚠️  Error expandiendo: {e}")
+        
+        time.sleep(3)
+        
+        # Extraer TODO el texto visible
+        print("\n📝 Extrayendo texto visible...")
+        
+        script = """
+        function getAllVisibleText() {
+            let text = [];
+            let walker = document.createTreeWalker(
+                document.body,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode: function(node) {
+                        let parent = node.parentElement;
+                        if (!parent) return NodeFilter.FILTER_REJECT;
+                        
+                        let style = window.getComputedStyle(parent);
+                        if (style.display === 'none' || style.visibility === 'hidden' || style.opacity === '0') {
+                            return NodeFilter.FILTER_REJECT;
+                        }
+                        
+                        let nodeText = node.textContent.trim();
+                        if (nodeText.length > 0) {
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                        return NodeFilter.FILTER_REJECT;
+                    }
+                }
+            );
+            
+            let node;
+            while(node = walker.nextNode()) {
+                let nodeText = node.textContent.trim();
+                if (nodeText) {
+                    text.push(nodeText);
+                }
+            }
+            return text;
         }
+        return getAllVisibleText();
+        """
+        
+        visible_text = driver.execute_script(script)
+        
+        print(f"   ✅ Extraídos {len(visible_text)} elementos de texto")
+        
+        return visible_text
+        
+    finally:
+        driver.quit()
 
 
-def mock_tennis_odds(player_a: str, player_b: str, tournament: str) -> dict:
+def parsear_mercados(text_elements):
+    """Parsea los mercados del texto extraído"""
+    
+    print("\n🔍 Parseando mercados...")
+    
+    # Palabras clave que indican inicio de mercado
+    market_keywords = [
+        'cuotas de partido', 'apuestas a sets', 'tie-breaks', 'total', 'set', 
+        'resultado correcto', 'hándicap', 'juego', 'ganador', 'gana', 
+        'puntos', 'carrera', 'break', 'deuces', 'más/menos'
+    ]
+    
+    # Patrón para detectar cuotas
+    odds_pattern = re.compile(r'^\d+\.?\d*$')
+    
+    def is_market_name(text):
+        """Detecta si una línea es nombre de mercado"""
+        text_lower = text.lower().strip()
+        has_keyword = any(keyword in text_lower for keyword in market_keywords)
+        not_number = not odds_pattern.match(text.strip())
+        reasonable_length = 10 < len(text) < 150
+        return has_keyword and not_number and reasonable_length
+    
+    def is_odds(text):
+        """Detecta si una línea es una cuota"""
+        text = text.strip()
+        return bool(odds_pattern.match(text))
+    
+    markets = []
+    current_market = None
+    i = 0
+    
+    while i < len(text_elements):
+        line = text_elements[i].strip()
+        
+        if not line or len(line) < 2:
+            i += 1
+            continue
+        
+        # ¿Es nombre de mercado?
+        if is_market_name(line):
+            # Guardar mercado anterior
+            if current_market and current_market.get('runners'):
+                markets.append(current_market)
+            
+            # Nuevo mercado
+            current_market = {
+                'market_name': line,
+                'runners': []
+            }
+            i += 1
+            continue
+        
+        # Si tenemos un mercado activo, buscar pares (nombre_opción, cuota)
+        if current_market:
+            option_name = line
+            
+            # Mirar las siguientes líneas buscando la cuota
+            for j in range(i + 1, min(i + 5, len(text_elements))):
+                next_line = text_elements[j].strip()
+                
+                if is_odds(next_line):
+                    # Encontramos la cuota
+                    current_market['runners'].append({
+                        'name': option_name,
+                        'odds': float(next_line)
+                    })
+                    i = j
+                    break
+                elif is_market_name(next_line):
+                    break
+                elif next_line and not is_odds(next_line):
+                    option_name = next_line
+        
+        i += 1
+    
+    # Guardar último mercado
+    if current_market and current_market.get('runners'):
+        markets.append(current_market)
+    
+    # Filtrar mercados que no son de apuestas (ruido)
+    markets = [m for m in markets if len(m['runners']) > 0 and len(m['runners']) < 50]
+    
+    print(f"   ✅ {len(markets)} mercados parseados")
+    
+    return markets
+
+
+def fetch_betfair_odds(nombre_jugador):
     """
-    Genera datos ficticios de cuotas de apuestas para un partido específico.
+    Función principal que ejecuta el scraper completo de Betfair.
     
     Args:
-        player_a (str): Nombre del primer jugador
-        player_b (str): Nombre del segundo jugador
-        tournament (str): Nombre del torneo
+        nombre_jugador (str): Nombre del jugador a buscar
     
     Returns:
-        dict: Cuotas ficticias estructuradas para el partido consultado
+        dict: Diccionario con información del partido y mercados, o None si hay error
     """
+    print("\n" + "=" * 100)
+    print(f"🎾 SCRAPER DE BETFAIR - EXTRACTOR DE CUOTAS 🎾".center(100))
+    print("=" * 100)
     
-    # Generar cuotas realistas basadas en nombres de jugadores conocidos
-    # Simular que algunos jugadores son favoritos
-    top_players = ["Djokovic", "Alcaraz", "Sinner", "Medvedev", "Zverev", "Tsitsipas"]
+    # PASO 1: Buscar jugador
+    print("\n" + "─" * 100)
+    print("PASO 1: Buscar partido del jugador")
+    print("─" * 100)
     
-    # Determinar quién es el favorito basado en el nombre
-    player_a_rank = 1 if any(top in player_a for top in top_players) else random.randint(2, 50)
-    player_b_rank = 1 if any(top in player_b for top in top_players) else random.randint(2, 50)
+    event_info = buscar_jugador(nombre_jugador)
     
-    # Ajustar cuotas basándose en el ranking simulado
-    if player_a_rank < player_b_rank:
-        favorite = player_a
-        underdog = player_b
-        favorite_odds = round(random.uniform(1.20, 1.80), 2)
-        underdog_odds = round(random.uniform(2.20, 4.50), 2)
-    else:
-        favorite = player_b
-        underdog = player_a
-        favorite_odds = round(random.uniform(1.20, 1.80), 2)
-        underdog_odds = round(random.uniform(2.20, 4.50), 2)
+    if not event_info:
+        print("\n❌ No se pudo encontrar el partido. Verifica que:")
+        print("   • El jugador esté jugando ahora mismo (En Juego)")
+        print("   • El nombre esté escrito correctamente")
+        return None
     
-    # Generar cuotas para Set Betting
-    set_betting_odds = {
-        f"2-0 gana {favorite}": round(random.uniform(1.80, 2.50), 2),
-        f"2-1 gana {favorite}": round(random.uniform(2.50, 3.50), 2),
-        f"2-0 gana {underdog}": round(random.uniform(4.00, 8.00), 2),
-        f"2-1 gana {underdog}": round(random.uniform(3.00, 5.00), 2)
+    # PASO 2: Scrapear página
+    print("\n" + "─" * 100)
+    print("PASO 2: Scrapear página del partido")
+    print("─" * 100)
+    
+    try:
+        text_elements = scrapear_partido(event_info['event_id'], event_info['event_name'])
+    except Exception as e:
+        print(f"\n❌ Error al scrapear la página: {e}")
+        return None
+    
+    # PASO 3: Parsear mercados
+    print("\n" + "─" * 100)
+    print("PASO 3: Extraer mercados y cuotas")
+    print("─" * 100)
+    
+    markets = parsear_mercados(text_elements)
+    
+    if not markets:
+        print("\n❌ No se pudieron extraer mercados de la página")
+        return None
+    
+    # Retornar información estructurada
+    result = {
+        'success': True,
+        'timestamp': datetime.now().isoformat(),
+        'player_searched': nombre_jugador,
+        'event_name': event_info['event_name'],
+        'event_id': event_info['event_id'],
+        'competition': event_info['competition'],
+        'total_markets': len(markets),
+        'total_selections': sum(len(m['runners']) for m in markets),
+        'markets': markets
     }
     
-    # Generar cuotas para Set Score
-    set_score_odds = {
-        f"{favorite} set 1 gana 6-4": round(random.uniform(2.50, 3.50), 2),
-        f"{favorite} set 1 gana 6-3": round(random.uniform(2.20, 3.00), 2),
-        f"{favorite} set 1 gana 7-5": round(random.uniform(3.00, 4.00), 2),
-        f"{underdog} set 1 gana 6-4": round(random.uniform(3.50, 5.00), 2),
-        f"{underdog} set 1 gana 6-3": round(random.uniform(4.00, 6.00), 2)
-    }
+    print("\n" + "=" * 100)
+    print("✅ PROCESO COMPLETADO EXITOSAMENTE".center(100))
+    print("=" * 100)
     
-    # Generar cuotas para Both Win Set
-    both_win_set_odds = {
-        f"{player_a} y {player_b} ganan al menos un set": round(random.uniform(1.40, 1.80), 2)
-    }
-    
-    # Generar cuotas para Player Set Win
-    player_set_win_odds = {
-        f"{favorite} gana 1 set": round(random.uniform(1.10, 1.30), 2),
-        f"{underdog} gana 1 set": round(random.uniform(1.60, 2.20), 2)
-    }
-    
-    # Generar cuotas para Combined Bet
-    combined_bet_odds = {
-        f"{favorite} gana el set 1 por 6-4": round(random.uniform(3.50, 4.50), 2),
-        f"{favorite} gana el set 1 por 6-3": round(random.uniform(3.00, 4.00), 2),
-        f"{underdog} gana el set 1 por 6-4": round(random.uniform(4.50, 6.00), 2),
-        f"{underdog} gana el set 1 por 6-3": round(random.uniform(4.00, 5.50), 2)
-    }
-    
-    # Crear el diccionario de cuotas
-    odds_data = {
-        "Match Winner": {
-            player_a: favorite_odds if favorite == player_a else underdog_odds,
-            player_b: favorite_odds if favorite == player_b else underdog_odds
-        },
-        "Set Betting": set_betting_odds,
-        "Set Score": set_score_odds,
-        "Both Win Set": both_win_set_odds,
-        "Player Set Win": player_set_win_odds,
-        "Combined Bet": combined_bet_odds,
-        "success": True,
-        "fetched_at": datetime.now().isoformat(),
-        "player_a": player_a,
-        "player_b": player_b,
-        "tournament": tournament,
-        "favorite": favorite,
-        "underdog": underdog,
-        "note": "Datos ficticios generados para propósitos de demostración"
-    }
-    
-    return odds_data
+    return result

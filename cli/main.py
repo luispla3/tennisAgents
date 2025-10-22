@@ -734,8 +734,14 @@ async def initialize_rag_system():
     """
     Initialize the RAG system asynchronously.
     This function is called at the start of the program.
+    Only runs if enable_rag is True in the config.
     """
     global rag_manager
+    
+    # Check if RAG is enabled in config
+    if not DEFAULT_CONFIG.get("enable_rag", False):
+        console.print("\n[dim]RAG system is disabled in config. Set 'enable_rag: True' in default_config.py to enable it.[/dim]\n")
+        return None
     
     try:
         console.print("\n[bold cyan]Initializing RAG System...[/bold cyan]")
@@ -775,8 +781,8 @@ def run_analysis():
     """Main analysis function that runs the tennis betting analysis."""
     global rag_manager
     
-    # Initialize RAG system if not already initialized
-    if rag_manager is None:
+    # Initialize RAG system if enabled in config and not already initialized
+    if rag_manager is None and DEFAULT_CONFIG.get("enable_rag", False):
         try:
             rag_manager = asyncio.run(initialize_rag_system())
         except Exception as e:

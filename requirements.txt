@@ -13,6 +13,9 @@ requests
 beautifulsoup4
 praw
 feedparser
+betfair-scraper
+selenium
+webdriver_manager
 
 # Datos y análisis
 pandas

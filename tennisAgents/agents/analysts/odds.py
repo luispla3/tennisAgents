@@ -1,89 +1,128 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from tennisAgents.utils.enumerations import *
-from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
+from tennisAgents.dataflows.odds_utils import fetch_betfair_odds
+
 
 def create_odds_analyst(llm, toolkit):
+    """
+    Crea el nodo del analista de cuotas.
+    NOTA: Este analista NO usa LLM, solo extrae cuotas directamente de Betfair.
+    Los parámetros llm y toolkit se mantienen por compatibilidad con la estructura del grafo.
+    """
     def odds_analyst_node(state):
         match_date = state[STATE.match_date]
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
 
-        tools = [toolkit.fetch_tennis_odds]
-        # Obtener la anatomía del prompt para analista de cuotas
-        anatomy = TennisAnalystAnatomies.odds_analyst()
+        print(f"\n{'='*80}")
+        print(f"📊 ODDS ANALYST - Extrayendo cuotas de Betfair")
+        print(f"{'='*80}")
+        print(f"Jugador: {player}")
+        print(f"Oponente: {opponent}")
+        print(f"Torneo: {tournament}")
+        print(f"Fecha: {match_date}")
+        
+        # Llamar directamente al scraper de Betfair
+        # Intentamos buscar primero por el jugador principal
+        odds_data = fetch_betfair_odds(player)
+        
+        # Si no se encuentra, intentar con el oponente
+        if not odds_data:
+            print(f"\n⚠️  No se encontró partido buscando '{player}', intentando con '{opponent}'...")
+            odds_data = fetch_betfair_odds(opponent)
+        
+        # Generar el reporte basado en los datos obtenidos
+        if not odds_data:
+            report = f"""## ❌ Error al Obtener Cuotas de Betfair
 
-        # Información de herramientas
-        tools_info = (
-            "• fetch_tennis_odds(player_a, player_b, tournament) - Consulta cuotas reales para un partido específico"
-        )
+**Partido:** {player} vs {opponent}
+**Torneo:** {tournament}
+**Fecha:** {match_date}
 
-        # Información sobre la herramienta de odds
-        odds_info = """
-        HERRAMIENTA DE CUOTAS DISPONIBLE:
+**Estado:** No se pudo encontrar el partido en Betfair.
 
-        fetch_tennis_odds(player_a, player_b, tournament)
-        - player_a: Nombre del primer jugador
-        - player_b: Nombre del segundo jugador
-        - tournament: Nombre del torneo
+**Posibles razones:**
+• El partido no está actualmente "En Juego" en Betfair
+• Los nombres de los jugadores no coinciden exactamente con los de Betfair
+• El partido aún no ha comenzado o ya ha finalizado
 
-        Esta herramienta consulta cuotas REALES para el partido especificado.
-        Si algún mercado no está disponible, devolverá "No disponible". No inventes datos.
-        """
+**Recomendación:** Verificar que el partido esté activo en Betfair España (www.betfair.es)
+"""
+        else:
+            # Definir los mercados relevantes que queremos mostrar
+            relevant_market_patterns = [
+                "Cuotas de partido",
+                "Apuestas a sets",
+                "Set",  # Captura mercados de sets específicos
+                "Resultado correcto"  # Captura resultados correctos de sets
+            ]
+            
+            # Filtrar mercados relevantes
+            filtered_markets = []
+            for market in odds_data.get('markets', []):
+                market_name = market.get('market_name', '')
+                
+                # Incluir "Cuotas de partido" y "Apuestas a sets" siempre
+                if market_name in ["Cuotas de partido", "Apuestas a sets"]:
+                    filtered_markets.append(market)
+                    continue
+                
+                # Incluir mercados de "Set X - Ganador"
+                if "Set" in market_name and "Ganador" in market_name and "Juego" not in market_name:
+                    filtered_markets.append(market)
+                    continue
+                
+                # Incluir mercados de "Resultado correcto del X set"
+                if "Resultado correcto" in market_name:
+                    filtered_markets.append(market)
+                    continue
+            
+            # Formatear el reporte con los datos filtrados
+            report = f"""## 💰 Cuotas de Apuestas - Betfair
 
-        # Contexto adicional específico del análisis de cuotas
-        additional_context = (
-            f"{odds_info}\n\n"
-            "PROCESO OBLIGATORIO:\n"
-            f"1. DEBES usar UNA UNICA VEZ la herramienta 'fetch_tennis_odds' con estos parámetros EXACTOS:\n"
-            f"   - player_a: '{player}'\n"
-            f"   - player_b: '{opponent}'\n"
-            f"   - tournament: '{tournament}'\n"
-            "2. NO procedas sin llamar a la herramienta primero\n"
-            "3. Una vez que obtengas los datos, analiza cada mercado disponible\n\n"
-            "ANÁLISIS REQUERIDO:\n"
-            "• Identificación del favorito según las cuotas de Match Winner\n"
-            "• Análisis de las cuotas de Set Betting para diferentes resultados\n"
-            "• Evaluación de las cuotas de Set Score para marcadores específicos\n"
-            "• Análisis de la cuota Both Win Set y su implicación\n"
-            "• Comparación de las cuotas Player Set Win entre ambos jugadores\n"
-            "• Evaluación de las cuotas Combined Bet para combinaciones específicas\n"
-            "• Identificación de mercados no disponibles y su impacto\n\n"
-            "IMPORTANTE: Proporciona análisis específico con números concretos, no generalidades. Incluye cuotas exactas y contexto específico del mercado.\n\n"
-            "OBLIGATORIO: Llama fetch_tennis_odds antes de hacer cualquier análisis."
-        )
+**Partido:** {odds_data.get('event_name', f"{player} vs {opponent}")}
+**Competición:** {odds_data.get('competition', tournament)}
+**Fecha de extracción:** {odds_data.get('timestamp', match_date)}
+**Total de mercados disponibles:** {len(filtered_markets)}
+**Total de opciones de apuesta:** {sum(len(m.get('runners', [])) for m in filtered_markets)}
 
-        # Crear prompt estructurado usando la anatomía
-        prompt = PromptBuilder.create_structured_prompt(
-            anatomy=anatomy,
-            tools_info=tools_info,
-            additional_context=additional_context
-        )
+---
 
-        # Inyección de variables al prompt
-        prompt = prompt.partial(player=player)
-        prompt = prompt.partial(opponent=opponent)
-        prompt = prompt.partial(match_date=match_date)
+### 📋 Mercados y Cuotas Relevantes
 
-        chain = prompt | llm.bind_tools(tools)
+"""
+            # Agregar cada mercado filtrado al reporte
+            if not filtered_markets:
+                report += "\n⚠️ No se encontraron mercados relevantes para este partido.\n\n"
+            else:
+                for market in filtered_markets:
+                    report += f"\n#### {market.get('market_name', 'Mercado')}\n\n"
+                    
+                    for runner in market.get('runners', []):
+                        report += f"• **{runner.get('name')}**: {runner.get('odds')}\n"
+                    
+                    report += "\n"
+            
+            report += f"""---
 
-        # Crear el input correcto como diccionario
-        input_data = {
-            "messages": state[STATE.messages],
-            "user_message": f"Analiza las cuotas de apuestas para el partido entre {player} y {opponent}."
-        }
+### 📊 Resumen de la Extracción
 
-        result = chain.invoke(input_data)
+**Event ID:** {odds_data.get('event_id', 'N/A')}
+**Jugador buscado:** {odds_data.get('player_searched', player)}
+**Estado:** ✅ Extracción exitosa
+**Mercados mostrados:** {len(filtered_markets)} de {odds_data.get('total_markets', 0)} disponibles
 
-        # Debug: imprimir información sobre el resultado
-        print(f"DEBUG - Result tool_calls: {len(result.tool_calls)}")
-        print(f"DEBUG - Result content: {result.content[:200]}...")
+**Nota:** Estas son cuotas reales extraídas directamente de Betfair España en tiempo real.
+Solo se muestran los mercados más relevantes para la toma de decisiones de apuesta.
+Los mercados y cuotas pueden variar durante el transcurso del partido.
+"""
 
-        report = ""
-        report = result.content
+        print(f"\n{'='*80}")
+        print(f"✅ Reporte de cuotas generado")
+        print(f"{'='*80}\n")
 
         return {
-            STATE.messages: [result],
+            STATE.messages: [],  # No generamos mensajes de LLM
             REPORTS.odds_report: report,
         }
 

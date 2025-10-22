@@ -89,8 +89,7 @@ class TennisAgentsGraph:
             ),
             "odds": ToolNode(
                 [
-                    self.toolkit.fetch_tennis_odds,
-                    self.toolkit.mock_tennis_odds,
+                    self.toolkit.get_betfair_odds_scraper,
                 ]
             ),
             "players": ToolNode(

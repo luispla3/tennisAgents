@@ -1,5 +1,5 @@
 from tennisAgents.dataflows.config import get_config
-from .odds_utils import fetch_tennis_odds as fetch_tennis_odds_dataflow, mock_tennis_odds as fetch_mock_odds
+from .odds_utils import fetch_betfair_odds
 from .match_live_utils import fetch_match_live_data, format_match_live_report
 from .news_utils import fetch_news
 from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
@@ -28,77 +28,54 @@ def get_news(query: str, curr_date: str) -> str:
 # ODDS ANALYST TOOLS
 
 
-def fetch_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
+def get_betfair_odds_scraper(player_name: str) -> str:
     """
-    Consulta las cuotas de apuestas de Betfair para un partido específico usando OpenAI.
+    Obtiene cuotas reales de Betfair usando web scraping directo.
+    
+    Esta función busca un partido en vivo que incluya al jugador especificado
+    y extrae todas las cuotas disponibles mediante scraping de la página de Betfair.
+    
+    Args:
+        player_name (str): Nombre del jugador a buscar (puede ser parcial)
+    
+    Returns:
+        str: Reporte formateado con todas las cuotas y mercados disponibles,
+             o mensaje de error si no se encuentra el partido
     """
-    odds_data = fetch_tennis_odds_dataflow(player_a, player_b, tournament)
+    odds_data = fetch_betfair_odds(player_name)
     
     if not odds_data or odds_data.get("success") == False:
         error_msg = odds_data.get("error", "Error desconocido") if odds_data else "No se pudieron obtener datos"
-        result = f"Error al obtener cuotas para {player_a} vs {player_b} en {tournament}: {error_msg}"
+        result = f"Error al obtener cuotas de Betfair para '{player_name}': {error_msg}\n\n"
+        result += "**Posibles causas:**\n"
+        result += "• El partido no está actualmente 'En Juego' en Betfair\n"
+        result += "• El nombre del jugador no coincide con ningún partido activo\n"
+        result += "• Problemas de conexión con Betfair\n"
         return result
     
-    # Formatear los datos de cuotas
-    result = f"## Cuotas de Apuestas - {tournament}\n\n"
-    result += f"**Partido:** {player_a} vs {player_b}\n\n"
+    # Formatear los datos extraídos
+    result = f"## 💰 Cuotas de Betfair - Extracción en Tiempo Real\n\n"
+    result += f"**Partido:** {odds_data.get('event_name', 'N/A')}\n"
+    result += f"**Competición:** {odds_data.get('competition', 'N/A')}\n"
+    result += f"**Event ID:** {odds_data.get('event_id', 'N/A')}\n"
+    result += f"**Extraído el:** {odds_data.get('timestamp', 'N/A')}\n\n"
+    result += f"**Total de mercados:** {odds_data.get('total_markets', 0)}\n"
+    result += f"**Total de opciones:** {odds_data.get('total_selections', 0)}\n\n"
+    result += "---\n\n"
     
-    # Mostrar cada mercado disponible
-    for market_name, market_data in odds_data.items():
-        if market_name in ["success", "fetched_at"]:
-            continue
-            
-        result += f"### {market_name}\n"
+    # Mostrar cada mercado y sus opciones
+    for i, market in enumerate(odds_data.get('markets', []), 1):
+        result += f"### {i}. {market.get('market_name', 'Mercado Desconocido')}\n\n"
         
-        if market_data == "No disponible":
-            result += "**Estado:** No disponible para este partido\n\n"
-        elif isinstance(market_data, dict):
-            for key, value in market_data.items():
-                result += f"**{key}:** {value}\n"
-            result += "\n"
-        else:
-            result += f"**Cuota:** {market_data}\n\n"
-    
-    result += f"\n**Obtenido el:** {odds_data.get('fetched_at', 'N/A')}\n"
-    
-    return result
-
-
-def mock_tennis_odds(player_a: str, player_b: str, tournament: str) -> str:
-    """
-    Genera cuotas ficticias de apuestas para un partido específico.
-    """
-    odds_data = fetch_mock_odds(player_a, player_b, tournament)
-    
-    if not odds_data or odds_data.get("success") == False:
-        error_msg = odds_data.get("error", "Error desconocido") if odds_data else "No se pudieron generar datos"
-        result = f"Error al generar cuotas ficticias para {player_a} vs {player_b} en {tournament}: {error_msg}"
-        return result
-    
-    # Formatear los datos de cuotas ficticias
-    result = f"## Cuotas de Apuestas (Ficticias) - {tournament}\n\n"
-    result += f"**Partido:** {player_a} vs {player_b}\n\n"
-    result += f"**Favorito:** {odds_data.get('favorite', 'N/A')}\n"
-    result += f"**Underdog:** {odds_data.get('underdog', 'N/A')}\n\n"
-    
-    # Mostrar cada mercado disponible
-    for market_name, market_data in odds_data.items():
-        if market_name in ["success", "fetched_at", "player_a", "player_b", "tournament", "favorite", "underdog", "note"]:
-            continue
-            
-        result += f"### {market_name}\n"
+        for runner in market.get('runners', []):
+            result += f"• **{runner.get('name')}**: {runner.get('odds')}\n"
         
-        if market_data == "No disponible":
-            result += "**Estado:** No disponible para este partido\n\n"
-        elif isinstance(market_data, dict):
-            for key, value in market_data.items():
-                result += f"**{key}:** {value}\n"
-            result += "\n"
-        else:
-            result += f"**Cuota:** {market_data}\n\n"
+        result += "\n"
     
-    result += f"\n**Obtenido el:** {odds_data.get('fetched_at', 'N/A')}\n"
-    result += f"\n**Nota:** {odds_data.get('note', '')}\n"
+    result += "---\n\n"
+    result += "**Fuente:** Betfair España (www.betfair.es)\n"
+    result += "**Método:** Web Scraping en Tiempo Real\n"
+    result += "**Nota:** Las cuotas pueden cambiar durante el partido\n"
     
     return result
 
