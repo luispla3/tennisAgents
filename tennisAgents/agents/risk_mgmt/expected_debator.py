@@ -29,39 +29,33 @@ def create_expected_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como Analista de Valor Esperado, tu papel es **evaluar racionalmente si las propuestas de los risk managers son rentables** a largo plazo, teniendo en cuenta la **probabilidad implícita** en las cuotas y la calidad de la información disponible.
+Como Analista de Valor Esperado, tu función es **evaluar y relacionar las cuotas de las odds altas** analizando la probabilidad implicita y si la probabilidad real supera el umbral de rentabilidad.
 
-**INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Saldo disponible: ${wallet_balance}
-- Fecha del partido: {match_date}
-- Jugador de interés: {player_of_interest}
-- Oponente: {opponent}
-- Torneo: {tournament}
-- Superficie: {surface}
-- Ubicación: {location}
+**INFORMACION DEL PARTIDO:**
+- Jugador: {player_of_interest} vs {opponent}
+- Torneo: {tournament} | Superficie: {surface} | Ubicación: {location}
+- Fecha: {match_date} | Saldo: ${wallet_balance}
 
-Tu tarea es calcular o estimar (de forma razonada, no matemática exacta) si el valor esperado (Expected Value, EV) es positivo o negativo, en función de:
-- Cuotas de apuestas ({odds_report})
-- Condiciones del jugador (estado físico, forma reciente, motivación, etc.): {players_report}
-- Influencias externas (torneo, condiciones meteorológicas, presión mediática...): {tournament_report}, {weather_report}, {news_report}
-- Sentimiento del público o la comunidad: {sentiment_report}
-- Estado del partido en vivo: {match_live_report}
+**TU ANÁLISIS:**
+Para cada odd disponible en {odds_report}, determina:
+- **Probabilidad implícita**: Si la odd es *10, la casa de apuestas implica 10% de probabilidad (1/10).
+- **Probabilidad real estimada**: Basándote en {players_report}, {tournament_report}, {weather_report}, {news_report}, {sentiment_report}, {match_live_report}, ¿la probabilidad REAL es mayor?
+- **Criterio de rentabilidad**: Para odd *X, necesitas ganar más de 1 de cada X veces. Ejemplo: odd *10 → ¿probabilidad real > 10%?
 
-Últimos argumentos de los analistas:
+Informate de los últimos argumentos de los analistas:
 - Analista Agresivo: {current_aggressive_response}
 - Analista Neutral: {current_neutral_response}
 - Analista Seguro: {current_safe_response}
 
-Historial de debate: {history}
+Historial: {history}
 
-Tu respuesta debe:
-- Calcular si el riesgo merece la pena según el valor esperado
-- Proponer, SOLO si el EV es positivo, un tamaño de apuesta como % del saldo (usa Kelly fraccional p.ej. 0.25–0.5 Kelly; si EV<=0, sugiere 0%)
-- Cuestionar los argumentos de los demás desde una visión probabilística
-- Ser conversacional (sin formato especial)
-- No inventes información si falta; puedes decir que faltan datos para calcular el valor esperado con seguridad
+**Responde de forma conversacional:**
+1. Analiza y relacionalas odds disponibles y compara probabilidades implícitas vs reales
+2. Identifica cuál odd (si alguna) tiene valor esperado positivo y si la probabilidad real supera el umbral de rentabilidad.
+3. Si encuentras valor positivo, sugiere % del saldo (Kelly fraccional 0.25-0.5); si no, sugiere 0%
+4. Cuestiona argumentos con visión probabilística, siendo conversacional (sin formato especial)
 
-    Apunta a responder si es **matemáticamente rentable o no**, más allá de opiniones subjetivas.
+No inventes datos. Se directo sobre rentabilidad matemática a largo plazo.
 """
 
         response = llm.invoke(prompt)

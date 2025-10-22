@@ -245,17 +245,22 @@ def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
         if not match_data or match_data.get("success") == False:
             error_msg = match_data.get("error", "Error desconocido")
             note = match_data.get("note", "")
+            available_matches = match_data.get("available_matches", "")
             
             result = f"Error al obtener datos del partido en vivo entre {player_a} y {player_b}"
             if tournament:
                 result += f" en {tournament}"
             result += ".\n\n"
             result += f"**Error:** {error_msg}\n"
-            if note:
-                result += f"\n**Nota:** {note}\n"
             
             if match_data.get("total_live_matches") is not None:
-                result += f"\n**Partidos en vivo disponibles:** {match_data.get('total_live_matches')}\n"
+                result += f"\n**Total de partidos en vivo:** {match_data.get('total_live_matches')}\n"
+            
+            if available_matches:
+                result += f"\n**Partidos disponibles:**\n{available_matches}\n"
+            
+            if note:
+                result += f"\n**Nota:** {note}\n"
             
             return result
         

@@ -46,7 +46,7 @@ def normalize_name(name: str) -> str:
     return normalized.lower().strip()
 
 
-def player_name_matches(api_name: str, search_name: str) -> bool:
+def player_name_matches(api_name: str, search_name: str, debug: bool = False) -> bool:
     """
     Verifica si un nombre de jugador de la API coincide con el nombre buscado.
     
@@ -56,6 +56,7 @@ def player_name_matches(api_name: str, search_name: str) -> bool:
     Args:
         api_name (str): Nombre del jugador como viene de la API (ej: "Djokovic, Novak")
         search_name (str): Nombre buscado (ej: "Djokovic" o "Novak Djokovic")
+        debug (bool): Si True, imprime información de debug
     
     Returns:
         bool: True si los nombres coinciden
@@ -64,23 +65,57 @@ def player_name_matches(api_name: str, search_name: str) -> bool:
     api_normalized = normalize_name(api_name)
     search_normalized = normalize_name(search_name)
     
-    # Si el nombre buscado está en el nombre de la API, es una coincidencia
+    if debug:
+        print(f"          Comparando: API='{api_normalized}' vs Search='{search_normalized}'")
+    
+    # Estrategia 1: El nombre buscado está contenido en el nombre de la API
     if search_normalized in api_normalized:
+        if debug:
+            print(f"          ✓ Match: nombre buscado contenido en API")
         return True
     
-    # Si el nombre de la API tiene formato "Apellido, Nombre", intentar invertirlo
+    # Estrategia 2: El nombre de la API está contenido en el nombre buscado
+    if api_normalized in search_normalized:
+        if debug:
+            print(f"          ✓ Match: nombre API contenido en búsqueda")
+        return True
+    
+    # Estrategia 3: Si el nombre de la API tiene formato "Apellido, Nombre", intentar invertirlo
     if ',' in api_name:
         parts = [normalize_name(p.strip()) for p in api_name.split(',')]
         # Probar "Nombre Apellido"
         reversed_name = ' '.join(reversed(parts))
+        if debug:
+            print(f"          Formato invertido: '{reversed_name}'")
+        
         if search_normalized in reversed_name or reversed_name in search_normalized:
+            if debug:
+                print(f"          ✓ Match: formato invertido")
             return True
     
-    # Probar si alguna palabra del nombre buscado está en el nombre de la API
-    search_words = search_normalized.split()
-    for word in search_words:
-        if len(word) >= 3 and word in api_normalized:  # Solo palabras de 3+ caracteres
-            return True
+    # Estrategia 4: Comparar palabras individuales (apellidos principalmente)
+    search_words = set(search_normalized.split())
+    api_words = set(api_normalized.replace(',', ' ').split())
+    
+    # Si hay palabras significativas en común (3+ caracteres)
+    significant_search_words = {w for w in search_words if len(w) >= 3}
+    significant_api_words = {w for w in api_words if len(w) >= 3}
+    
+    common_words = significant_search_words & significant_api_words
+    
+    if debug:
+        print(f"          Palabras búsqueda: {significant_search_words}")
+        print(f"          Palabras API: {significant_api_words}")
+        print(f"          Palabras comunes: {common_words}")
+    
+    # Si tienen al menos una palabra significativa en común, considerar match
+    if common_words:
+        if debug:
+            print(f"          ✓ Match: palabras comunes encontradas")
+        return True
+    
+    if debug:
+        print(f"          ✗ No match")
     
     return False
 
@@ -166,18 +201,19 @@ def fetch_live_summaries() -> Dict[str, Any]:
         }
 
 
-def tournament_name_matches(api_tournament: str, search_tournament: str) -> bool:
+def tournament_name_matches(api_tournament: str, search_tournament: str, debug: bool = False) -> bool:
     """
     Verifica si un nombre de torneo de la API coincide con el nombre buscado.
     
     Maneja:
-    - Variaciones de idioma (Masculino/Men, Femenino/Women)
+    - Variaciones de idioma (Masculino/Men, Femenino/Women, Viena/Vienna)
     - Nombres parciales (Roanne vs ATP Challenger Roanne, France)
     - Diferentes formatos
     
     Args:
         api_tournament (str): Nombre del torneo como viene de la API
         search_tournament (str): Nombre del torneo buscado
+        debug (bool): Si True, imprime información de debug
     
     Returns:
         bool: True si los nombres coinciden
@@ -186,7 +222,10 @@ def tournament_name_matches(api_tournament: str, search_tournament: str) -> bool
     api_normalized = normalize_name(api_tournament)
     search_normalized = normalize_name(search_tournament)
     
-    # Mapeo de traducciones comunes
+    if debug:
+        print(f"        Comparando torneos: API='{api_normalized}' vs Search='{search_normalized}'")
+    
+    # Mapeo de traducciones y variaciones comunes de ciudades
     translations = {
         'masculino': 'men',
         'femenino': 'women',
@@ -194,27 +233,57 @@ def tournament_name_matches(api_tournament: str, search_tournament: str) -> bool
         'womens': 'women',
         'singles': 'individual',
         'doubles': 'dobles',
+        # Ciudades con variaciones de nombre
+        'viena': 'vienna',
+        'wien': 'vienna',
+        'munich': 'munchen',
+        'praga': 'prague',
+        'praha': 'prague',
+        'moscu': 'moscow',
+        'moskva': 'moscow',
     }
     
-    # Aplicar traducciones al nombre buscado
+    # Aplicar traducciones
     for spanish, english in translations.items():
         search_normalized = search_normalized.replace(spanish, english)
         api_normalized = api_normalized.replace(spanish, english)
     
+    if debug:
+        print(f"        Después de traducciones: API='{api_normalized}' vs Search='{search_normalized}'")
+    
     # Estrategia 1: El nombre buscado está contenido en el nombre de la API
     if search_normalized in api_normalized:
+        if debug:
+            print(f"        [OK] Match: nombre buscado contenido en API")
         return True
     
-    # Estrategia 2: Extraer palabras clave significativas (3+ caracteres) y verificar que la mayoría coincidan
+    # Estrategia 2: El nombre de la API está contenido en la búsqueda
+    if api_normalized in search_normalized:
+        if debug:
+            print(f"        [OK] Match: nombre API contenido en búsqueda")
+        return True
+    
+    # Estrategia 3: Extraer palabras clave significativas y verificar que la mayoría coincidan
     search_words = [w for w in search_normalized.split() if len(w) >= 3]
     api_words = set([w for w in api_normalized.split() if len(w) >= 3])
     
-    # Si al menos el 60% de las palabras clave están presentes, considerar match
+    if debug:
+        print(f"        Palabras busqueda: {search_words}")
+        print(f"        Palabras API: {api_words}")
+    
+    # Si al menos el 50% de las palabras clave están presentes, considerar match
     if search_words:
         matches = sum(1 for word in search_words if word in api_words)
         match_ratio = matches / len(search_words)
-        if match_ratio >= 0.6:
+        if debug:
+            print(f"        Match ratio: {match_ratio:.2f} ({matches}/{len(search_words)})")
+        if match_ratio >= 0.5:
+            if debug:
+                print(f"        [OK] Match: ratio suficiente")
             return True
+    
+    if debug:
+        print(f"        [X] No match")
     
     return False
 
@@ -223,7 +292,8 @@ def find_match_in_summaries(
     summaries_data: Dict[str, Any],
     player_a: str,
     player_b: str,
-    tournament: Optional[str] = None
+    tournament: Optional[str] = None,
+    debug: bool = True
 ) -> Optional[Dict[str, Any]]:
     """
     Busca un partido específico dentro de los resúmenes de partidos en vivo.
@@ -233,6 +303,7 @@ def find_match_in_summaries(
         player_a (str): Nombre del primer jugador
         player_b (str): Nombre del segundo jugador
         tournament (Optional[str]): Nombre del torneo (opcional para filtrar)
+        debug (bool): Si True, imprime información de debug detallada
     
     Returns:
         Optional[Dict[str, Any]]: Datos del partido encontrado o None si no se encuentra
@@ -242,11 +313,27 @@ def find_match_in_summaries(
     
     summaries = summaries_data.get("data", {}).get("summaries", [])
     
-    print(f"[INFO] Buscando partido entre '{player_a}' y '{player_b}'")
+    print(f"\n[INFO] Buscando partido entre '{player_a}' y '{player_b}'")
     if tournament:
         print(f"[INFO] Filtrando por torneo: '{tournament}'")
     
-    for summary in summaries:
+    # DEBUG: Mostrar todos los partidos disponibles
+    if debug and summaries:
+        print(f"\n[DEBUG] ===== PARTIDOS EN VIVO DISPONIBLES ({len(summaries)}) =====")
+        for idx, summary in enumerate(summaries, 1):
+            sport_event = summary.get("sport_event", {})
+            competitors = sport_event.get("competitors", [])
+            competition_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "N/A")
+            
+            if len(competitors) == 2:
+                player1 = competitors[0].get("name", "N/A")
+                player2 = competitors[1].get("name", "N/A")
+                print(f"  [{idx}] {player1} vs {player2}")
+                print(f"      Torneo: {competition_name}")
+        print(f"[DEBUG] ==========================================\n")
+    
+    # Buscar el partido
+    for idx, summary in enumerate(summaries, 1):
         sport_event = summary.get("sport_event", {})
         competitors = sport_event.get("competitors", [])
         
@@ -256,27 +343,81 @@ def find_match_in_summaries(
         
         competitor_names = [comp.get("name", "") for comp in competitors]
         
+        if debug:
+            print(f"[DEBUG] Comparando partido {idx}: {competitor_names[0]} vs {competitor_names[1]}")
+        
         # Verificar si ambos jugadores están en el partido
-        player_a_found = any(player_name_matches(name, player_a) for name in competitor_names)
-        player_b_found = any(player_name_matches(name, player_b) for name in competitor_names)
+        player_a_matches = [player_name_matches(name, player_a, debug=debug) for name in competitor_names]
+        player_b_matches = [player_name_matches(name, player_b, debug=debug) for name in competitor_names]
+        
+        player_a_found = any(player_a_matches)
+        player_b_found = any(player_b_matches)
+        
+        if debug:
+            print(f"        Player A '{player_a}' encontrado: {player_a_found}")
+            print(f"        Player B '{player_b}' encontrado: {player_b_found}")
         
         if player_a_found and player_b_found:
             # Si se especificó torneo, verificar que coincida
             if tournament:
                 competition_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "")
                 
-                if not tournament_name_matches(competition_name, tournament):
+                tournament_matches = tournament_name_matches(competition_name, tournament, debug=debug)
+                
+                if not tournament_matches:
                     print(f"[INFO] Partido encontrado pero torneo no coincide: '{competition_name}' vs '{tournament}'")
                     continue
             
-            print(f"[SUCCESS] Partido encontrado: {competitor_names[0]} vs {competitor_names[1]}")
+            print(f"\n[SUCCESS] ✓ Partido encontrado: {competitor_names[0]} vs {competitor_names[1]}")
             return summary
     
-    print(f"[WARNING] No se encontró el partido entre '{player_a}' y '{player_b}'")
+    print(f"\n[WARNING] ✗ No se encontró el partido entre '{player_a}' y '{player_b}'")
+    print(f"[HINT] Revisa los nombres de los jugadores arriba en la lista de partidos disponibles")
     return None
 
 
-def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str] = None) -> Dict[str, Any]:
+def list_all_live_matches() -> str:
+    """
+    Obtiene y lista todos los partidos en vivo disponibles en formato legible.
+    
+    Útil para debugging cuando no encuentras un partido específico.
+    
+    Returns:
+        str: Lista formateada de todos los partidos en vivo
+    """
+    try:
+        summaries_data = fetch_live_summaries()
+        
+        if not summaries_data.get("success"):
+            return f"Error al obtener partidos: {summaries_data.get('error', 'Error desconocido')}"
+        
+        summaries = summaries_data.get("data", {}).get("summaries", [])
+        
+        if not summaries:
+            return "No hay partidos en vivo en este momento."
+        
+        result = f"# PARTIDOS EN VIVO ({len(summaries)} encontrados)\n\n"
+        
+        for idx, summary in enumerate(summaries, 1):
+            sport_event = summary.get("sport_event", {})
+            competitors = sport_event.get("competitors", [])
+            competition_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "N/A")
+            status = summary.get("sport_event_status", {}).get("status", "N/A")
+            
+            if len(competitors) == 2:
+                player1 = competitors[0].get("name", "N/A")
+                player2 = competitors[1].get("name", "N/A")
+                result += f"{idx}. {player1} vs {player2}\n"
+                result += f"   Torneo: {competition_name}\n"
+                result += f"   Estado: {status}\n\n"
+        
+        return result
+        
+    except Exception as e:
+        return f"Error al listar partidos: {str(e)}"
+
+
+def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str] = None, debug: bool = True) -> Dict[str, Any]:
     """
     Obtiene datos en tiempo real de un partido específico usando Sportradar API.
     
@@ -320,9 +461,23 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
             }
         
         # 2. Buscar el partido específico
-        match_summary = find_match_in_summaries(summaries_data, player_a, player_b, tournament)
+        match_summary = find_match_in_summaries(summaries_data, player_a, player_b, tournament, debug=debug)
         
         if not match_summary:
+            # Generar lista de partidos disponibles para incluir en el error
+            available_matches = []
+            summaries = summaries_data.get("data", {}).get("summaries", [])
+            for summary in summaries[:10]:  # Máximo 10 partidos
+                sport_event = summary.get("sport_event", {})
+                competitors = sport_event.get("competitors", [])
+                if len(competitors) == 2:
+                    p1 = competitors[0].get("name", "N/A")
+                    p2 = competitors[1].get("name", "N/A")
+                    comp_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "N/A")
+                    available_matches.append(f"{p1} vs {p2} ({comp_name})")
+            
+            available_list = "\n".join(available_matches) if available_matches else "No hay partidos disponibles"
+            
             return {
                 "success": False,
                 "error": f"No se encontró el partido entre {player_a} y {player_b} en los partidos en vivo",
@@ -330,8 +485,9 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
                 "player_b": player_b,
                 "tournament": tournament or "N/A",
                 "total_live_matches": summaries_data.get("total_matches", 0),
+                "available_matches": available_list,
                 "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                "note": "Verifica que el partido esté en curso y que los nombres de los jugadores sean correctos"
+                "note": "Verifica que el partido esté en curso y que los nombres de los jugadores sean correctos. Revisa la lista de partidos disponibles arriba."
             }
         
         # 3. Formatear los datos de manera estructurada
