@@ -36,16 +36,99 @@ def extraer_apellido(nombre_completo):
     return partes[-1]
 
 
+def normalizar_nombre(nombre):
+    """
+    Normaliza un nombre para comparación: lowercase, sin acentos, sin espacios extra.
+    
+    Args:
+        nombre (str): Nombre a normalizar
+    
+    Returns:
+        str: Nombre normalizado
+    """
+    import unicodedata
+    
+    # Remover acentos
+    nombre = ''.join(c for c in unicodedata.normalize('NFD', nombre) 
+                     if unicodedata.category(c) != 'Mn')
+    
+    # Lowercase y quitar espacios extra
+    return ' '.join(nombre.lower().split())
+
+
+def extraer_partes_nombre(nombre_completo):
+    """
+    Extrae todas las partes del nombre (nombre, apellidos).
+    
+    Args:
+        nombre_completo (str): Nombre completo del jugador
+    
+    Returns:
+        dict: Diccionario con 'nombre', 'apellido', 'todas_partes'
+    """
+    partes = nombre_completo.strip().split()
+    
+    if len(partes) == 0:
+        return {'nombre': '', 'apellido': '', 'todas_partes': []}
+    elif len(partes) == 1:
+        return {'nombre': '', 'apellido': partes[0], 'todas_partes': partes}
+    else:
+        return {
+            'nombre': partes[0],
+            'apellido': partes[-1],
+            'todas_partes': partes
+        }
+
+
+def calcular_score_coincidencia(nombre_jugador, event_name):
+    """
+    Calcula un score de coincidencia entre el nombre del jugador y el evento.
+    Mayor score = mejor coincidencia.
+    
+    Args:
+        nombre_jugador (str): Nombre completo del jugador buscado
+        event_name (str): Nombre del evento (ej: "Djokovic v Nadal")
+    
+    Returns:
+        int: Score de coincidencia (0 = no coincide, mayor = mejor)
+    """
+    nombre_norm = normalizar_nombre(nombre_jugador)
+    event_norm = normalizar_nombre(event_name)
+    
+    partes = extraer_partes_nombre(nombre_jugador)
+    apellido = normalizar_nombre(partes['apellido'])
+    todas_partes = [normalizar_nombre(p) for p in partes['todas_partes']]
+    
+    score = 0
+    
+    # El apellido DEBE estar presente
+    if apellido not in event_norm:
+        return 0
+    
+    score += 10  # Base por tener el apellido
+    
+    # Puntos extra por cada parte del nombre que coincida
+    for parte in todas_partes:
+        if parte and parte in event_norm:
+            score += 5
+    
+    # Bonus si el nombre completo está presente
+    if nombre_norm in event_norm:
+        score += 20
+    
+    return score
+
+
 def buscar_jugador(nombre_jugador):
     """
     Busca un jugador y devuelve información de su partido.
     
-    Betfair suele listar los partidos solo con el apellido de los jugadores,
-    por lo que esta función intenta buscar primero con el apellido y luego
-    con el nombre completo como fallback.
+    Usa el nombre completo para buscar y valida que el partido encontrado
+    realmente corresponda al jugador buscado, evitando confusiones con
+    jugadores que tienen el mismo apellido.
     
     Args:
-        nombre_jugador (str): Nombre completo del jugador o apellido
+        nombre_jugador (str): Nombre completo del jugador
     
     Returns:
         dict: Información del partido encontrado, o None si no se encuentra
@@ -60,49 +143,62 @@ def buscar_jugador(nombre_jugador):
     
     print(f"   📊 Total de partidos en juego: {len(markets)}")
     
-    # Extraer el apellido para la búsqueda principal
-    apellido = extraer_apellido(nombre_jugador)
-    apellido_lower = apellido.lower()
-    nombre_completo_lower = nombre_jugador.lower()
+    # Extraer información del nombre
+    partes = extraer_partes_nombre(nombre_jugador)
+    apellido = partes['apellido']
     
-    print(f"   🔎 Buscando con apellido: '{apellido}'")
-    if apellido != nombre_jugador:
-        print(f"   🔎 También intentaré con nombre completo: '{nombre_jugador}'")
+    print(f"   🔎 Buscando con nombre completo: '{nombre_jugador}'")
+    print(f"   🔎 Apellido a buscar: '{apellido}'")
     
-    # Buscar el jugador (primero por apellido, luego por nombre completo)
+    # Buscar todos los partidos que contengan el apellido
+    candidatos = []
+    
     for market in markets:
-        event = market.get('event', '').lower()
+        event = market.get('event', '')
         
-        # Intentar primero con el apellido (más probable en Betfair)
-        if apellido_lower in event:
-            print(f"\n✅ PARTIDO ENCONTRADO! (búsqueda por apellido)")
-            print(f"   Partido: {market.get('event')}")
-            print(f"   Competición: {market.get('competition', 'N/A')}")
-            print(f"   Event ID: {market.get('event_id')}")
-            
-            return {
-                'event_name': market.get('event'),
-                'event_id': market.get('event_id'),
-                'competition': market.get('competition', 'N/A'),
-                'market_id': market.get('market_id')
-            }
+        # Calcular score de coincidencia
+        score = calcular_score_coincidencia(nombre_jugador, event)
         
-        # Fallback: intentar con nombre completo
-        elif nombre_completo_lower in event:
-            print(f"\n✅ PARTIDO ENCONTRADO! (búsqueda por nombre completo)")
-            print(f"   Partido: {market.get('event')}")
-            print(f"   Competición: {market.get('competition', 'N/A')}")
-            print(f"   Event ID: {market.get('event_id')}")
-            
-            return {
-                'event_name': market.get('event'),
-                'event_id': market.get('event_id'),
-                'competition': market.get('competition', 'N/A'),
-                'market_id': market.get('market_id')
-            }
+        if score > 0:
+            candidatos.append({
+                'market': market,
+                'score': score,
+                'event': event
+            })
+            print(f"   🎯 Candidato encontrado (score: {score}): {event}")
     
-    print(f"\n❌ No se encontró ningún partido de '{nombre_jugador}' (ni con '{apellido}') en juego")
-    return None
+    # Si no hay candidatos
+    if not candidatos:
+        print(f"\n❌ No se encontró ningún partido de '{nombre_jugador}' en juego")
+        return None
+    
+    # Ordenar por score (mayor primero)
+    candidatos.sort(key=lambda x: x['score'], reverse=True)
+    
+    # Si hay múltiples candidatos con el mismo score máximo, advertir
+    if len(candidatos) > 1 and candidatos[0]['score'] == candidatos[1]['score']:
+        print(f"\n⚠️  ADVERTENCIA: Múltiples partidos con la misma coincidencia:")
+        for i, c in enumerate(candidatos[:3], 1):
+            print(f"   {i}. {c['event']} (score: {c['score']})")
+        print(f"   Se seleccionará el primero, pero verifica que sea el correcto.")
+    
+    # Seleccionar el mejor candidato
+    mejor = candidatos[0]
+    market = mejor['market']
+    
+    print(f"\n✅ PARTIDO ENCONTRADO!")
+    print(f"   Partido: {market.get('event')}")
+    print(f"   Competición: {market.get('competition', 'N/A')}")
+    print(f"   Event ID: {market.get('event_id')}")
+    print(f"   Score de coincidencia: {mejor['score']}")
+    
+    return {
+        'event_name': market.get('event'),
+        'event_id': market.get('event_id'),
+        'competition': market.get('competition', 'N/A'),
+        'market_id': market.get('market_id'),
+        'confidence_score': mejor['score']
+    }
 
 
 def setup_driver():
