@@ -56,12 +56,12 @@ Finalmente, genera un INFORME FINAL que incluya:
 6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
 
 ### TIPO DE APUESTA A CONSIDERAR:
-1. **Cuotas de Resultado del Primer Set** - Quien gana el primer set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
+1. **Cuotas de Resultado del Set** - Quien gana el set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 ### CASOS IDEALES:
-- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del primer set: Jugador A gana el primer set 6-4.
-- Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del primer set: Jugador A gana el primer set 7-6.
-- Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del primer set: Jugador A gana el primer set 7-5.
+- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4.
+- Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
+- Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
 ### Debate actual entre analistas:
 {history}
@@ -78,7 +78,7 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 
 **DISTRIBUCIÓN DEL DINERO:**
 [No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.]
-- Apuesta a Resultado del Primer Set: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*10, *12...)] [Cantidad a apostar = 1 euro o nada, siempre]
+- Apuesta a Resultado del Set: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*10, *12...)] [Cantidad a apostar = 1 euro o nada, siempre]
 
 **4 FUNDAMENTALES:**
 [Genera los 4 fundamentals desde la vision que has decidido.]

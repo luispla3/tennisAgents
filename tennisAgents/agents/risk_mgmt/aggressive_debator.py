@@ -43,7 +43,7 @@ Como analista de riesgo agresivo, tu misión es defender estrategias de alta rec
 Basándote en la información de los reportes de los analistas, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
 
 1. **4 FUNDAMENTALES**: Valorar y revisar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una vision completa de lo analizado, siendo además un poco mas agresivo en la valoración de los fundamentales.
-2. **RESULTADO DEL PRIMER SET**: Decidir cuál de ambos jugadores gana el primer set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
+2. **RESULTADO DEL SET**: Decidir cuál de ambos jugadores gana el set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 **INFORMES DISPONIBLES:**
 - Pronóstico del tiempo: {weather_report}
@@ -67,9 +67,9 @@ Basándote en la información de los reportes de los analistas, y en los 4 funda
    IMPORTANTE: Cuando comentes sobre cada fundamental, DEBES incluir expresamente el encabezado:
    - "FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO"
    - "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE"
-   - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL PRIMER SET"
+   - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET"
    - "FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE"
-2. **EXPLICA** tu estrategia de inversión agresiva para el resultado del primer set
+2. **EXPLICA** tu estrategia de inversión agresiva para el resultado del set
 3. **JUSTIFICA** matemáticamente por qué tomar riesgos tiene sentido dadas las circunstancias
 4. **REBATE** directamente los argumentos de los analistas conservador y neutral
 5. **DEMUESTRA** que la estrategia de riesgo es la más lógica dadas las circunstancias
