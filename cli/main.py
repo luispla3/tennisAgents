@@ -53,12 +53,12 @@ class MessageBuffer:
         self.final_report = None  # Store the complete final report
         self.agent_status = {
             "News Analyst": "pending",
-            "Odds Analyst": "pending",
             "Players Analyst": "pending",
             "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
             "Match Live Analyst": "pending",
+            "Odds Analyst": "pending",
             "Aggressive Analyst": "pending",
             "Safe Analyst": "pending",
             "Neutral Analyst": "pending",
