@@ -43,7 +43,7 @@ class GraphSetup:
         self.conditional_logic = conditional_logic
 
     def setup_graph(
-        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.odds, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live]
+        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live, ANALYST_NODES.odds]
     ):
         if len(selected_analysts) == 0:
             raise ValueError("Tennis Agents Graph Setup Error: no analysts selected!")

@@ -27,7 +27,7 @@ class TennisAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["news", "odds", "players", "social", "tournament", "weather", "match_live"],
+        selected_analysts=["news", "players", "social", "tournament", "weather", "match_live", "odds"],
         debug=False,
         config: Dict[str, Any] = None,
     ):
