@@ -1,3 +1,4 @@
+
 from tennisAgents.utils.enumerations import *
 
 def create_risk_manager(llm, memory):
@@ -44,20 +45,16 @@ Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evalua
 - Ubicación: {location}
 
 ### TU TAREA:
-Analiza el debate entre los analistas y genera un INFORME FINAL que incluya:
+Decide con qué vision de los 4 fundamentals generada por cada debator te vas a quedar, y comparala matematicamente con cada uno de los casos ideales. Si el resultado matematico de alguna de las comparaciones es alto, se da por válida la vision adoptada , y se tomará la decision y justificacion dada en la vision adoptada (no en el caso ideal).
+Finalmente, genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
 2. **JUGADOR FAVORITO**: Si se apuesta, ¿a favor de quién?
-3. **DISTRIBUCIÓN DEL DINERO**: Cómo se reparte el dinero entre los 6 tipos de apuestas
+3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta se hace y cuanto se apuesta (Cantidad a apostar = 1 euro o nada, siempre)
 4. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
 
-### TIPOS DE APUESTAS A CONSIDERAR:
-1. **Cuotas de Partido** - Quién gana el partido
-2. **Apuestas a Sets** - Resultado en sets (2-0, 2-1, etc.)
-3. **Ganador del Actual Set** - Quién gana el set en curso
-4. **Resultado del Actual Set** - Score específico (6-0, 6-1, etc.)
-5. **Jugador Gana al Menos un Set** - SI/NO para cada jugador
-6. **Partido y Ambos Ganan un Set** - Combinación ganador + ambos ganan set
+### TIPO DE APUESTA A CONSIDERAR:
+1. **Cuotas de Resultado del Primer Set** - Quien gana el primer set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 ### Debate actual entre analistas:
 {history}
@@ -73,15 +70,14 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[Solo incluye los tipos de apuesta que consideres recomendables. Puedes omitir cualquier tipo si no aporta valor o es demasiado arriesgado]
-- Cuotas de Partido ([Nombre del Jugador]): $[cantidad] ([porcentaje]%)
-- Apuestas a Sets ([especificar resultado exacto y jugador, ej: "2-1 Martineau"]): $[cantidad] ([porcentaje]%)
-- Ganador del Actual Set ([Nombre del Jugador, Set #]): $[cantidad] ([porcentaje]%)
-- Resultado del Actual Set ([score específico y jugador, ej: "6-4 Martineau"]): $[cantidad] ([porcentaje]%)
-- Jugador Gana al Menos un Set ([Nombre del Jugador]): $[cantidad] ([porcentaje]%)
-- Partido y Ambos Ganan un Set ([Nombre del jugador ganador]): $[cantidad] ([porcentaje]%)
+[No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.]
+- Apuesta a Resultado del Primer Set: [Nombre del jugador] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [Cantidad a apostar = 1 euro o nada, siempre]
 
-**TOTAL APOSTADO: $[suma de todas las apuestas] ([porcentaje]% del bankroll)**
+**4 FUNDAMENTALES:**
+[Genera los 4 fundamentals desde la vision que has decidido.]
+
+**Comparacion de la vision adoptada con los casos ideales:**
+[Genera el resultado de la comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.]
 
 **JUSTIFICACIÓN:**
 [Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los debators y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
@@ -92,9 +88,9 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
 IMPORTANTE: 
-- NO estás obligado a apostar en TODOS los tipos de apuesta. Solo apuesta donde veas valor esperado positivo claro.
+- NO estás obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
-- Puedes poner $0 en cualquier tipo de apuesta o simplemente omitirla de la lista si no la recomiendas.
+- Puedes poner $0 en la apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
 """

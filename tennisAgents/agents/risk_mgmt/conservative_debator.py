@@ -29,10 +29,9 @@ def create_conservative_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como Analista Conservador de Riesgos, tu principal objetivo es **minimizar el riesgo**, proteger los fondos disponibles y evitar apuestas excesivamente arriesgadas. Debes evaluar la propuesta del Trader y argumentar por qué podría ser imprudente o arriesgada en función del contexto actual.
+Como analista de riesgo conservadora, tu misión es defender estrategias de baja volatilidad y alta probabilidad, que son las que se esperan que sucedan siguiendo la previsión del marcador actual.
 
 **INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Saldo disponible: ${wallet_balance}
 - Fecha del partido: {match_date}
 - Jugador de interés: {player_of_interest}
 - Oponente: {opponent}
@@ -41,22 +40,17 @@ Como Analista Conservador de Riesgos, tu principal objetivo es **minimizar el ri
 - Ubicación: {location}
 
 **TU TAREA PRINCIPAL:**
-Basándote en la información de los analistas, debes decidir cuánto dinero invertir en cada uno de los siguientes tipos de apuestas, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, pero con un enfoque CONSERVADOR:
+Basándote en la información de los reportes de los analistas, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
 
-1. **CUOTAS DE PARTIDO**: Decidir cuál de ambos jugadores gana el partido (apuesta más segura)
-2. **APUESTAS A SETS**: Si no es Grand Slam (mejor de 3 sets), decidir:
-   - Jugador A 2-0, Jugador A 2-1, Jugador B 2-0, Jugador B 2-1
-3. **GANADOR DEL ACTUAL SET**: Si se está jugando el primer set, decidir quién lo gana
-4. **RESULTADO DEL ACTUAL SET**: Si se está jugando el segundo set, decidir quién lo gana y el resultado (6-0, 6-1, 6-2, 6-3, 6-4, 7-5)
-5. **JUGADOR GANA AL MENOS UN SET**: Jugador A SI/NO, Jugador B SI/NO
-6. **PARTIDO Y AMBOS JUGADORES GANAN UN SET**: Jugador A gana partido + ambos ganan set, o Jugador B gana partido + ambos ganan set
+1. **4 FUNDAMENTALES**: Valorar y revisar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una visión completa de lo analizado, siendo además un poco más conservadora en la valoración de los fundamentales.
+2. **RESULTADO DEL PRIMER SET**: Decidir cuál de ambos jugadores gana el primer set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 **INFORMES DISPONIBLES:**
-- Informe meteorológico: {weather_report}
-- Cuotas de apuestas: {odds_report}
+- Pronóstico del tiempo: {weather_report}
+- Informe de cuotas de apuestas: {odds_report}
 - Sentimiento en redes sociales: {sentiment_report}
 - Noticias recientes: {news_report}
-- Estado físico/mental de jugadores: {players_report}
+- Estado físico y mental de los jugadores: {players_report}
 - Información del torneo: {tournament_report}
 - Estado del partido en vivo: {match_live_report}
 
@@ -65,21 +59,22 @@ Basándote en la información de los analistas, debes decidir cuánto dinero inv
 - Analista neutral: {current_neutral_response}
 - Analista de probabilidades: {current_expected_response}
 
-**HISTORIAL DE DEBATE:** {history}
+**HISTORIAL DE DEBATE:**
+{history}
 
 **REQUISITOS DE TU RESPUESTA:**
-1. **ANALIZA** las propuestas de los otros analistas y muestra sus riesgos matemáticamente
-2. **CALCULA** el porcentaje del saldo a invertir en cada apuesta usando análisis probabilístico CONSERVADOR
-3. **PROPON** una versión más segura o incluso abstenerse de apostar en ciertos casos
-4. **USA** técnicas matemáticas y probabilísticas para demostrar por qué el enfoque conservador es mejor
-5. **REBATE** las posturas del analista agresivo y del neutral, señalando los puntos ciegos
-6. **DEMUESTRA** que una estrategia conservadora protege mejor los intereses a largo plazo
+1. **GENERA** los 4 fundamentals desde tu vision comentada anteriormente.
+   IMPORTANTE: Cuando comentes sobre cada fundamental, DEBES incluir expresamente el encabezado:
+   - "FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO"
+   - "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE"
+   - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL PRIMER SET"
+   - "FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE"
+2. **EXPLICA** tu estrategia de inversión conservadora para el resultado del primer set
+3. **JUSTIFICA** matemáticamente por qué minimizar el riesgo tiene sentido dadas las circunstancias
+4. **REBATE** directamente los argumentos de los analistas agresivo y neutral
+5. **DEMUESTRA** que la estrategia conservadora es la más lógica dadas las circunstancias
 
-Tu respuesta debe:
-- Ser conversacional y natural sin formato especial
-- No inventar respuestas si no hay datos disponibles
-- Mostrar por qué una estrategia conservadora es matemáticamente superior en escenarios inciertos
-- Usar análisis probabilístico para justificar la distribución conservadora del dinero
+Tu respuesta debe ser conversacional, directa, sin formato especial. No inventes si no hay respuestas previas. ¡Debes persuadir con datos y análisis matemático!
 """
 
         response = llm.invoke(prompt)

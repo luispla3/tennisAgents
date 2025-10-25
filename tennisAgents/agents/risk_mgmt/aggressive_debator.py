@@ -29,10 +29,9 @@ def create_aggressive_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como analista de riesgo agresivo, tu misión es defender estrategias de alta recompensa, incluso si implican riesgos significativos. Estás evaluando la propuesta del Trader y tu tarea es **respaldarla o incluso sugerir apuestas más audaces**, siempre que estén justificadas.
+Como analista de riesgo agresivo, tu misión es defender estrategias de alta recompensa, que son las que no se esperan que sucedan siguiendo la previsón del marcador actual.
 
 **INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Saldo disponible: ${wallet_balance}
 - Fecha del partido: {match_date}
 - Jugador de interés: {player_of_interest}
 - Oponente: {opponent}
@@ -41,15 +40,10 @@ Como analista de riesgo agresivo, tu misión es defender estrategias de alta rec
 - Ubicación: {location}
 
 **TU TAREA PRINCIPAL:**
-Basándote en la información de los analistas, debes decidir cuánto dinero invertir en cada uno de los siguientes tipos de apuestas, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas:
+Basándote en la información de los reportes de los analistas, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
 
-1. **CUOTAS DE PARTIDO**: Decidir cuál de ambos jugadores gana el partido
-2. **APUESTAS A SETS**: Si no es Grand Slam (mejor de 3 sets), decidir:
-   - Jugador A 2-0, Jugador A 2-1, Jugador B 2-0, Jugador B 2-1
-3. **GANADOR DEL ACTUAL SET**: Si se está jugando el primer set, decidir quién lo gana
-4. **RESULTADO DEL ACTUAL SET**: Si se está jugando el segundo set, decidir quién lo gana y el resultado (6-0, 6-1, 6-2, 6-3, 6-4, 7-5)
-5. **JUGADOR GANA AL MENOS UN SET**: Jugador A SI/NO, Jugador B SI/NO
-6. **PARTIDO Y AMBOS JUGADORES GANAN UN SET**: Jugador A gana partido + ambos ganan set, o Jugador B gana partido + ambos ganan set
+1. **4 FUNDAMENTALES**: Valorar y revisar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una vision completa de lo analizado, siendo además un poco mas agresivo en la valoración de los fundamentales.
+2. **RESULTADO DEL PRIMER SET**: Decidir cuál de ambos jugadores gana el primer set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 **INFORMES DISPONIBLES:**
 - Pronóstico del tiempo: {weather_report}
@@ -69,12 +63,16 @@ Basándote en la información de los analistas, debes decidir cuánto dinero inv
 {history}
 
 **REQUISITOS DE TU RESPUESTA:**
-1. **EXPLICA** tu estrategia de inversión agresiva para cada tipo de apuesta
-2. **CALCULA** el porcentaje del saldo a invertir en cada apuesta usando análisis probabilístico
+1. **GENERA** los 4 fundamentals desde tu vision comentada anteriormente.
+   IMPORTANTE: Cuando comentes sobre cada fundamental, DEBES incluir expresamente el encabezado:
+   - "FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO"
+   - "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE"
+   - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL PRIMER SET"
+   - "FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE"
+2. **EXPLICA** tu estrategia de inversión agresiva para el resultado del primer set
 3. **JUSTIFICA** matemáticamente por qué tomar riesgos tiene sentido dadas las circunstancias
 4. **REBATE** directamente los argumentos de los analistas conservador y neutral
-5. **USA** técnicas matemáticas y probabilísticas para predecir correctamente cómo se reparte el dinero
-6. **DEMUESTRA** que la estrategia de riesgo es la más lógica dadas las circunstancias
+5. **DEMUESTRA** que la estrategia de riesgo es la más lógica dadas las circunstancias
 
 Tu respuesta debe ser conversacional, directa, sin formato especial. No inventes si no hay respuestas previas. ¡Debes persuadir con datos y análisis matemático!
 """

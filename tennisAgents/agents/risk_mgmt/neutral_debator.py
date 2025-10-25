@@ -29,10 +29,9 @@ def create_neutral_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como analista de riesgo neutral, tu función es ofrecer una perspectiva equilibrada sobre la propuesta del Trader, considerando tanto las oportunidades como los riesgos de forma objetiva.
+Como analista de riesgo neutral, tu misión es ofrecer una perspectiva equilibrada, valorando tanto oportunidades como riesgos de forma objetiva y racional.
 
 **INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Saldo disponible: ${wallet_balance}
 - Fecha del partido: {match_date}
 - Jugador de interés: {player_of_interest}
 - Oponente: {opponent}
@@ -41,46 +40,41 @@ Como analista de riesgo neutral, tu función es ofrecer una perspectiva equilibr
 - Ubicación: {location}
 
 **TU TAREA PRINCIPAL:**
-Basándote en la información de los analistas, debes decidir cuánto dinero invertir en cada uno de los siguientes tipos de apuestas, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, pero con un enfoque EQUILIBRADO:
+Basándote en la información de los reportes de los analistas, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
 
-1. **CUOTAS DE PARTIDO**: Decidir cuál de ambos jugadores gana el partido
-2. **APUESTAS A SETS**: Si no es Grand Slam (mejor de 3 sets), decidir:
-   - Jugador A 2-0, Jugador A 2-1, Jugador B 2-0, Jugador B 2-1
-3. **GANADOR DEL ACTUAL SET**: Si se está jugando el primer set, decidir quién lo gana
-4. **RESULTADO DEL ACTUAL SET**: Si se está jugando el segundo set, decidir quién lo gana y el resultado (6-0, 6-1, 6-2, 6-3, 6-4, 7-5)
-5. **JUGADOR GANA AL MENOS UN SET**: Jugador A SI/NO, Jugador B SI/NO
-6. **PARTIDO Y AMBOS JUGADORES GANAN UN SET**: Jugador A gana partido + ambos ganan set, o Jugador B gana partido + ambos ganan set
+1. **4 FUNDAMENTALES**: Valorar y revisar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una visión completa y equilibrada de lo analizado, balanceando tanto las oportunidades como los riesgos.
+2. **RESULTADO DEL PRIMER SET**: Decidir cuál de ambos jugadores gana el primer set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
 
 **INFORMES DISPONIBLES:**
-- Informe meteorológico: {weather_report}
-- Cuotas de apuestas: {odds_report}
+- Pronóstico del tiempo: {weather_report}
+- Informe de cuotas de apuestas: {odds_report}
 - Sentimiento en redes sociales: {sentiment_report}
 - Noticias recientes: {news_report}
-- Estado físico/mental de jugadores: {players_report}
+- Estado físico y mental de los jugadores: {players_report}
 - Información del torneo: {tournament_report}
 - Estado del partido en vivo: {match_live_report}
 
 **ARGUMENTOS PREVIOS:**
+- Analista conservadora: {current_safe_response}
 - Analista agresivo: {current_aggressive_response}
-- Analista seguro: {current_safe_response}
 - Analista de probabilidades: {current_expected_response}
 
-**HISTORIAL DE DEBATE:** {history}
+**HISTORIAL DE DEBATE:**
+{history}
 
 **REQUISITOS DE TU RESPUESTA:**
-1. **EVALÚA** de forma crítica las posturas del analista conservador y del agresivo
-2. **CALCULA** el porcentaje del saldo a invertir en cada apuesta usando análisis probabilístico EQUILIBRADO
-3. **DESTACA** los puntos fuertes y débiles de cada postura
-4. **CONSTRUYE** una estrategia moderada que combine potencial de éxito y control del riesgo
-5. **USA** técnicas matemáticas y probabilísticas para justificar el enfoque equilibrado
-6. **REBATE** ideas extremas (riesgo excesivo o prudencia extrema)
+1. **GENERA** los 4 fundamentals desde tu vision comentada anteriormente.
+   IMPORTANTE: Cuando comentes sobre cada fundamental, DEBES incluir expresamente el encabezado:
+   - "FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO"
+   - "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE"
+   - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL PRIMER SET"
+   - "FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE"
+2. **EXPLICA** tu estrategia de inversión equilibrada para el resultado del primer set
+3. **JUSTIFICA** matemáticamente por qué el enfoque equilibrado es el más racional
+4. **REBATE** directamente los argumentos de los analistas agresivo y conservador
+5. **DEMUESTRA** que la estrategia equilibrada es la más lógica dadas las circunstancias
 
-Tu respuesta debe:
-- Ser conversacional, directa y sin formato especial
-- No inventar respuestas si faltan voces en el debate
-- Céntrate en el análisis comparativo y busca un equilibrio racional en las apuestas
-- Usar análisis probabilístico para demostrar por qué el enfoque equilibrado es matemáticamente superior
-- Mostrar cómo combinar lo mejor de ambas estrategias (agresiva y conservadora)
+Tu respuesta debe ser conversacional, directa, sin formato especial. No inventes si no hay respuestas previas. ¡Debes persuadir con datos, análisis matemático y equilibrio racional!
 """
 
         response = llm.invoke(prompt)

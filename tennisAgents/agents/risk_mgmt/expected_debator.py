@@ -29,7 +29,7 @@ def create_expected_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como Analista de Valor Esperado, tu función es **evaluar y relacionar las cuotas de las odds altas** analizando la probabilidad implicita y si la probabilidad real supera el umbral de rentabilidad.
+Como Analista de Valor Esperado, tu función es **evaluar y relacionar las cuotas de las odds disponibles** analizando la probabilidad implicita y si la probabilidad real supera el umbral de rentabilidad.
 
 **INFORMACION DEL PARTIDO:**
 - Jugador: {player_of_interest} vs {opponent}
@@ -41,8 +41,9 @@ Para cada odd disponible en {odds_report}, determina:
 - **Probabilidad implícita**: Si la odd es *10, la casa de apuestas implica 10% de probabilidad (1/10).
 - **Probabilidad real estimada**: Basándote en {players_report}, {tournament_report}, {weather_report}, {news_report}, {sentiment_report}, {match_live_report}, ¿la probabilidad REAL es mayor?
 - **Criterio de rentabilidad**: Para odd *X, necesitas ganar más de 1 de cada X veces. Ejemplo: odd *10 → ¿probabilidad real > 10%?
+Concluye que informacion sugieren estas odds y cómo repercute en el resultado del primer set.
 
-Informate de los últimos argumentos de los analistas:
+Informate de los últimos argumentos de los analistas, y debatelos desde con esta información que has tenido:
 - Analista Agresivo: {current_aggressive_response}
 - Analista Neutral: {current_neutral_response}
 - Analista Seguro: {current_safe_response}
