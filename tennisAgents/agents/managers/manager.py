@@ -51,10 +51,17 @@ Finalmente, genera un INFORME FINAL que incluya:
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
 2. **JUGADOR FAVORITO**: Si se apuesta, ¿a favor de quién?
 3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta se hace y cuanto se apuesta (Cantidad a apostar = 1 euro o nada, siempre)
-4. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
+4. **VISION ADOPTADA**: La vision adoptada por el debator que has decidido seguir.
+5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
+6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
 
 ### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de Resultado del Primer Set** - Quien gana el primer set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
+
+### CASOS IDEALES:
+- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del primer set: Jugador A gana el primer set 6-4.
+- Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del primer set: Jugador A gana el primer set 7-6.
+- Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del primer set: Jugador A gana el primer set 7-5.
 
 ### Debate actual entre analistas:
 {history}
