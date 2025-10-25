@@ -120,15 +120,19 @@ def player_name_matches(api_name: str, search_name: str, debug: bool = False) ->
     return False
 
 
-def fetch_live_summaries() -> Dict[str, Any]:
+def fetch_live_summaries(include_all_statuses: bool = False) -> Dict[str, Any]:
     """
     Obtiene todos los resúmenes de partidos en vivo desde la API de Sportradar.
+    
+    Args:
+        include_all_statuses (bool): Si True, incluye partidos en cualquier estado (not_started, live, ended, closed).
+                                      Si False, solo incluye partidos con estado "live"
     
     Returns:
         Dict[str, Any]: Diccionario con:
             - success (bool): Si la operación fue exitosa
             - data (Dict): Datos completos de la API
-            - total_matches (int): Número total de partidos en vivo
+            - total_matches (int): Número total de partidos
             - fetched_at (str): Timestamp de la consulta
             - error (str): Mensaje de error si falló
     """
@@ -149,7 +153,15 @@ def fetch_live_summaries() -> Dict[str, Any]:
         data = response.json()
         summaries = data.get("summaries", [])
         
-        print(f"[SUCCESS] Se obtuvieron {len(summaries)} partidos en vivo")
+        # Filtrar por estado si se solicita
+        if not include_all_statuses:
+            original_count = len(summaries)
+            summaries = [s for s in summaries if s.get("sport_event_status", {}).get("status") == "live"]
+            print(f"[INFO] Filtrados {original_count - len(summaries)} partidos no-live")
+            # Actualizar los summaries en data
+            data["summaries"] = summaries
+        
+        print(f"[SUCCESS] Se obtuvieron {len(summaries)} partidos")
         
         return {
             "success": True,
@@ -423,13 +435,14 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
     
     Flujo:
     1. Obtiene todos los partidos en vivo desde Sportradar
-    2. Busca el partido específico entre los dos jugadores
+    2. Si no se encuentra en partidos "live", busca en todos los estados (programados, finalizados, etc.)
     3. Extrae y estructura la información relevante del partido
     
     Args:
         player_a (str): Nombre del primer jugador
         player_b (str): Nombre del segundo jugador
         tournament (Optional[str]): Nombre del torneo (opcional)
+        debug (bool): Si True, imprime información de debug
     
     Returns:
         Dict[str, Any]: Diccionario con:
@@ -440,15 +453,17 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
             - match_data (Dict): Datos estructurados del partido
             - formatted_data (str): Datos formateados en texto para el agente
             - fetched_at (str): Timestamp de la consulta
+            - match_status (str): Estado del partido (live, not_started, ended, closed)
             - error (str): Mensaje de error si falló
     """
     try:
-        print(f"\n[INFO] Iniciando búsqueda de partido en vivo: {player_a} vs {player_b}")
+        print(f"\n[INFO] Iniciando búsqueda de partido: {player_a} vs {player_b}")
         if tournament:
             print(f"[INFO] Torneo: {tournament}")
         
-        # 1. Obtener todos los partidos en vivo
-        summaries_data = fetch_live_summaries()
+        # 1. Intentar primero con partidos solo en estado "live"
+        print(f"[INFO] Paso 1: Buscando en partidos 'live'...")
+        summaries_data = fetch_live_summaries(include_all_statuses=False)
         
         if not summaries_data.get("success"):
             return {
@@ -460,8 +475,17 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
                 "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
         
-        # 2. Buscar el partido específico
+        # 2. Buscar el partido específico en partidos "live"
         match_summary = find_match_in_summaries(summaries_data, player_a, player_b, tournament, debug=debug)
+        
+        # 3. Si no se encuentra en "live", intentar con todos los estados
+        if not match_summary:
+            print(f"\n[WARNING] Partido no encontrado en estado 'live'")
+            print(f"[INFO] Paso 2: Buscando en TODOS los estados (not_started, live, ended, closed)...")
+            summaries_data_all = fetch_live_summaries(include_all_statuses=True)
+            
+            if summaries_data_all.get("success"):
+                match_summary = find_match_in_summaries(summaries_data_all, player_a, player_b, tournament, debug=debug)
         
         if not match_summary:
             # Generar lista de partidos disponibles para incluir en el error
@@ -470,27 +494,34 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
             for summary in summaries[:10]:  # Máximo 10 partidos
                 sport_event = summary.get("sport_event", {})
                 competitors = sport_event.get("competitors", [])
+                status = summary.get("sport_event_status", {}).get("status", "N/A")
                 if len(competitors) == 2:
                     p1 = competitors[0].get("name", "N/A")
                     p2 = competitors[1].get("name", "N/A")
                     comp_name = sport_event.get("sport_event_context", {}).get("competition", {}).get("name", "N/A")
-                    available_matches.append(f"{p1} vs {p2} ({comp_name})")
+                    available_matches.append(f"{p1} vs {p2} ({comp_name}) - Estado: {status}")
             
             available_list = "\n".join(available_matches) if available_matches else "No hay partidos disponibles"
             
             return {
                 "success": False,
-                "error": f"No se encontró el partido entre {player_a} y {player_b} en los partidos en vivo",
+                "error": f"No se encontró el partido entre {player_a} y {player_b}",
                 "player_a": player_a,
                 "player_b": player_b,
                 "tournament": tournament or "N/A",
                 "total_live_matches": summaries_data.get("total_matches", 0),
                 "available_matches": available_list,
                 "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                "note": "Verifica que el partido esté en curso y que los nombres de los jugadores sean correctos. Revisa la lista de partidos disponibles arriba."
+                "note": "El partido podría no estar aún en juego, haber finalizado, o los nombres de los jugadores no coinciden exactamente. Revisa la lista de partidos disponibles arriba."
             }
         
-        # 3. Formatear los datos de manera estructurada
+        # 4. Obtener el estado del partido
+        match_status = match_summary.get("sport_event_status", {}).get("status", "unknown")
+        match_status_info = match_summary.get("sport_event_status", {}).get("match_status", "N/A")
+        
+        print(f"\n[SUCCESS] Partido encontrado - Estado: {match_status} ({match_status_info})")
+        
+        # 5. Formatear los datos de manera estructurada
         formatted_data = format_match_data_structured(match_summary)
         
         return {
@@ -499,6 +530,8 @@ def fetch_match_live_data(player_a: str, player_b: str, tournament: Optional[str
             "player_b": player_b,
             "tournament": match_summary.get("sport_event", {}).get("sport_event_context", {}).get("competition", {}).get("name", "N/A"),
             "match_data": match_summary,
+            "match_status": match_status,
+            "match_status_info": match_status_info,
             "formatted_data": formatted_data,
             "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         }
@@ -539,8 +572,27 @@ def format_match_data_structured(match_summary: Dict[str, Any]) -> str:
         competition = sport_event_context.get("competition", {})
         season = sport_event_context.get("season", {})
         
+        # Estado del partido
+        match_status = sport_event_status.get("status", "unknown")
+        match_status_info = sport_event_status.get("match_status", "N/A")
+        
         # Construir el reporte estructurado
-        result = "# DATOS DEL PARTIDO EN VIVO (Sportradar API)\n\n"
+        result = "# DATOS DEL PARTIDO (Sportradar API)\n\n"
+        
+        # Advertencia si el partido no está en vivo
+        if match_status != "live":
+            result += "⚠️ **ATENCIÓN: Este partido NO está actualmente EN VIVO**\n"
+            result += f"**Estado actual:** {match_status} ({match_status_info})\n\n"
+            if match_status == "not_started":
+                result += "El partido aún no ha comenzado. Los datos mostrados son preliminares.\n\n"
+            elif match_status in ["ended", "closed"]:
+                result += "El partido ha finalizado. Los datos mostrados son el resultado final.\n\n"
+            else:
+                result += f"Estado: {match_status}\n\n"
+        else:
+            result += "✅ **PARTIDO EN VIVO**\n\n"
+        
+        result += "---\n\n"
         
         # 1. INFORMACIÓN BÁSICA
         result += "## 1. INFORMACIÓN BÁSICA DEL PARTIDO\n\n"
