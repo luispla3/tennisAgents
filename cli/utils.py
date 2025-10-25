@@ -5,12 +5,12 @@ from cli.models import AnalystType
 
 ANALYST_ORDER = [
     ("News Analyst", AnalystType.news),
-    ("Odds Analyst", AnalystType.odds),
     ("Players Analyst", AnalystType.players),
     ("Social Analyst", AnalystType.social),
     ("Tournament Analyst", AnalystType.tournament),
     ("Weather Analyst", AnalystType.weather),
     ("Match Live Analyst", AnalystType.match_live),
+    ("Odds Analyst", AnalystType.odds),
 ]
 
 
