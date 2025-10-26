@@ -45,7 +45,7 @@ Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evalua
 - Ubicación: {location}
 
 ### TU TAREA:
-Decide con qué vision de los 4 fundamentals generada por cada debator te vas a quedar, y comparala matematicamente con cada uno de los casos ideales. Si el resultado matematico de alguna de las comparaciones es alto, se da por válida la vision adoptada , y se tomará la decision y justificacion dada en la vision adoptada (no en el caso ideal).
+Decide con qué vision de los 4 fundamentals generada por cada debator te vas a quedar, y comparala matematicamente con cada uno de los casos ideales. Si el resultado matematico de alguna de las comparaciones es alto, se da por válida la vision adoptada , y se tomará la decision y justificacion dada en la vision adoptada (no en el caso ideal). Prohibido apostar a cuotas inferiores a 4 euros.
 Finalmente, genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
@@ -56,7 +56,7 @@ Finalmente, genera un INFORME FINAL que incluya:
 6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
 
 ### TIPO DE APUESTA A CONSIDERAR:
-1. **Cuotas de Resultado del Set** - Quien gana el set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
+1. **Cuotas de Resultado del Set** - Quien gana el set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Prohibido apostar a cuotas inferiores a 4 euros.
 
 ### CASOS IDEALES:
 - Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4.

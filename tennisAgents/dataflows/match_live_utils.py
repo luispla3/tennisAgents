@@ -13,6 +13,22 @@ from typing import Dict, Any, Optional, List
 
 load_dotenv()
 
+"""
+Usuario solicita partido
+         ↓
+fetch_match_live_data(player_a, player_b, tournament)
+         ↓
+fetch_live_summaries(include_all_statuses=False)  # Intento 1: solo "live"
+         ↓
+find_match_in_summaries()  → usa player_name_matches()
+         ↓
+    ¿Encontrado?
+    NO → fetch_live_summaries(include_all_statuses=True)  # Intento 2: todos los estados
+         ↓
+    SÍ → format_match_data_structured()
+         ↓
+    Retorna datos estructurados
+"""
 
 def get_sportradar_api_key() -> str:
     """
