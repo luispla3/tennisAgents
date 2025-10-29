@@ -1,4 +1,3 @@
-@ -1,148 +0,0 @@
 <div align="center">
   <!-- Language translations -->
   <a href="https://www.readme-i18n.com/luispla3/tennisAgents?lang=de">Deutsch</a> | 
