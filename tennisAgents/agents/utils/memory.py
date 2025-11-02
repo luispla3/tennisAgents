@@ -1,8 +1,6 @@
 import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
-import google.generativeai as genai
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import os
 
 
@@ -26,28 +24,11 @@ def chunk_text(text, max_chars=24000):
 
 class TennisSituationMemory:
     def __init__(self, name, config):
-        if config["backend_url"] == "http://localhost:11434/v1":
-            self.embedding = "nomic-embed-text"
-            self.client = OpenAI(base_url=config["backend_url"])
-            self.use_openai = True
-        else:
-            # For Google's embedding models, we need to use a different approach
-            if config["llm_provider"].lower() == "google":
-                # Configure Google API
-                genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
-                self.model = genai.GenerativeModel('gemini-2.0-flash')
-                # Use Google's embedding model with sync client
-                self.embedding_model = GoogleGenerativeAIEmbeddings(
-                    model="models/embedding-001",
-                    google_api_key=os.getenv("GOOGLE_API_KEY"),
-                    transport="rest"  # Use REST transport instead of gRPC to avoid async issues
-                )
-                self.use_openai = False
-            else:
-                self.embedding = "text-embedding-3-small"
-                self.client = OpenAI(base_url=config["backend_url"])
-                self.use_openai = True
-        
+
+        self.embedding = "text-embedding-3-small"
+        self.client = OpenAI(base_url=config["backend_url"])
+        self.use_openai = True
+    
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
         self.match_collection = self.chroma_client.create_collection(name=name)
 
