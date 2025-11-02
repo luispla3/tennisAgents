@@ -6,15 +6,6 @@ def create_risk_manager(llm, memory):
     def risk_manager_node(state) -> dict:
         risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state[HISTORYS.history]
-        
-        # Chunkea el history si es muy largo para evitar exceder límites de tokens
-        # Conservador: ~3 chars por token, para 3000 tokens ≈ 9000 chars
-        history_chunks = chunk_text(history, max_chars=9000)
-        if len(history_chunks) > 1:
-            # Si hay múltiples chunks, toma solo el primero y añade indicador
-            history = history_chunks[0] + "\n\n[...historial truncado para evitar exceder el límite de tokens...]"
-        else:
-            history = history_chunks[0]
 
         # Informes previos disponibles
         weather_report = state[REPORTS.weather_report]
@@ -35,7 +26,7 @@ def create_risk_manager(llm, memory):
         location = state.get(STATE.location, "")
 
         # Memorias de errores pasados
-        curr_situation = f"{weather_report}\n\n{odds_report}\n\n{sentiment_report}\n\n{news_report}\n\n{players_report}\n\n{tournament_report}"
+        curr_situation = f"{weather_report}\n\n{odds_report}\n\n{sentiment_report}\n\n{news_report}\n\n{players_report}\n\n{tournament_report}\n\n{match_live_report}"
         past_memories = memory.get_memories(curr_situation, n_matches=2)
 
         past_memory_str = ""

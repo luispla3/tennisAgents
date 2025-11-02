@@ -2,6 +2,7 @@ import chromadb
 from chromadb.config import Settings
 from openai import OpenAI
 import os
+import numpy as np
 
 
 def chunk_text(text, max_chars=24000):
@@ -33,15 +34,39 @@ class TennisSituationMemory:
         self.match_collection = self.chroma_client.create_collection(name=name)
 
     def get_embedding(self, text):
-        """Obtener el embedding de una descripción de partido/contexto de apuestas"""
-        if self.use_openai:
+        """Get OpenAI embedding for a text, handling long texts by splitting and averaging embeddings"""
+        # text-embedding-3-small has a max context length of 8192 tokens
+        # Conservative estimate: ~3 characters per token for safety margin
+        max_chars = 24000  # ~8000 tokens * 3 chars/token
+        
+        if len(text) <= max_chars:
+            # Text is short enough, get embedding directly
             response = self.client.embeddings.create(
                 model=self.embedding, input=text
             )
             return response.data[0].embedding
-        else:
-            # Use Google's embedding model
-            return self.embedding_model.embed_query(text)
+        
+        # Text is too long, split into chunks and average embeddings
+        chunks = chunk_text(text, max_chars=max_chars)
+        
+        chunk_embeddings = []
+        for i, chunk in enumerate(chunks):
+            try:
+                response = self.client.embeddings.create(
+                    model=self.embedding, input=chunk
+                )
+                chunk_embeddings.append(response.data[0].embedding)
+            except Exception as e:
+                print(f"Failed to get embedding for chunk {i}: {e}")
+                continue
+        
+        if not chunk_embeddings:
+            raise ValueError("Failed to get embeddings for any chunks")
+        
+        # Average the embeddings (simple approach)
+        averaged_embedding = np.mean(chunk_embeddings, axis=0).tolist()
+        
+        return averaged_embedding
 
     def add_situations(self, situations_and_advice):
         """
@@ -73,7 +98,6 @@ class TennisSituationMemory:
         """
         Recupera recomendaciones similares a partir de una situación de partido actual
         usando embeddings de similitud semántica.
-        Chunkea automáticamente las recomendaciones largas para evitar exceder límites de tokens.
         """
         query_embedding = self.get_embedding(current_situation)
 
@@ -83,27 +107,12 @@ class TennisSituationMemory:
             include=["metadatas", "documents", "distances"],
         )
 
-        # Para prompts con límite de 8192 tokens, usar chunk más pequeño
-        # Conservador: ~3 chars por token, para 3000 tokens ≈ 9000 chars por recomendación
-        max_chars_per_recommendation = 9000
-
         matched_results = []
         for i in range(len(results["documents"][0])):
-            recommendation = results["metadatas"][0][i]["recommendation"]
-            
-            # Chunkea la recomendación si es muy larga
-            # Toma solo el primer chunk (más relevante) para mantener el prompt manejable
-            chunks = chunk_text(recommendation, max_chars=max_chars_per_recommendation)
-            if len(chunks) > 1:
-                # Si hay múltiples chunks, toma el primero y añade indicador
-                chunked_recommendation = chunks[0] + "\n\n[...texto truncado para evitar exceder el límite de tokens...]"
-            else:
-                chunked_recommendation = chunks[0]
-            
             matched_results.append(
                 {
                     "matched_situation": results["documents"][0][i],
-                    "recommendation": chunked_recommendation,
+                    "recommendation": results["metadatas"][0][i]["recommendation"],
                     "similarity_score": 1 - results["distances"][0][i],
                 }
             )
