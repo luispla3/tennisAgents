@@ -1,10 +1,20 @@
 
 from tennisAgents.utils.enumerations import *
+from tennisAgents.agents.utils.memory import chunk_text
 
 def create_risk_manager(llm, memory):
     def risk_manager_node(state) -> dict:
         risk_debate_state = state[STATE.risk_debate_state]
         history = risk_debate_state[HISTORYS.history]
+        
+        # Chunkea el history si es muy largo para evitar exceder límites de tokens
+        # Conservador: ~3 chars por token, para 3000 tokens ≈ 9000 chars
+        history_chunks = chunk_text(history, max_chars=9000)
+        if len(history_chunks) > 1:
+            # Si hay múltiples chunks, toma solo el primero y añade indicador
+            history = history_chunks[0] + "\n\n[...historial truncado para evitar exceder el límite de tokens...]"
+        else:
+            history = history_chunks[0]
 
         # Informes previos disponibles
         weather_report = state[REPORTS.weather_report]
@@ -33,7 +43,7 @@ def create_risk_manager(llm, memory):
             past_memory_str += rec["recommendation"] + "\n\n"
 
         prompt = f"""
-Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro analistas** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
 
 **INFORMACIÓN DEL PARTIDO:**
 - Saldo disponible: ${wallet_balance}
@@ -45,21 +55,23 @@ Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evalua
 - Ubicación: {location}
 
 ### TU TAREA:
-Decide con qué vision de los 4 fundamentals generada por cada debator te vas a quedar, y comparala matematicamente con cada uno de los casos ideales. Si el resultado matematico de alguna de las comparaciones es alto, se da por válida la vision adoptada , y se tomará la decision y justificacion dada en la vision adoptada (no en el caso ideal). Prohibido apostar a cuotas inferiores a 4 euros.
+Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matematicamente con cada uno de los casos ideales para tener simplemente una referencia para la decision.
 Finalmente, genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
-2. **JUGADOR FAVORITO**: Si se apuesta, ¿a favor de quién?
-3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta se hace y cuanto se apuesta (Cantidad a apostar = 1 euro o nada, siempre)
-4. **VISION ADOPTADA**: La vision adoptada por el debator que has decidido seguir.
+3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. Hay que apostar una pequeña cantidad del dinero disponible.
+4. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
 5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
-6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión
+6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
 
-### TIPO DE APUESTA A CONSIDERAR:
-1. **Cuotas de Resultado del Set** - Quien gana el set y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Prohibido apostar a cuotas inferiores a 4 euros.
+### TIPO DE APUESTA A CONSIDERAR (no obligatorio apostar a todos los tipos de apuesta, solo apostar a los que sean rentables matematicamente y en el tiempo):
+1. **Cuotas de partido** - Que jugador gana el partido.
+2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido.
+3. **Set X - Ganador** - Que jugador gana el set X.
+4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6).
 
 ### CASOS IDEALES:
-- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4.
+- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4 o 6-3.
 - Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
 - Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
@@ -78,16 +90,19 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 
 **DISTRIBUCIÓN DEL DINERO:**
 [No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.]
-- Apuesta a Resultado del Set: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*10, *12...)] [Cantidad a apostar = 1 euro o nada, siempre]
+- Cuotas de partido: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
+- Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
+- Set X - Ganador: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
+- Set X - Resultado correcto: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
 
 **4 FUNDAMENTALES:**
-[Genera los 4 fundamentals desde la vision que has decidido.]
+[Genera los 4 fundamentals desde la vision que has adoptado.]
 
 **Comparacion de la vision adoptada con los casos ideales:**
 [Genera el resultado de la comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.]
 
 **JUSTIFICACIÓN:**
-[Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los debators y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
+[Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los managers y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
 
 **NIVEL DE CONFIANZA: [ALTO/MEDIO/BAJO]**
 

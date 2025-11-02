@@ -6,6 +6,24 @@ from langchain_google_genai import GoogleGenerativeAIEmbeddings
 import os
 
 
+def chunk_text(text, max_chars=24000):
+    """
+    Divide texto en chunks cuando excede el límite.
+    Aproximación conservadora: ~3 caracteres por token
+    max_chars=24000 ≈ 8000 tokens
+    """
+    if len(text) <= max_chars:
+        return [text]
+    
+    # Dividir el texto en chunks de max_chars caracteres
+    chunks = []
+    for i in range(0, len(text), max_chars):
+        chunk = text[i:i + max_chars]
+        chunks.append(chunk)
+    
+    return chunks
+
+
 class TennisSituationMemory:
     def __init__(self, name, config):
         if config["backend_url"] == "http://localhost:11434/v1":
@@ -74,6 +92,7 @@ class TennisSituationMemory:
         """
         Recupera recomendaciones similares a partir de una situación de partido actual
         usando embeddings de similitud semántica.
+        Chunkea automáticamente las recomendaciones largas para evitar exceder límites de tokens.
         """
         query_embedding = self.get_embedding(current_situation)
 
@@ -83,12 +102,27 @@ class TennisSituationMemory:
             include=["metadatas", "documents", "distances"],
         )
 
+        # Para prompts con límite de 8192 tokens, usar chunk más pequeño
+        # Conservador: ~3 chars por token, para 3000 tokens ≈ 9000 chars por recomendación
+        max_chars_per_recommendation = 9000
+
         matched_results = []
         for i in range(len(results["documents"][0])):
+            recommendation = results["metadatas"][0][i]["recommendation"]
+            
+            # Chunkea la recomendación si es muy larga
+            # Toma solo el primer chunk (más relevante) para mantener el prompt manejable
+            chunks = chunk_text(recommendation, max_chars=max_chars_per_recommendation)
+            if len(chunks) > 1:
+                # Si hay múltiples chunks, toma el primero y añade indicador
+                chunked_recommendation = chunks[0] + "\n\n[...texto truncado para evitar exceder el límite de tokens...]"
+            else:
+                chunked_recommendation = chunks[0]
+            
             matched_results.append(
                 {
                     "matched_situation": results["documents"][0][i],
-                    "recommendation": results["metadatas"][0][i]["recommendation"],
+                    "recommendation": chunked_recommendation,
                     "similarity_score": 1 - results["distances"][0][i],
                 }
             )

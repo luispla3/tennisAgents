@@ -29,7 +29,7 @@ def create_aggressive_debator(llm):
         location = state.get(STATE.location, "")
 
         prompt = f"""
-Como analista de riesgo agresivo, tu misión es defender estrategias de alta recompensa, que son las que no se esperan que sucedan siguiendo la previsón del marcador actual.
+Como analista de riesgo agresivo (pero realista), tu misión es encontrar oportunidades de inversión en las cuotas de apuestas, que son las que no se esperan que sucedan siguiendo la previsón del marcador y las cuotas de apuestas actuales.
 
 **INFORMACIÓN DEL USUARIO Y PARTIDO:**
 - Fecha del partido: {match_date}
@@ -38,12 +38,16 @@ Como analista de riesgo agresivo, tu misión es defender estrategias de alta rec
 - Torneo: {tournament}
 - Superficie: {surface}
 - Ubicación: {location}
+- Saldo disponible: ${wallet_balance}
 
 **TU TAREA PRINCIPAL:**
-Basándote en la información de los reportes de los analistas, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones del mismo tipo de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
+Basándote en la información de los reportes de los analistas, en las cuotas de apuestas disponibles, y en los 4 fundamentales que se han analizado, nunca haciendo 2 inversiones contrarias de apuesta, usando técnicas matemáticas y probabilísticas, deberás hacer lo siguiente:
 
-1. **4 FUNDAMENTALES**: Valorar y revisar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una vision completa de lo analizado, siendo además un poco mas agresivo en la valoración de los fundamentales.
+1. **4 FUNDAMENTALES**: Valorar y validar los 4 fundamentales que se encuentran en los reportes de los analistas, desde una vision completa basada en la información de los reportes de los analistas.
 2. **RESULTADO DEL SET**: Decidir cuál de ambos jugadores gana el set, y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)
+3. **CUOTAS DE APUESTAS**: Estudiar las cuotas de apuestas disponibles.
+4. **CONTRASTE ENTRE FUNDAMENTALES Y CUOTAS DE APUESTAS**: estudiar si las cuotas de apuestas son coherentes con los fundamentales. Si hay alguna que no lo es, analizar si puede ser una oportunidad de inversión debido a que la cuota tiene mayor probabilidad de suceder que la probabilidad implícita de la casa de apuestas.
+5. **ESTRATEGIA DE INVERSIÓN**: Dispones del saldo disponible ${wallet_balance} para invertir. Genera una estrategia de inversión basada en los fundamentales y las cuotas de apuestas, que sean rentables matematicamente y en el tiempo. Si se considera que no hay ninguna oportunidad de inversión, decir que no hay ninguna oportunidad de inversión y por tanto no se apuesta. Buscamos siempre oportunidades de inversión que sean rentables matematicamente y en el tiempo.
 
 **INFORMES DISPONIBLES:**
 - Pronóstico del tiempo: {weather_report}
@@ -69,10 +73,10 @@ Basándote en la información de los reportes de los analistas, y en los 4 funda
    - "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE"
    - "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET"
    - "FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE"
-2. **EXPLICA** tu estrategia de inversión agresiva para el resultado del set
+2. **EXPLICA** tu estrategia de inversión agresiva para el resultado del set y las cuotas de apuestas.
 3. **JUSTIFICA** matemáticamente por qué tomar riesgos tiene sentido dadas las circunstancias
 4. **REBATE** directamente los argumentos de los analistas conservador y neutral
-5. **DEMUESTRA** que la estrategia de riesgo es la más lógica dadas las circunstancias
+5. **DEMUESTRA** que la estrategia de inversión agresiva (pero realista) para el resultado del set y las cuotas de apuestas es la más lógica dadas las circunstancias.
 
 Tu respuesta debe ser conversacional, directa, sin formato especial. No inventes si no hay respuestas previas. ¡Debes persuadir con datos y análisis matemático!
 """
