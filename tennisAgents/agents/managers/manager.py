@@ -34,7 +34,7 @@ def create_risk_manager(llm, memory):
             past_memory_str += rec["recommendation"] + "\n\n"
 
         prompt = f"""
-Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente segura a corto y medio plazo, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
 
 **INFORMACIÓN DEL PARTIDO:**
 - Saldo disponible: ${wallet_balance}
@@ -50,7 +50,7 @@ Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matem
 Finalmente, genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
-3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. Hay que apostar una pequeña cantidad del dinero disponible.
+3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 4. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
 5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
 6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
@@ -80,7 +80,7 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.]
+[No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a corto y medio plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
 - Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
 - Set X - Ganador: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
@@ -101,7 +101,7 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
 IMPORTANTE: 
-- NO estás obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a largo plazo, no en un solo partido, ni en un rango de fechas corto.
+- NO estás obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a corto y medio plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Puedes poner $0 en la apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
