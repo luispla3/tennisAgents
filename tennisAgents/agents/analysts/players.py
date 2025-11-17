@@ -34,7 +34,7 @@ def create_player_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_atp_rankings() - Obtiene el ranking ATP actual con top 400 jugadores\n"
+            "• get_atp_rankings('{player_name}', '{opponent_name}') - Busca en la pagina web de la ATP el ranking ATP actual y el mejor ranking de su carrera para ambos jugadores\n"
             "• get_injury_reports() - Obtiene reportes de lesiones y jugadores que regresan\n"
             "• get_recent_matches('{player_name}', '{opponent_name}', num_matches) - Últimos partidos de ambos jugadores\n"
             "• get_surface_winrate('{player_name}', 'superficie') - Winrate del jugador en una superficie específica\n"
@@ -63,6 +63,13 @@ def create_player_analyst(llm, toolkit):
             "• Comparación de winrates entre ambos jugadores en la superficie\n"
             "• Estadísticas head-to-head y su relevancia histórica\n"
             "• Factores que puedan influir en el resultado del partido\n\n"
+            "ESTRUCTURA OBLIGATORIA DEL REPORTE FINAL:\n"
+            "1. Encabeza el documento con `## 1. Resumen Ejecutivo` y resume en 4-6 líneas los hallazgos más relevantes.\n"
+            "2. Añade `## 2. Análisis por Jugador` con sub-secciones claras para cada jugador y su contexto reciente.\n"
+            "3. Continúa con `## 3. Comparación directa` destacando similitudes y diferencias clave.\n"
+            "4. Incluye `## 4. Predicción basada en datos` donde consolidas insights cuantitativos que respalden la predicción.\n"
+            "5. Presenta `## 5. Tabla de métricas clave` con una tabla markdown (| col1 | col2 | ...) que muestre estadísticas comparables.\n"
+            "6. Solo después de estas secciones, procede con los FUNDAMENTALS enumerados a continuación exactamente como se indica.\n\n"
 
             "==========================================\n"
             "IMPORTANTE: En tu reporte final, cuando incluyas cada uno de los siguientes análisis fundamentales,\n"
@@ -136,7 +143,7 @@ def create_player_analyst(llm, toolkit):
             "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET:\n"
 
             "\n"
-            "Basándote en TODO el análisis previo (servicio, consistencia, rankings, forma, head-to-head, superficie...), y tambien sabiendo quien ha comenzado sacando primero (muy importante), ya que por ejemplo si jugador A gana el set 6-4 sacando jugador A, ese mismo set podia haber acabado 6-4 si hubiese empezando sacando jugador B:\n"
+            "Basándote en TODO el análisis previo (servicio, consistencia, rankings, forma, head-to-head, superficie...):\n"
             "debes proporcionar una predicción CONCRETA y JUSTIFICADA del resultado del set:\n\n"
             "### SÍNTESIS DE FACTORES CLAVE:\n"
             "### ESCENARIOS PROBABLES PARA EL SET:\n"

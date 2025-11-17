@@ -50,39 +50,51 @@ def fetch_injury_reports() -> str:
 
 
 
-def fetch_atp_rankings() -> list:
+def fetch_atp_rankings(player1_name: str, player2_name: str) -> str:
+    """
+    Obtiene el ranking ATP actual y el mejor ranking de carrera para ambos jugadores.
+    
+    Args:
+        player1_name: Nombre del primer jugador
+        player2_name: Nombre del segundo jugador
+    
+    Returns:
+        String con información del ranking ATP de ambos jugadores
+    """
     config = get_config()
     client = OpenAI(base_url=config["backend_url"])
 
-    response = client.responses.create(
-        model=config["quick_think_llm"],
-        input=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": f"Busca el top 400 del ranking ATP y devuelve una lista de jugadores con su nombre, ranking y puntos. El formato debe ser una lista de diccionarios con las claves 'name', 'ranking' y 'points'.",
-                    }
-                ],
-            }
-        ],
-        text={"format": {"type": "text"}},
-        reasoning={},
-        tools=[
-            {
-                "type": "web_search_preview",
-                "user_location": {"type": "approximate"},
-                "search_context_size": "low",
-            }
-        ],
-        temperature=1,
-        max_output_tokens=4096,
-        top_p=1,
-        store=True,
-    )
-
-    return response.output[1].content[0].text
+    try:
+        response = client.responses.create(
+            model=config["quick_think_llm"],
+            input=[
+                {
+                    "role": "system",
+                    "content": [
+                        {
+                            "type": "input_text",
+                            "text": f"Busca en la pagina web de la ATP el ranking ATP actual y el mejor ranking de su carrera para ambos jugadores: {player1_name} y {player2_name}.",
+                        }
+                    ],
+                }
+            ],
+            text={"format": {"type": "text"}},
+            reasoning={},
+            tools=[
+                {
+                    "type": "web_search_preview",
+                    "user_location": {"type": "approximate"},
+                    "search_context_size": "low",
+                }
+            ],
+            temperature=1,
+            max_output_tokens=4096,
+            top_p=1,
+            store=True,
+        )
+        return response.output[1].content[0].text
+    except Exception as e:
+        return f"Error al obtener rankings ATP: {str(e)}"
 
 
 

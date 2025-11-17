@@ -80,7 +80,7 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a corto y medio plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
+[No estas obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
 - Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
 - Set X - Ganador: [Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar]
@@ -101,11 +101,12 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
 IMPORTANTE: 
-- NO estás obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a corto y medio plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
+- NO estás obligado a apostar. Solo apuesta donde veas valor esperado positivo claro. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Puedes poner $0 en la apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
+- En las apuestas de cuotas de partido y apuestas a sets, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """
 
         response = llm.invoke(prompt)

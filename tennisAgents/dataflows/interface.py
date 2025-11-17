@@ -82,14 +82,21 @@ def get_betfair_odds_scraper(player_name: str) -> str:
 
 # PLAYER ANALYST TOOLS
 
-def get_atp_rankings() -> str:
+def get_atp_rankings(player1_name: str, player2_name: str) -> str:
     """
-    Consulta el ranking ATP actual y lo devuelve formateado.
+    Consulta el ranking ATP actual y el mejor ranking de carrera para ambos jugadores.
+    
+    Args:
+        player1_name: Nombre del primer jugador
+        player2_name: Nombre del segundo jugador
+    
+    Returns:
+        String con información del ranking ATP de ambos jugadores
     """
-    result = fetch_atp_rankings()
+    result = fetch_atp_rankings(player1_name, player2_name)
 
     if not result or result.startswith("Error"):
-        return "No se pudo obtener el ranking ATP."
+        return f"No se pudo obtener el ranking ATP para {player1_name} y {player2_name}."
 
     #debug
     print(f"[DEBUG] Resultado de get_atp_rankings: {result}")

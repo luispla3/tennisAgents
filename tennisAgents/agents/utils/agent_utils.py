@@ -74,9 +74,12 @@ class Toolkit:
 
 
     @tool
-    def get_atp_rankings() -> str:
-        """Obtiene el ranking ATP actual. Usa esta herramienta para obtener información sobre el ranking de los jugadores."""
-        return interface.get_atp_rankings()
+    def get_atp_rankings(
+        player1_name: Annotated[str, "Nombre del primer jugador"],
+        player2_name: Annotated[str, "Nombre del segundo jugador"],
+    ) -> str:
+        """Busca en la pagina web de la ATP el ranking ATP actual y el mejor ranking de su carrera para ambos jugadores."""
+        return interface.get_atp_rankings(player1_name, player2_name)
 
     @tool
     def get_recent_matches(

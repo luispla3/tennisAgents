@@ -665,6 +665,24 @@ def format_match_data_structured(match_summary: Dict[str, Any]) -> str:
                     result += f" (Tiebreak: {home_tb}-{away_tb})"
                 result += "\n"
             result += "\n"
+
+        # Saque actual
+        game_state = sport_event_status.get('game_state', {})
+        if game_state:
+            serving_side = game_state.get('serving')
+            serving_label = serving_side.upper() if isinstance(serving_side, str) else 'N/A'
+            serving_player = None
+
+            if serving_side and len(competitors) >= 2:
+                if serving_side == 'home':
+                    serving_player = competitors[0].get('name', 'Jugador Home')
+                elif serving_side == 'away':
+                    serving_player = competitors[1].get('name', 'Jugador Away')
+
+            if serving_player:
+                result += f"**Saque actual:** {serving_player} ({serving_label})\n\n"
+            elif serving_side:
+                result += f"**Saque actual:** {serving_label}\n\n"
     
         # 3. ESTADÍSTICAS DETALLADAS
         result += "## 3. ESTADÍSTICAS DETALLADAS\n\n"

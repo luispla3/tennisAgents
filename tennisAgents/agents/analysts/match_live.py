@@ -65,6 +65,7 @@ def create_match_live_analyst(llm, toolkit):
             "## 2. MARCADOR DETALLADO\n"
             "   - Desglose por sets con juegos de cada set\n"
             "   - Tie-breaks si los hubo\n"
+            "   - Indica explícitamente quién está sacando actualmente mapeando el campo 'serving' del objeto game_state (home/away) al nombre del jugador correspondiente\n"
             "   - Identificar claramente quién va ganando o quién ganó\n\n"
             "## 3. ESTADÍSTICAS COMPLETAS EN TIEMPO REAL\n"
             "   DEBES incluir TODAS las estadísticas disponibles en formato de tabla comparativa.\n"
@@ -138,12 +139,13 @@ def create_match_live_analyst(llm, toolkit):
             "   - Aspectos destacables de cada jugador\n"
             "   - Predicciones o tendencias basadas en los datos\n"
             "   - Información relevante para análisis de apuestas\n\n"
+            "   - Finalmente rebate la estimacion y prediccion que ha hecho el agente de players en base a estos datos en directo, y sabiendo quien esta sacando, ya que por ejemplo si jugador A gana el set 6-4 sacando jugador A, ese mismo set podia haber acabado 6-4 si hubiese empezando sacando jugador B\n\n"
 
             "OBJETIVO PRINCIPAL:\n"
             
             "Proporcionar un análisis profesional y detallado del partido en tiempo real, útil para tomar decisiones "
             "de apuestas deportivas. Debes ser preciso con los números, analizar las tendencias y proporcionar insights "
-            "valiosos basados en las estadísticas reales del partido.\n\n"
+            "valiosos basados en las estadísticas reales del partido. Finalmente rebate la estimacion y prediccion que ha hecho el agente de players en base a estos datos en directo, y sabiendo quien esta sacando, ya que por ejemplo si jugador A gana el set 6-4 sacando jugador A, ese mismo set podia haber acabado 6-4 si hubiese empezando sacando jugador B\n\n"
             "IMPORTANTE:\n"
             "- Los datos vienen formateados de Sportradar API (actualización cada 1 segundo)\n"
             "- Los nombres de jugadores vienen en formato 'Apellido, Nombre'\n"
