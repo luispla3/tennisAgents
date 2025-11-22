@@ -1,0 +1,1184 @@
+{
+  "generated_at": "2025-11-22T15:16:49+00:00",
+  "summaries": [
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65931486",
+        "start_time": "2025-11-22T13:05:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:2517",
+            "name": "UTR Women"
+          },
+          "competition": {
+            "id": "sr:competition:49436",
+            "name": "UTR PTT Bucharest Women 05",
+            "type": "singles",
+            "gender": "women"
+          },
+          "season": {
+            "id": "sr:season:136784",
+            "name": "2025 Bucharest Women 05",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-23",
+            "year": "2025",
+            "competition_id": "sr:competition:49436"
+          },
+          "stage": {
+            "order": 2,
+            "type": "cup",
+            "phase": "stage_1_playoff",
+            "start_date": "2025-11-22",
+            "end_date": "2025-11-23",
+            "year": "2025"
+          },
+          "round": {
+            "name": "semifinal"
+          },
+          "groups": [
+            {
+              "id": "sr:cup:189760",
+              "name": "2025 Bucharest Women 05, 17-20 Playoff"
+            }
+          ],
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:1045073",
+            "name": "Mocanu, Ana Cristiana",
+            "country": "Romania",
+            "country_code": "ROU",
+            "abbreviation": "MOC",
+            "qualifier": "home"
+          },
+          {
+            "id": "sr:competitor:452729",
+            "name": "Lazar, Stefana",
+            "country": "Romania",
+            "country_code": "ROU",
+            "abbreviation": "LAZ",
+            "qualifier": "away"
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:85820",
+          "name": "National Tennis Center - Indoor - Court 03",
+          "city_name": "Bucharest",
+          "country_name": "Romania",
+          "country_code": "ROU",
+          "timezone": "Europe/Bucharest"
+        },
+        "estimated": false
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "3rd_set",
+        "home_score": 1,
+        "away_score": 1,
+        "period_scores": [
+          {
+            "home_score": 3,
+            "away_score": 6,
+            "type": "set",
+            "number": 1
+          },
+          {
+            "home_score": 7,
+            "away_score": 6,
+            "type": "set",
+            "number": 2,
+            "home_tiebreak_score": 7,
+            "away_tiebreak_score": 5
+          },
+          {
+            "home_score": 1,
+            "away_score": 2,
+            "type": "set",
+            "number": 3
+          }
+        ],
+        "game_state": {
+          "home_score": 40,
+          "away_score": 50,
+          "serving": "away",
+          "advantage": "away",
+          "last_point_result": "server_winner",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:1045073",
+              "name": "Mocanu, Ana Cristiana",
+              "abbreviation": "MOC",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 6,
+                "breakpoints_won": 3,
+                "double_faults": 3,
+                "first_serve_points_won": 35,
+                "first_serve_successful": 66,
+                "games_won": 11,
+                "max_games_in_a_row": 3,
+                "max_points_in_a_row": 6,
+                "points_won": 84,
+                "second_serve_points_won": 10,
+                "second_serve_successful": 20,
+                "service_games_won": 7,
+                "service_points_lost": 44,
+                "service_points_won": 45,
+                "tiebreaks_won": 1,
+                "total_breakpoints": 8
+              }
+            },
+            {
+              "id": "sr:competitor:452729",
+              "name": "Lazar, Stefana",
+              "abbreviation": "LAZ",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 3,
+                "breakpoints_won": 6,
+                "double_faults": 4,
+                "first_serve_points_won": 37,
+                "first_serve_successful": 63,
+                "games_won": 14,
+                "max_games_in_a_row": 4,
+                "max_points_in_a_row": 7,
+                "points_won": 93,
+                "second_serve_points_won": 12,
+                "second_serve_successful": 21,
+                "service_games_won": 8,
+                "service_points_lost": 39,
+                "service_points_won": 49,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 11
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65959858",
+        "start_time": "2025-11-22T13:10:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:76",
+            "name": "Davis Cup"
+          },
+          "competition": {
+            "id": "sr:competition:2100",
+            "name": "Davis Cup",
+            "type": "mixed",
+            "gender": "men"
+          },
+          "season": {
+            "id": "sr:season:127417",
+            "name": "Davis Cup 2025",
+            "start_date": "2025-01-30",
+            "end_date": "2025-11-23",
+            "year": "2025",
+            "competition_id": "sr:competition:2100"
+          },
+          "round": {},
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:126356",
+            "name": "Munar, Jaume",
+            "country": "Spain",
+            "country_code": "ESP",
+            "abbreviation": "MUN",
+            "qualifier": "home"
+          },
+          {
+            "id": "sr:competitor:57163",
+            "name": "Zverev, Alexander",
+            "country": "Germany",
+            "country_code": "DEU",
+            "abbreviation": "ZVE",
+            "qualifier": "away"
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:85390",
+          "name": "SuperTennis Arena - BolognaFiere",
+          "city_name": "Bologna",
+          "country_name": "Italy",
+          "country_code": "ITA",
+          "timezone": "Europe/Rome"
+        },
+        "channels": [
+          {
+            "name": "Eurosport 2 UK HD - Eurobird 1 / Astra 2A/2B/2D (28.2E)"
+          },
+          {
+            "name": "Eurosport 1 UK HD - Eurobird 1 / Astra 2A/2B/2D (28.2E)"
+          },
+          {
+            "name": "TRT 3 - Türksat 1C / Eurasiasat 1 (42.0E)"
+          },
+          {
+            "name": "RTS1 - Eutelsat W2 (16.0E) - Total TV"
+          },
+          {
+            "name": "FRANCE 2 FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "FRANCE 3 FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "FRANCE 4 FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "HRT-TV2 HD - Eutelsat W2 (16.0E) - OIV Zagreb"
+          },
+          {
+            "name": "Arryadia HD - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "TVP SPORT HD - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "TRT 3 Spor HD - Eutelsat W3A (7.0E)"
+          },
+          {
+            "name": "Sport2 HU - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "CT 2 - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "Dvojka HD - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "Sky Sport Action IT HD - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "Supertennis HD - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "ORF Sport Plus - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "RTS Deux HD - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "CANAL+ FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "Match Arena RU - Eutelsat W4 (36.0E)"
+          },
+          {
+            "name": "ARRIADIA - Badr / Eshail (26.0E)"
+          },
+          {
+            "name": "Match Igra RU - Eutelsat W4 (36.0E)"
+          },
+          {
+            "name": "Sport TV1 HD - Hispasat 1B/1C/1D (30.0 W) - NOS PT"
+          },
+          {
+            "name": "Sport TV2 HD - Hispasat 1B/1C/1D (30.0 W) - NOS PT"
+          },
+          {
+            "name": "C More Live - Thor 2/3 (1.0W) - Telenor - 5063"
+          },
+          {
+            "name": "C More Tennis HD - Thor 2/3 (1.0W) - Telenor - 234"
+          },
+          {
+            "name": "beIN SPORT Max 4 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "beIN SPORT Max 5 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "beIN SPORT Max 6 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "beIN SPORT Max 9 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "CT Sport CZ - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "MTV Urheilu 1 HD - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "ÈÈN HD - Astra 1D/3A (23.5E)"
+          },
+          {
+            "name": "Eurosport Danmark - Astra 4A & SES 5 (4.9E)"
+          },
+          {
+            "name": "TRT SPOR HD - Eutelsat W3A (7.0E)"
+          },
+          {
+            "name": "SporTV 2 HD South America - (43.1W)"
+          },
+          {
+            "name": "SporTV 3 HD South America - (43.1W)"
+          },
+          {
+            "name": "Band Sports South America - (43.1W)"
+          },
+          {
+            "name": "TyC Sports South America - (95.0W)"
+          },
+          {
+            "name": "Canvas HD - Astra 1D/3A (23.5E)"
+          },
+          {
+            "name": "Sport Klub 1 SRB - (16.0E)"
+          },
+          {
+            "name": "Sport Klub 2 SRB - (16.0E)"
+          },
+          {
+            "name": "Sport TV5 HD - Hispasat 1B/1C/1D (30.0 W) - NOS PT"
+          },
+          {
+            "name": "beIN Sports 3 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "beIN Sports 1 HD FR - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "CANAL+ SPORT 2 HD PL - Hot Bird 1/2/3/4/6 (13.0E)"
+          },
+          {
+            "name": "TRT Spor HD - Türksat 1C / Eurasiasat 1 (42.0E)"
+          },
+          {
+            "name": "TRT Spor - Türksat 1C / Eurasiasat 1 (42.0E)"
+          },
+          {
+            "name": "M4 Sport HD - Thor 2/3 (1.0W)"
+          },
+          {
+            "name": "Match TV - Eutelsat W4 (36.0E)"
+          },
+          {
+            "name": "ORF Sport+ HD - Astra 1C-1H / 2C (19.2E)"
+          },
+          {
+            "name": "CT Sport HD - Astra 1D/3A (23.5E)"
+          },
+          {
+            "name": "Sport Klub SRB HD - (16.0E)"
+          },
+          {
+            "name": "Match Arena RU HD - Eutelsat W4 (36.0E)"
+          },
+          {
+            "name": "TYC Sports PE - Amazonas 1/2 (61.0W)"
+          }
+        ],
+        "type": "child",
+        "parent_id": "sr:sport_event:65903966",
+        "estimated": true
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "2nd_set",
+        "home_score": 0,
+        "away_score": 1,
+        "period_scores": [
+          {
+            "home_score": 6,
+            "away_score": 7,
+            "type": "set",
+            "number": 1,
+            "home_tiebreak_score": 2,
+            "away_tiebreak_score": 7
+          },
+          {
+            "home_score": 5,
+            "away_score": 6,
+            "type": "set",
+            "number": 2
+          }
+        ],
+        "game_state": {
+          "home_score": 0,
+          "away_score": 0,
+          "serving": "home",
+          "last_point_result": "ace",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:126356",
+              "name": "Munar, Jaume",
+              "abbreviation": "MUN",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 7,
+                "breakpoints_won": 2,
+                "double_faults": 1,
+                "first_serve_points_won": 36,
+                "first_serve_successful": 48,
+                "games_won": 11,
+                "max_games_in_a_row": 3,
+                "max_points_in_a_row": 5,
+                "points_won": 65,
+                "second_serve_points_won": 7,
+                "second_serve_successful": 16,
+                "service_games_won": 9,
+                "service_points_lost": 21,
+                "service_points_won": 43,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 3
+              }
+            },
+            {
+              "id": "sr:competitor:57163",
+              "name": "Zverev, Alexander",
+              "abbreviation": "ZVE",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 13,
+                "breakpoints_won": 2,
+                "double_faults": 1,
+                "first_serve_points_won": 46,
+                "first_serve_successful": 62,
+                "games_won": 13,
+                "max_games_in_a_row": 3,
+                "max_points_in_a_row": 6,
+                "points_won": 73,
+                "second_serve_points_won": 6,
+                "second_serve_successful": 12,
+                "service_games_won": 10,
+                "service_points_lost": 22,
+                "service_points_won": 52,
+                "tiebreaks_won": 1,
+                "total_breakpoints": 4
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65931488",
+        "start_time": "2025-11-22T14:45:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:2517",
+            "name": "UTR Women"
+          },
+          "competition": {
+            "id": "sr:competition:49436",
+            "name": "UTR PTT Bucharest Women 05",
+            "type": "singles",
+            "gender": "women"
+          },
+          "season": {
+            "id": "sr:season:136784",
+            "name": "2025 Bucharest Women 05",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-23",
+            "year": "2025",
+            "competition_id": "sr:competition:49436"
+          },
+          "stage": {
+            "order": 2,
+            "type": "cup",
+            "phase": "stage_1_playoff",
+            "start_date": "2025-11-22",
+            "end_date": "2025-11-23",
+            "year": "2025"
+          },
+          "round": {
+            "name": "semifinal"
+          },
+          "groups": [
+            {
+              "id": "sr:cup:189760",
+              "name": "2025 Bucharest Women 05, 17-20 Playoff"
+            }
+          ],
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:1300080",
+            "name": "Cozma, Sara",
+            "country": "Romania",
+            "country_code": "ROU",
+            "abbreviation": "COZ",
+            "qualifier": "home"
+          },
+          {
+            "id": "sr:competitor:123748",
+            "name": "Frahn, Madison",
+            "country": "Australia",
+            "country_code": "AUS",
+            "abbreviation": "FRA",
+            "qualifier": "away"
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:85818",
+          "name": "National Tennis Center - Indoor - Court 02",
+          "city_name": "Bucharest",
+          "country_name": "Romania",
+          "country_code": "ROU",
+          "timezone": "Europe/Bucharest"
+        },
+        "estimated": false
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "1st_set",
+        "home_score": 0,
+        "away_score": 0,
+        "period_scores": [
+          {
+            "home_score": 2,
+            "away_score": 2,
+            "type": "set",
+            "number": 1
+          }
+        ],
+        "game_state": {
+          "home_score": 15,
+          "away_score": 0,
+          "serving": "home",
+          "last_point_result": "server_winner",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:1300080",
+              "name": "Cozma, Sara",
+              "abbreviation": "COZ",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 0,
+                "breakpoints_won": 1,
+                "double_faults": 1,
+                "first_serve_points_won": 7,
+                "first_serve_successful": 14,
+                "games_won": 2,
+                "max_games_in_a_row": 1,
+                "max_points_in_a_row": 4,
+                "points_won": 17,
+                "second_serve_points_won": 3,
+                "second_serve_successful": 4,
+                "service_games_won": 1,
+                "service_points_lost": 9,
+                "service_points_won": 10,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 1
+              }
+            },
+            {
+              "id": "sr:competitor:123748",
+              "name": "Frahn, Madison",
+              "abbreviation": "FRA",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 0,
+                "breakpoints_won": 1,
+                "double_faults": 1,
+                "first_serve_points_won": 5,
+                "first_serve_successful": 8,
+                "games_won": 2,
+                "max_games_in_a_row": 2,
+                "max_points_in_a_row": 5,
+                "points_won": 16,
+                "second_serve_points_won": 2,
+                "second_serve_successful": 5,
+                "service_games_won": 1,
+                "service_points_lost": 7,
+                "service_points_won": 7,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 3
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65609382",
+        "start_time": "2025-11-22T15:00:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:72",
+            "name": "Challenger"
+          },
+          "competition": {
+            "id": "sr:competition:3289",
+            "name": "ATP Challenger Bergamo, Italy Men Doubles",
+            "parent_id": "sr:competition:3285",
+            "type": "doubles",
+            "gender": "men"
+          },
+          "season": {
+            "id": "sr:season:134007",
+            "name": "ATP Challenger Bergamo, Italy Men Doubles 2025",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-22",
+            "year": "2025",
+            "competition_id": "sr:competition:3289"
+          },
+          "stage": {
+            "order": 1,
+            "type": "cup",
+            "phase": "stage_1_playoff",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-22",
+            "year": "2025"
+          },
+          "round": {
+            "name": "final"
+          },
+          "groups": [
+            {
+              "id": "sr:cup:185995",
+              "name": "2025 Bergamo, Italy, Doubles"
+            }
+          ],
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:1252309",
+            "name": "Poljak D / Ruehl T",
+            "abbreviation": "P/R",
+            "qualifier": "home",
+            "players": [
+              {
+                "id": "sr:competitor:60614",
+                "name": "Poljak, David",
+                "country": "Czechia",
+                "country_code": "CZE",
+                "abbreviation": "POL"
+              },
+              {
+                "id": "sr:competitor:126622",
+                "name": "Ruehl, Tim",
+                "country": "Germany",
+                "country_code": "DEU",
+                "abbreviation": "RUE"
+              }
+            ],
+            "bracket_number": 7
+          },
+          {
+            "id": "sr:competitor:953467",
+            "name": "Paris J / Willis M",
+            "abbreviation": "P/W",
+            "qualifier": "away",
+            "players": [
+              {
+                "id": "sr:competitor:95923",
+                "name": "Paris, Joshua",
+                "country": "Great Britain",
+                "country_code": "GBR",
+                "abbreviation": "PAR"
+              },
+              {
+                "id": "sr:competitor:16992",
+                "name": "Willis, Marcus",
+                "country": "Great Britain",
+                "country_code": "GBR",
+                "abbreviation": "WIL"
+              }
+            ],
+            "seed": 3,
+            "bracket_number": 12
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:64477",
+          "name": "Center Court",
+          "city_name": "Bergamo",
+          "country_name": "Italy",
+          "country_code": "ITA",
+          "timezone": "Europe/Rome"
+        },
+        "estimated": false
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "1st_set",
+        "home_score": 0,
+        "away_score": 0,
+        "period_scores": [
+          {
+            "home_score": 1,
+            "away_score": 2,
+            "type": "set",
+            "number": 1
+          }
+        ],
+        "game_state": {
+          "home_score": 0,
+          "away_score": 0,
+          "serving": "home",
+          "last_point_result": "server_winner",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:1252309",
+              "name": "Poljak D / Ruehl T",
+              "abbreviation": "P/R",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 2,
+                "breakpoints_won": 0,
+                "double_faults": 0,
+                "first_serve_points_won": 4,
+                "first_serve_successful": 5,
+                "games_won": 1,
+                "max_games_in_a_row": 1,
+                "max_points_in_a_row": 4,
+                "points_won": 4,
+                "points_won_from_last_10": 4,
+                "second_serve_points_won": 0,
+                "second_serve_successful": 0,
+                "service_games_won": 1,
+                "service_points_lost": 1,
+                "service_points_won": 4,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 0
+              }
+            },
+            {
+              "id": "sr:competitor:953467",
+              "name": "Paris J / Willis M",
+              "abbreviation": "P/W",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 1,
+                "breakpoints_won": 0,
+                "double_faults": 0,
+                "first_serve_points_won": 5,
+                "first_serve_successful": 5,
+                "games_won": 2,
+                "max_games_in_a_row": 1,
+                "max_points_in_a_row": 5,
+                "points_won": 9,
+                "points_won_from_last_10": 6,
+                "second_serve_points_won": 3,
+                "second_serve_successful": 3,
+                "service_games_won": 2,
+                "service_points_lost": 0,
+                "service_points_won": 8,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65937312",
+        "start_time": "2025-11-22T15:00:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:2516",
+            "name": "UTR Men"
+          },
+          "competition": {
+            "id": "sr:competition:49430",
+            "name": "UTR PTT Ithaca Men 02",
+            "type": "singles",
+            "gender": "men"
+          },
+          "season": {
+            "id": "sr:season:136776",
+            "name": "UTR PTT Olomouc Men 07 2025",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-23",
+            "year": "2025",
+            "competition_id": "sr:competition:49430"
+          },
+          "stage": {
+            "order": 2,
+            "type": "cup",
+            "phase": "stage_1_playoff",
+            "start_date": "2025-11-22",
+            "end_date": "2025-11-23",
+            "year": "2025"
+          },
+          "round": {
+            "name": "semifinal"
+          },
+          "groups": [
+            {
+              "id": "sr:cup:189722",
+              "name": "2025 Ithaca Men 02, 13-16 Playoff"
+            }
+          ],
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:1300094",
+            "name": "Nissen, Jens Holger",
+            "country": "USA",
+            "country_code": "USA",
+            "abbreviation": "NIS",
+            "qualifier": "home"
+          },
+          {
+            "id": "sr:competitor:819300",
+            "name": "Bianchi, Joaquin",
+            "country": "Argentina",
+            "country_code": "ARG",
+            "abbreviation": "BIA",
+            "qualifier": "away"
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:83919",
+          "name": "Reis Tennis Center (Cornell) - Court 5",
+          "city_name": "Ithaca, NY",
+          "country_name": "USA",
+          "country_code": "USA",
+          "timezone": "America/New_York"
+        },
+        "estimated": false
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "1st_set",
+        "home_score": 0,
+        "away_score": 0,
+        "period_scores": [
+          {
+            "home_score": 1,
+            "away_score": 1,
+            "type": "set",
+            "number": 1
+          }
+        ],
+        "game_state": {
+          "home_score": 0,
+          "away_score": 15,
+          "serving": "away",
+          "last_point_result": "server_winner",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:1300094",
+              "name": "Nissen, Jens Holger",
+              "abbreviation": "NIS",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 1,
+                "breakpoints_won": 0,
+                "double_faults": 0,
+                "first_serve_points_won": 3,
+                "first_serve_successful": 6,
+                "games_won": 1,
+                "max_games_in_a_row": 1,
+                "max_points_in_a_row": 2,
+                "points_won": 5,
+                "second_serve_points_won": 2,
+                "second_serve_successful": 2,
+                "service_games_won": 1,
+                "service_points_lost": 3,
+                "service_points_won": 5,
+                "total_breakpoints": 0
+              }
+            },
+            {
+              "id": "sr:competitor:819300",
+              "name": "Bianchi, Joaquin",
+              "abbreviation": "BIA",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 0,
+                "breakpoints_won": 0,
+                "double_faults": 0,
+                "first_serve_points_won": 1,
+                "first_serve_successful": 1,
+                "games_won": 1,
+                "max_games_in_a_row": 1,
+                "max_points_in_a_row": 5,
+                "points_won": 8,
+                "second_serve_points_won": 4,
+                "second_serve_successful": 4,
+                "service_games_won": 1,
+                "service_points_lost": 0,
+                "service_points_won": 5,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 0
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "sport_event": {
+        "id": "sr:sport_event:65937314",
+        "start_time": "2025-11-22T15:00:00+00:00",
+        "start_time_confirmed": true,
+        "sport_event_context": {
+          "sport": {
+            "id": "sr:sport:5",
+            "name": "Tennis"
+          },
+          "category": {
+            "id": "sr:category:2516",
+            "name": "UTR Men"
+          },
+          "competition": {
+            "id": "sr:competition:49430",
+            "name": "UTR PTT Ithaca Men 02",
+            "type": "singles",
+            "gender": "men"
+          },
+          "season": {
+            "id": "sr:season:136776",
+            "name": "UTR PTT Olomouc Men 07 2025",
+            "start_date": "2025-11-17",
+            "end_date": "2025-11-23",
+            "year": "2025",
+            "competition_id": "sr:competition:49430"
+          },
+          "stage": {
+            "order": 2,
+            "type": "cup",
+            "phase": "stage_1_playoff",
+            "start_date": "2025-11-22",
+            "end_date": "2025-11-23",
+            "year": "2025"
+          },
+          "round": {
+            "name": "semifinal"
+          },
+          "groups": [
+            {
+              "id": "sr:cup:189722",
+              "name": "2025 Ithaca Men 02, 13-16 Playoff"
+            }
+          ],
+          "mode": {
+            "best_of": 3
+          }
+        },
+        "coverage": {
+          "type": "sport_event",
+          "sport_event_properties": {
+            "enhanced_stats": false,
+            "scores": "live",
+            "detailed_serve_outcomes": true,
+            "play_by_play": true
+          }
+        },
+        "competitors": [
+          {
+            "id": "sr:competitor:1024813",
+            "name": "Lemieux-Monette, Numa",
+            "country": "Canada",
+            "country_code": "CAN",
+            "abbreviation": "LEM",
+            "qualifier": "home"
+          },
+          {
+            "id": "sr:competitor:380288",
+            "name": "Catala, Jose Antonio",
+            "country": "Bolivia",
+            "country_code": "BOL",
+            "abbreviation": "CAT",
+            "qualifier": "away"
+          }
+        ],
+        "venue": {
+          "id": "sr:venue:83917",
+          "name": "Reis Tennis Center (Cornell) - Court 4",
+          "city_name": "Ithaca, NY",
+          "country_name": "USA",
+          "country_code": "USA",
+          "timezone": "America/New_York"
+        },
+        "estimated": false
+      },
+      "sport_event_status": {
+        "status": "live",
+        "match_status": "1st_set",
+        "home_score": 0,
+        "away_score": 0,
+        "period_scores": [
+          {
+            "home_score": 2,
+            "away_score": 0,
+            "type": "set",
+            "number": 1
+          }
+        ],
+        "game_state": {
+          "home_score": 0,
+          "away_score": 0,
+          "serving": "away",
+          "last_point_result": "receiver_winner",
+          "tie_break": false
+        }
+      },
+      "statistics": {
+        "totals": {
+          "competitors": [
+            {
+              "id": "sr:competitor:1024813",
+              "name": "Lemieux-Monette, Numa",
+              "abbreviation": "LEM",
+              "qualifier": "home",
+              "statistics": {
+                "aces": 0,
+                "breakpoints_won": 1,
+                "double_faults": 0,
+                "first_serve_points_won": 4,
+                "first_serve_successful": 6,
+                "games_won": 2,
+                "max_games_in_a_row": 2,
+                "max_points_in_a_row": 6,
+                "points_won": 9,
+                "second_serve_points_won": 1,
+                "second_serve_successful": 2,
+                "service_games_won": 1,
+                "service_points_lost": 3,
+                "service_points_won": 5,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 1
+              }
+            },
+            {
+              "id": "sr:competitor:380288",
+              "name": "Catala, Jose Antonio",
+              "abbreviation": "CAT",
+              "qualifier": "away",
+              "statistics": {
+                "aces": 0,
+                "breakpoints_won": 0,
+                "double_faults": 0,
+                "first_serve_points_won": 2,
+                "first_serve_successful": 6,
+                "max_points_in_a_row": 3,
+                "points_won": 5,
+                "second_serve_points_won": 0,
+                "second_serve_successful": 0,
+                "service_games_won": 0,
+                "service_points_lost": 4,
+                "service_points_won": 2,
+                "tiebreaks_won": 0,
+                "total_breakpoints": 1
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

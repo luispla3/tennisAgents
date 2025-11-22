@@ -229,6 +229,199 @@ def fetch_live_summaries(include_all_statuses: bool = False) -> Dict[str, Any]:
         }
 
 
+def fetch_season_summaries(season_id: str, access_level: str = "trial", language_code: str = "en", format: str = "json") -> Dict[str, Any]:
+    """
+    Obtiene los resúmenes de una temporada específica desde la API de Sportradar.
+    
+    Endpoint: https://api.sportradar.com/tennis/{access_level}/v3/{language_code}/seasons/{season_id}/summaries.{format}
+    
+    Args:
+        season_id (str): ID de la temporada (ej: "sr:season:12345")
+        access_level (str): Nivel de acceso (trial, production). Por defecto "trial"
+        language_code (str): Código de idioma (en, es, etc.). Por defecto "en"
+        format (str): Formato de respuesta (json, xml). Por defecto "json"
+    
+    Returns:
+        Dict[str, Any]: Diccionario con:
+            - success (bool): Si la operación fue exitosa
+            - data (Dict): Datos completos de la API
+            - season_id (str): ID de la temporada consultada
+            - fetched_at (str): Timestamp de la consulta
+            - error (str): Mensaje de error si falló
+    """
+    try:
+        api_key = get_sportradar_api_key()
+        
+        url = f"https://api.sportradar.com/tennis/{access_level}/v3/{language_code}/seasons/{season_id}/summaries.{format}"
+        headers = {
+            "accept": "application/json",
+            "x-api-key": api_key
+        }
+        
+        print(f"[INFO] Consultando Sportradar Season Summaries API...")
+        print(f"[INFO] URL: {url}")
+        
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        data = response.json()
+        
+        print(f"[SUCCESS] Se obtuvieron los resúmenes de la temporada {season_id}")
+        
+        return {
+            "success": True,
+            "data": data,
+            "season_id": season_id,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except ValueError as ve:
+        print(f"[ERROR] Error de configuración: {str(ve)}")
+        return {
+            "success": False,
+            "error": str(ve),
+            "data": {},
+            "season_id": season_id,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": "Verifica que SPORTRADAR_API_KEY esté configurada en el archivo .env"
+        }
+        
+    except requests.exceptions.HTTPError as http_err:
+        print(f"[ERROR] Error HTTP al consultar Sportradar Season Summaries: {str(http_err)}")
+        status_code = response.status_code if 'response' in locals() else 'N/A'
+        return {
+            "success": False,
+            "error": f"Error HTTP: {str(http_err)}",
+            "data": {},
+            "season_id": season_id,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": f"Código de estado: {status_code}",
+            "status_code": status_code
+        }
+        
+    except requests.exceptions.RequestException as req_err:
+        print(f"[ERROR] Error de conexión al consultar Sportradar Season Summaries: {str(req_err)}")
+        return {
+            "success": False,
+            "error": f"Error de conexión: {str(req_err)}",
+            "data": {},
+            "season_id": season_id,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Error inesperado en fetch_season_summaries: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Error inesperado: {str(e)}",
+            "data": {},
+            "season_id": season_id,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+
+def fetch_daily_summaries(date: Optional[str] = None, access_level: str = "trial", language_code: str = "en", format: str = "json") -> Dict[str, Any]:
+    """
+    Obtiene los resúmenes de partidos de un día específico desde la API de Sportradar.
+    
+    Endpoint: https://api.sportradar.com/tennis/{access_level}/v3/{language_code}/schedules/{date}/summaries.{format}
+    
+    Args:
+        date (Optional[str]): Fecha en formato YYYY-MM-DD. Si es None, usa la fecha actual.
+        access_level (str): Nivel de acceso (trial, production). Por defecto "trial"
+        language_code (str): Código de idioma (en, es, etc.). Por defecto "en"
+        format (str): Formato de respuesta (json, xml). Por defecto "json"
+    
+    Returns:
+        Dict[str, Any]: Diccionario con:
+            - success (bool): Si la operación fue exitosa
+            - data (Dict): Datos completos de la API
+            - date (str): Fecha consultada
+            - total_matches (int): Número total de partidos
+            - fetched_at (str): Timestamp de la consulta
+            - error (str): Mensaje de error si falló
+    """
+    try:
+        api_key = get_sportradar_api_key()
+        
+        # Si no se proporciona fecha, usar la fecha actual
+        if date is None:
+            date = datetime.now().strftime('%Y-%m-%d')
+        
+        url = f"https://api.sportradar.com/tennis/{access_level}/v3/{language_code}/schedules/{date}/summaries.{format}"
+        headers = {
+            "accept": "application/json",
+            "x-api-key": api_key
+        }
+        
+        print(f"[INFO] Consultando Sportradar Daily Summaries API...")
+        print(f"[INFO] URL: {url}")
+        
+        response = requests.get(url, headers=headers, timeout=30)
+        response.raise_for_status()
+        
+        data = response.json()
+        summaries = data.get("summaries", [])
+        
+        print(f"[SUCCESS] Se obtuvieron {len(summaries)} partidos para la fecha {date}")
+        
+        return {
+            "success": True,
+            "data": data,
+            "date": date,
+            "total_matches": len(summaries),
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except ValueError as ve:
+        print(f"[ERROR] Error de configuración: {str(ve)}")
+        return {
+            "success": False,
+            "error": str(ve),
+            "data": {},
+            "date": date or datetime.now().strftime('%Y-%m-%d'),
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": "Verifica que SPORTRADAR_API_KEY esté configurada en el archivo .env"
+        }
+        
+    except requests.exceptions.HTTPError as http_err:
+        print(f"[ERROR] Error HTTP al consultar Sportradar Daily Summaries: {str(http_err)}")
+        status_code = response.status_code if 'response' in locals() else 'N/A'
+        return {
+            "success": False,
+            "error": f"Error HTTP: {str(http_err)}",
+            "data": {},
+            "date": date or datetime.now().strftime('%Y-%m-%d'),
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            "note": f"Código de estado: {status_code}",
+            "status_code": status_code
+        }
+        
+    except requests.exceptions.RequestException as req_err:
+        print(f"[ERROR] Error de conexión al consultar Sportradar Daily Summaries: {str(req_err)}")
+        return {
+            "success": False,
+            "error": f"Error de conexión: {str(req_err)}",
+            "data": {},
+            "date": date or datetime.now().strftime('%Y-%m-%d'),
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        
+    except Exception as e:
+        print(f"[ERROR] Error inesperado en fetch_daily_summaries: {str(e)}")
+        return {
+            "success": False,
+            "error": f"Error inesperado: {str(e)}",
+            "data": {},
+            "date": date or datetime.now().strftime('%Y-%m-%d'),
+            "total_matches": 0,
+            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+
+
 def tournament_name_matches(api_tournament: str, search_tournament: str, debug: bool = False) -> bool:
     """
     Verifica si un nombre de torneo de la API coincide con el nombre buscado.
@@ -666,9 +859,10 @@ def format_match_data_structured(match_summary: Dict[str, Any]) -> str:
                 result += "\n"
             result += "\n"
 
-        # Saque actual
+        # Estado del juego actual (puntos dentro del juego)
         game_state = sport_event_status.get('game_state', {})
         if game_state:
+            # Información del saque
             serving_side = game_state.get('serving')
             serving_label = serving_side.upper() if isinstance(serving_side, str) else 'N/A'
             serving_player = None
@@ -679,10 +873,93 @@ def format_match_data_structured(match_summary: Dict[str, Any]) -> str:
                 elif serving_side == 'away':
                     serving_player = competitors[1].get('name', 'Jugador Away')
 
+            # Puntos del juego actual
+            home_game_score = game_state.get('home_score')
+            away_game_score = game_state.get('away_score')
+            
+            # Convertir puntuación numérica a formato de tenis (0, 15, 30, 40, AD)
+            # La API puede devolver índices numéricos (0-4) o puntuaciones de tenis (0, 15, 30, 40, AD)
+            def format_tennis_score(score):
+                if score is None:
+                    return 'N/A'
+                # Si es un número pequeño (0-4), probablemente es un índice
+                if isinstance(score, int):
+                    if score == 0:
+                        return '0'
+                    elif score == 1:
+                        return '15'
+                    elif score == 2:
+                        return '30'
+                    elif score == 3:
+                        return '40'
+                    elif score == 4:
+                        return 'AD'
+                    # Si es un número mayor, podría ser una puntuación de tenis directa (15, 30, 40)
+                    elif score in [15, 30, 40]:
+                        return str(score)
+                    else:
+                        return str(score)
+                # Si es string, devolverlo tal cual
+                elif isinstance(score, str):
+                    return score
+                else:
+                    return str(score)
+            
+            home_score_formatted = format_tennis_score(home_game_score)
+            away_score_formatted = format_tennis_score(away_game_score)
+            
+            # Información adicional del juego
+            last_point_result = game_state.get('last_point_result')
+            is_tiebreak = game_state.get('tie_break', False)
+            point_type = game_state.get('point_type')
+            
+            result += "### Estado del Juego Actual (Puntos dentro del juego)\n\n"
+            
+            # Mostrar puntuación del juego
+            if home_game_score is not None and away_game_score is not None:
+                if len(competitors) >= 2:
+                    home_name = competitors[0].get('name', 'Home')
+                    away_name = competitors[1].get('name', 'Away')
+                    result += f"**📊 Puntuación del juego:** {home_name} **{home_score_formatted}** - **{away_score_formatted}** {away_name}\n\n"
+                else:
+                    result += f"**📊 Puntuación del juego:** Home **{home_score_formatted}** - **{away_score_formatted}** Away\n\n"
+            
+            # Información del saque
             if serving_player:
-                result += f"**Saque actual:** {serving_player} ({serving_label})\n\n"
+                result += f"**🎾 Saque actual:** {serving_player} ({serving_label})\n"
             elif serving_side:
-                result += f"**Saque actual:** {serving_label}\n\n"
+                result += f"**🎾 Saque actual:** {serving_label}\n"
+            
+            # Información adicional
+            if last_point_result:
+                # Traducir last_point_result a español si es necesario
+                point_result_translation = {
+                    'server_winner': 'Ganador del saque',
+                    'receiver_winner': 'Ganador del resto',
+                    'double_fault': 'Doble falta',
+                    'ace': 'Ace',
+                    'unforced_error': 'Error no forzado',
+                    'forced_error': 'Error forzado'
+                }
+                translated_result = point_result_translation.get(last_point_result, last_point_result)
+                result += f"**⚡ Último punto:** {translated_result} ({last_point_result})\n"
+            
+            if point_type:
+                # Traducir point_type a español si es necesario
+                point_type_translation = {
+                    'break': 'Break point',
+                    'break_point': 'Break point',
+                    'game_point': 'Game point',
+                    'set_point': 'Set point',
+                    'match_point': 'Match point'
+                }
+                translated_type = point_type_translation.get(point_type, point_type)
+                result += f"**🎯 Tipo de punto:** {translated_type}\n"
+            
+            if is_tiebreak:
+                result += f"**🔀 Tie-break:** Sí\n"
+            
+            result += "\n"
     
         # 3. ESTADÍSTICAS DETALLADAS
         result += "## 3. ESTADÍSTICAS DETALLADAS\n\n"

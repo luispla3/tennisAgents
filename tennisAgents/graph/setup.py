@@ -34,6 +34,7 @@ class GraphSetup:
         tool_nodes: Dict[str, ToolNode],
         risk_manager_memory,
         conditional_logic: ConditionalLogic,
+        additional_risk_manager_llms: list = None,
     ):
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
@@ -41,6 +42,7 @@ class GraphSetup:
         self.tool_nodes = tool_nodes
         self.risk_manager_memory = risk_manager_memory
         self.conditional_logic = conditional_logic
+        self.additional_risk_manager_llms = additional_risk_manager_llms or []
 
     def setup_graph(
         self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live, ANALYST_NODES.odds]
@@ -91,7 +93,11 @@ class GraphSetup:
         safe_debator = create_conservative_debator(self.quick_thinking_llm)
         expected_debator = create_expected_debator(self.quick_thinking_llm)
         neutral_debator = create_neutral_debator(self.quick_thinking_llm)
-        risk_manager_node = create_risk_manager(self.deep_thinking_llm, self.risk_manager_memory)
+        risk_manager_node = create_risk_manager(
+            self.deep_thinking_llm, 
+            self.risk_manager_memory,
+            additional_risk_managers=self.additional_risk_manager_llms
+        )
 
         workflow = StateGraph(AgentState)
 

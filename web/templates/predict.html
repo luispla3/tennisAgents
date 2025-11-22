@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predict - TennisAgents</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=7">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand -->
+            <div class="navbar-brand">
+                <a href="/" class="brand-link">TennisAgents</a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-links">
+                <!-- Tennis Dropdown -->
+                <div class="nav-item dropdown">
+                    <button class="nav-link dropdown-toggle" id="tennisDropdown" aria-expanded="false">
+                        Tennis
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-sections" id="tennisDropdownMenu">
+                        <a href="/predict" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2L3 7V18H17V7L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 10V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 14H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Predict</div>
+                                <div class="dropdown-section-description">AI-powered match predictions and betting analysis</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="/daily-summaries" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 4H18V16H2V4Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 10H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Daily Summaries</div>
+                                <div class="dropdown-section-description">Daily tennis match summaries and insights</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- About Us -->
+                <a href="/about" class="nav-link">About Us</a>
+
+                <!-- Pricing -->
+                <a href="/pricing" class="nav-link">Pricing</a>
+
+                <!-- Log in -->
+                <a href="/login" class="nav-link login-link">Log in</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="predict-main">
+        <div class="container">
+            <div class="predict-content">
+                <!-- Top Actions Bar -->
+                <div class="predict-header-actions">
+                    <button class="btn-icon btn-settings" id="settingsButton" aria-label="Configuración">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <circle cx="10" cy="10" r="3"/>
+                            <path d="M10 6V4M10 16V14M4 10H2M18 10H16M15.66 6.34L14.24 7.76M5.76 12.24L4.34 13.66M15.66 13.66L14.24 12.24M5.76 7.76L4.34 6.34"/>
+                        </svg>
+                    </button>
+                    <div class="wallet-balance" id="walletBalance">
+                        <svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                            <rect x="2" y="4" width="16" height="12" rx="2"/>
+                            <path d="M2 8H18M4 12H6"/>
+                        </svg>
+                        <span class="wallet-amount" id="walletAmountDisplay">0.00 €</span>
+                    </div>
+                </div>
+                
+                <h1 class="predict-title">Predict</h1>
+                <p class="predict-description">
+                    Partidos en vivo de Sportradar
+                </p>
+
+                <!-- Loading indicator -->
+                <div id="loadingIndicator" class="loading-indicator">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando partidos en vivo...</p>
+                </div>
+
+                <!-- Matches container -->
+                <div id="matchesContainer" class="matches-container" style="display: none;"></div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>No hay partidos en vivo en este momento</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="settings-modal">
+        <div class="settings-modal-backdrop"></div>
+        <div class="settings-modal-content">
+            <div class="settings-modal-header">
+                <h3 class="settings-modal-title">Configuración del Sistema</h3>
+                <button class="btn-close-modal" id="closeSettingsModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6L18 18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-modal-body">
+                <form id="settingsForm">
+                    <!-- Información del Partido (Read-only) -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">Información del Partido</h4>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label class="settings-label">Jugador 1</label>
+                                <input type="text" class="settings-input" id="player1" readonly>
+                            </div>
+                            <div class="settings-field">
+                                <label class="settings-label">Jugador 2</label>
+                                <input type="text" class="settings-input" id="player2" readonly>
+                            </div>
+                            <div class="settings-field">
+                                <label class="settings-label">Torneo</label>
+                                <input type="text" class="settings-input" id="tournament" readonly>
+                            </div>
+                            <div class="settings-field">
+                                <label class="settings-label">Fecha de Análisis</label>
+                                <input type="date" class="settings-input" id="analysisDate" readonly>
+                            </div>
+                            <div class="settings-field">
+                                <label class="settings-label">Saldo de Billetera (€)</label>
+                                <input type="number" class="settings-input" id="walletBalanceInput" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuración de Analistas -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">Analistas del Equipo</h4>
+                        <div class="settings-checkbox-group">
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="news" class="settings-checkbox">
+                                <span>News Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="odds" class="settings-checkbox">
+                                <span>Odds Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="players" class="settings-checkbox">
+                                <span>Players Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="social" class="settings-checkbox">
+                                <span>Social Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="tournament" class="settings-checkbox">
+                                <span>Tournament Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="weather" class="settings-checkbox">
+                                <span>Weather Analyst</span>
+                            </label>
+                            <label class="settings-checkbox-label">
+                                <input type="checkbox" name="analysts" value="match_live" class="settings-checkbox">
+                                <span>Match Live Analyst</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Profundidad de Investigación -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">Profundidad de Investigación</h4>
+                        <select class="settings-select" id="researchDepth">
+                            <option value="1">Shallow - Quick research, few debate and strategy discussion rounds</option>
+                            <option value="3" selected>Medium - Middle ground, moderate debate rounds and strategy discussion</option>
+                            <option value="5">Deep - Comprehensive research, in depth debate and strategy discussion</option>
+                        </select>
+                    </div>
+
+                    <!-- Proveedor LLM -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">Proveedor LLM</h4>
+                        <select class="settings-select" id="llmProvider">
+                            <option value="openai">OpenAI</option>
+                            <option value="anthropic">Anthropic</option>
+                            <option value="google">Google</option>
+                            <option value="openrouter">OpenRouter</option>
+                            <option value="ollama">Ollama</option>
+                        </select>
+                    </div>
+
+                    <!-- URL del Backend -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">URL del Backend</h4>
+                        <select class="settings-select" id="backendUrl">
+                            <option value="https://api.openai.com/v1">https://api.openai.com/v1</option>
+                            <option value="https://api.anthropic.com/">https://api.anthropic.com/</option>
+                            <option value="https://generativelanguage.googleapis.com/v1">https://generativelanguage.googleapis.com/v1</option>
+                            <option value="https://openrouter.ai/api/v1">https://openrouter.ai/api/v1</option>
+                            <option value="http://localhost:11434/v1">http://localhost:11434/v1</option>
+                        </select>
+                    </div>
+
+                    <!-- Thinking Agents -->
+                    <div class="settings-section">
+                        <h4 class="settings-section-title">Thinking Agents</h4>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label class="settings-label">Shallow Thinker (Quick-Thinking LLM)</label>
+                                <select class="settings-select" id="shallowThinker">
+                                    <!-- Options will be populated dynamically based on provider -->
+                                </select>
+                            </div>
+                            <div class="settings-field">
+                                <label class="settings-label">Deep Thinker (Deep-Thinking LLM)</label>
+                                <select class="settings-select" id="deepThinker">
+                                    <!-- Options will be populated dynamically based on provider -->
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="settings-actions">
+                        <button type="button" class="btn-settings-secondary" id="cancelSettings">Cancelar</button>
+                        <button type="submit" class="btn-settings-primary">Guardar Configuración</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=6"></script>
+    <script src="/static/js/predict.js?v=6"></script>
+    <script src="/static/js/settings.js?v=1"></script>
+</body>
+</html>
+

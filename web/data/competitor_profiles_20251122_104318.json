@@ -1,0 +1,23 @@
+{
+  "player_1": {
+    "competitor_id": "",
+    "profile": {
+      "success": false,
+      "error": "competitor_id está vacío",
+      "competitor_id": "",
+      "data": {},
+      "fetched_at": "2025-11-22 10:43:19"
+    }
+  },
+  "player_2": {
+    "competitor_id": "",
+    "profile": {
+      "success": false,
+      "error": "competitor_id está vacío",
+      "competitor_id": "",
+      "data": {},
+      "fetched_at": "2025-11-22 10:43:19"
+    }
+  },
+  "fetched_at": "2025-11-22 10:43:19"
+}

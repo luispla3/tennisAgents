@@ -806,9 +806,11 @@ def run_analysis():
         [analyst.value for analyst in selections["analysts"]], config=config, debug=True
     )
 
-    # Create result directory
+    # Create result directory with unique timestamp
     player_pair = f"{selections['player1']} vs {selections['player2']}"
-    results_dir = Path(config["results_dir"]) / player_pair / selections["analysis_date"]
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    unique_dir_name = f"{player_pair}_{timestamp}"
+    results_dir = Path(config["results_dir"]) / unique_dir_name / selections["analysis_date"]
     results_dir.mkdir(parents=True, exist_ok=True)
     report_dir = results_dir / "reports"
     report_dir.mkdir(parents=True, exist_ok=True)
@@ -1084,6 +1086,17 @@ def run_analysis():
                         "final_bet_decision", chunk["final_bet_decision"]
                     )
 
+                # Individual Risk Manager Decisions
+                if "individual_risk_manager_decisions" in chunk and chunk["individual_risk_manager_decisions"]:
+                    individual_decisions = chunk["individual_risk_manager_decisions"]
+                    if isinstance(individual_decisions, dict):
+                        for model_name, decision in individual_decisions.items():
+                            # Sanitize model name for filename
+                            safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+                            file_name = f"final_bet_decision_{safe_model_name}.md"
+                            with open(report_dir / file_name, "w", encoding="utf-8") as f:
+                                f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
+
                 # Update the display
                 update_display(layout)
 
@@ -1104,6 +1117,17 @@ def run_analysis():
         for section in message_buffer.report_sections.keys():
             if section in final_state:
                 message_buffer.update_report_section(section, final_state[section])
+
+        # Save individual risk manager decisions if they exist
+        if "individual_risk_manager_decisions" in final_state and final_state["individual_risk_manager_decisions"]:
+            individual_decisions = final_state["individual_risk_manager_decisions"]
+            if isinstance(individual_decisions, dict):
+                for model_name, decision in individual_decisions.items():
+                    # Sanitize model name for filename
+                    safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+                    file_name = f"final_bet_decision_{safe_model_name}.md"
+                    with open(report_dir / file_name, "w", encoding="utf-8") as f:
+                        f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
 
         # Display the complete final report
         display_complete_report(final_state)

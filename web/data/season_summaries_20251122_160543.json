@@ -1,0 +1,13 @@
+{
+  "season_id": "test_season_id",
+  "result": {
+    "success": false,
+    "error": "Error HTTP: 429 Client Error: Too Many Requests for url: https://api.sportradar.com/tennis/trial/v3/en/seasons/test_season_id/summaries.json",
+    "data": {},
+    "season_id": "test_season_id",
+    "fetched_at": "2025-11-22 16:05:43",
+    "note": "Código de estado: 429",
+    "status_code": 429
+  },
+  "fetched_at": "2025-11-22 16:05:43"
+}

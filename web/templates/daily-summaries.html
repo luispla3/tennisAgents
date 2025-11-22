@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Summaries - TennisAgents</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand -->
+            <div class="navbar-brand">
+                <a href="/" class="brand-link">TennisAgents</a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-links">
+                <!-- Tennis Dropdown -->
+                <div class="nav-item dropdown">
+                    <button class="nav-link dropdown-toggle" id="tennisDropdown" aria-expanded="false">
+                        Tennis
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-sections" id="tennisDropdownMenu">
+                        <a href="/predict" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2L3 7V18H17V7L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 10V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 14H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Predict</div>
+                                <div class="dropdown-section-description">AI-powered match predictions and betting analysis</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="/daily-summaries" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 4H18V16H2V4Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 10H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Daily Summaries</div>
+                                <div class="dropdown-section-description">Daily tennis match summaries and insights</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- About Us -->
+                <a href="/about" class="nav-link">About Us</a>
+
+                <!-- Pricing -->
+                <a href="/pricing" class="nav-link">Pricing</a>
+
+                <!-- Log in -->
+                <a href="/login" class="nav-link login-link">Log in</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="predict-main">
+        <div class="container">
+            <div class="predict-content">
+                <h1 class="predict-title">Daily Summaries</h1>
+                <p class="predict-description">
+                    Resúmenes diarios de partidos finalizados
+                </p>
+
+                <!-- Loading indicator -->
+                <div id="loadingIndicator" class="loading-indicator">
+                    <div class="loading-spinner"></div>
+                    <p>Cargando resúmenes diarios...</p>
+                </div>
+
+                <!-- Matches container -->
+                <div id="matchesContainer" class="matches-container" style="display: none;"></div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <p>No hay partidos finalizados para hoy</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/main.js?v=6"></script>
+    <script src="/static/js/daily-summaries.js?v=6"></script>
+</body>
+</html>
+

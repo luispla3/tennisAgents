@@ -1,8 +1,7 @@
-from typing import Annotated
+from typing import Annotated, Dict
 from typing_extensions import TypedDict
 from langgraph.graph import MessagesState
 from typing import Optional, List, Any
-from typing_extensions import Annotated
 
 
 # Estado del debate de gestión de riesgo
@@ -106,6 +105,11 @@ class AgentState(MessagesState):
     # Decisión final
     final_bet_decision: Annotated[
         Optional[str], "Decisión final de apuesta"
+    ]
+
+    # Decisiones individuales de cada risk manager (para medir rendimiento)
+    individual_risk_manager_decisions: Annotated[
+        Optional[Dict[str, str]], "Decisiones individuales de cada risk manager por modelo"
     ]
 
     # Estado del debate de riesgo

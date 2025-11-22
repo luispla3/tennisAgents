@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TennisAgents - Multi-Agents LLM Tennis Betting Framework</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand -->
+            <div class="navbar-brand">
+                <a href="/" class="brand-link">TennisAgents</a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-links">
+                <!-- Tennis Dropdown -->
+                <div class="nav-item dropdown">
+                    <button class="nav-link dropdown-toggle" id="tennisDropdown" aria-expanded="false">
+                        Tennis
+                        <svg class="dropdown-arrow" width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-sections" id="tennisDropdownMenu">
+                        <a href="/predict" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M10 2L3 7V18H17V7L10 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M10 10V18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 14H14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Predict</div>
+                                <div class="dropdown-section-description">AI-powered match predictions and betting analysis</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                        <a href="/daily-summaries" class="dropdown-section">
+                            <div class="dropdown-section-icon">
+                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M2 4H18V16H2V4Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M14 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M6 2V6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    <path d="M2 10H18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </div>
+                            <div class="dropdown-section-content">
+                                <div class="dropdown-section-title">Daily Summaries</div>
+                                <div class="dropdown-section-description">Daily tennis match summaries and insights</div>
+                            </div>
+                            <svg class="dropdown-section-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 12L10 8L6 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- About Us -->
+                <a href="/about" class="nav-link">About Us</a>
+
+                <!-- Pricing -->
+                <a href="/pricing" class="nav-link">Pricing</a>
+
+                <!-- Log in -->
+                <a href="/login" class="nav-link login-link">Log in</a>
+            </div>
+
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-container">
+            <div class="hero-content">
+                <h1 class="hero-title">
+                    <span class="gradient-text">Empower developers.</span><br>
+                    Engineer excellence.
+                </h1>
+                <p class="hero-description">
+                    We help technology companies provide exceptional developer experiences. 
+                    We make developer tools, SDKs, and libraries for the open-source ecosystem.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/predict" class="btn btn-primary">Book a consultation</a>
+                    <a href="/about" class="btn btn-secondary">Explore our services</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Trusted By Section -->
+    <section class="trusted-section">
+        <div class="container">
+            <p class="trusted-label">TRUSTED BY INDUSTRY LEADERS</p>
+            <div class="trusted-logos">
+                <div class="logo-item">Google</div>
+                <div class="logo-item">Amazon</div>
+                <div class="logo-item">Canonical</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature Section (Video-like area) -->
+    <section class="feature-section">
+        <div class="container">
+            <div class="feature-content">
+                <div class="feature-visual">
+                    <div class="geometric-shape">
+                        <div class="shape-inner"></div>
+                    </div>
+                </div>
+                <div class="feature-text">
+                    <h2 class="feature-title">Open Source</h2>
+                    <p class="feature-description">
+                        Building the future of developer tools with open-source principles. 
+                        Our SDKs and libraries are designed to empower developers worldwide.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
+

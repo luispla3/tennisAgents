@@ -29,3 +29,7 @@ betfair_scraper
 selenium
 webdriver_manager
 raganything[all]
+fastapi
+uvicorn[standard]
+jinja2
+python-multipart

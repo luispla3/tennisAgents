@@ -58,6 +58,7 @@ class STATE:
     risk_debate_state = "risk_debate_state"
 
     final_bet_decision = "final_bet_decision"
+    individual_risk_manager_decisions = "individual_risk_manager_decisions"  # Dict con decisiones individuales por modelo
     
     count = "count"
     latest_speaker = "latest_speaker"
