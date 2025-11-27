@@ -65,7 +65,7 @@ class TennisAgentsGraph:
         openrouter_base_url = self.config.get("openrouter_base_url", "https://openrouter.ai/api/v1")
         additional_managers_config = self.config.get("additional_risk_managers", [
             {"name": "GPT-5.1", "model": "openai/gpt-5.1"},
-            {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro"},
+            {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro-preview"},
             {"name": "Grok-4", "model": "x-ai/grok-4"},
         ])
         

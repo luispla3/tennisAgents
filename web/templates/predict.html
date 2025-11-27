@@ -167,7 +167,7 @@
                                 <input type="date" class="settings-input" id="analysisDate" readonly>
                             </div>
                             <div class="settings-field">
-                                <label class="settings-label">Saldo de Billetera (€)</label>
+                                <label class="settings-label">Cantidad a apostar (€)</label>
                                 <input type="number" class="settings-input" id="walletBalanceInput" step="0.01" min="0" placeholder="0.00">
                             </div>
                         </div>
@@ -230,18 +230,6 @@
                         </select>
                     </div>
 
-                    <!-- URL del Backend -->
-                    <div class="settings-section">
-                        <h4 class="settings-section-title">URL del Backend</h4>
-                        <select class="settings-select" id="backendUrl">
-                            <option value="https://api.openai.com/v1">https://api.openai.com/v1</option>
-                            <option value="https://api.anthropic.com/">https://api.anthropic.com/</option>
-                            <option value="https://generativelanguage.googleapis.com/v1">https://generativelanguage.googleapis.com/v1</option>
-                            <option value="https://openrouter.ai/api/v1">https://openrouter.ai/api/v1</option>
-                            <option value="http://localhost:11434/v1">http://localhost:11434/v1</option>
-                        </select>
-                    </div>
-
                     <!-- Thinking Agents -->
                     <div class="settings-section">
                         <h4 class="settings-section-title">Thinking Agents</h4>
@@ -265,6 +253,17 @@
                     <div class="settings-actions">
                         <button type="button" class="btn-settings-secondary" id="cancelSettings">Cancelar</button>
                         <button type="submit" class="btn-settings-primary">Guardar Configuración</button>
+                    </div>
+
+                    <!-- Predict Button -->
+                    <div class="settings-predict-section">
+                        <button type="button" class="btn-settings-predict" id="predictButton">
+                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M10 2L3 7V14H13V7L10 2Z"/>
+                                <path d="M10 8V12M8 10H12"/>
+                            </svg>
+                            Predecir
+                        </button>
                     </div>
                 </form>
             </div>

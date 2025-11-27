@@ -19,7 +19,7 @@ DEFAULT_CONFIG = {
     # Fixed models for additional risk managers (via OpenRouter)
     "additional_risk_managers": [
         {"name": "GPT-5.1", "model": "openai/gpt-5.1"},
-        {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro"},
+        {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro-preview"},
         {"name": "Grok-4", "model": "x-ai/grok-4"},
     ],
     # Debate and discussion settings

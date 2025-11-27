@@ -73,6 +73,9 @@ Finalmente, genera un INFORME FINAL que incluya:
 - Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
 - Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
+### Informe de Cuotas Disponibles (Betfair):
+{odds_report}
+
 ### Debate actual entre analistas:
 {history}
 
@@ -113,6 +116,7 @@ IMPORTANTE:
 - Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
+- **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
 - En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """
@@ -197,6 +201,9 @@ Finalmente, genera un INFORME FINAL que incluya:
 - Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
 - Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
+### Informe de Cuotas Disponibles (Betfair):
+{odds_report}
+
 ### Debate actual entre analistas:
 {history}
 
@@ -237,6 +244,7 @@ IMPORTANTE:
 - Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
+- **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
 - En las apuestas de cuotas de partido (obligatorias) y apuestas a sets, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """

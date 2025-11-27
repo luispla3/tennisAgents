@@ -2001,6 +2001,49 @@ body {
     color: var(--text-primary);
 }
 
+.settings-predict-section {
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: 2px solid var(--border-color);
+    display: flex;
+    justify-content: center;
+}
+
+.btn-settings-predict {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-md) var(--spacing-2xl);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    border: none;
+    font-family: inherit;
+    background: var(--gradient-primary);
+    color: var(--text-primary);
+    box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
+    width: 100%;
+    max-width: 300px;
+}
+
+.btn-settings-predict:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 30px rgba(255, 107, 53, 0.5);
+}
+
+.btn-settings-predict:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 10px rgba(255, 107, 53, 0.3);
+}
+
+.btn-settings-predict svg {
+    width: 20px;
+    height: 20px;
+}
+
 /* Responsive Design for Settings */
 @media (max-width: 768px) {
     .predict-header-actions {
@@ -2041,6 +2084,10 @@ body {
     .btn-settings-primary,
     .btn-settings-secondary {
         width: 100%;
+    }
+
+    .btn-settings-predict {
+        max-width: 100%;
     }
 }
 

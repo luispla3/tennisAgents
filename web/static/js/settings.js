@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const llmProviderSelect = document.getElementById('llmProvider');
     const shallowThinkerSelect = document.getElementById('shallowThinker');
     const deepThinkerSelect = document.getElementById('deepThinker');
-    const backendUrlSelect = document.getElementById('backendUrl');
+    const predictButton = document.getElementById('predictButton');
 
     // LLM Model options by provider
     const SHALLOW_AGENT_OPTIONS = {
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const settings = JSON.parse(savedSettings);
                 
                 // Load wallet balance
-                if (settings.walletBalance !== undefined) {
+                if (settings.walletBalance !== undefined && walletBalanceInput) {
                     walletBalanceInput.value = settings.walletBalance;
                     updateWalletDisplay(settings.walletBalance);
                 }
@@ -111,41 +111,42 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Load research depth
                 if (settings.researchDepth) {
-                    document.getElementById('researchDepth').value = settings.researchDepth;
+                    const researchDepthEl = document.getElementById('researchDepth');
+                    if (researchDepthEl) {
+                        researchDepthEl.value = settings.researchDepth;
+                    }
                 }
                 
                 // Load LLM provider
-                if (settings.llmProvider) {
+                if (settings.llmProvider && llmProviderSelect) {
                     llmProviderSelect.value = settings.llmProvider;
-                    updateBackendUrl(settings.llmProvider);
                     updateModelOptions(settings.llmProvider);
                 }
                 
-                // Load backend URL
-                if (settings.backendUrl) {
-                    backendUrlSelect.value = settings.backendUrl;
-                }
-                
                 // Load thinking agents
-                if (settings.shallowThinker) {
+                if (settings.shallowThinker && shallowThinkerSelect) {
                     shallowThinkerSelect.value = settings.shallowThinker;
                 }
-                if (settings.deepThinker) {
+                if (settings.deepThinker && deepThinkerSelect) {
                     deepThinkerSelect.value = settings.deepThinker;
                 }
                 
                 // Load match info if available
                 if (settings.player1) {
-                    document.getElementById('player1').value = settings.player1;
+                    const player1El = document.getElementById('player1');
+                    if (player1El) player1El.value = settings.player1;
                 }
                 if (settings.player2) {
-                    document.getElementById('player2').value = settings.player2;
+                    const player2El = document.getElementById('player2');
+                    if (player2El) player2El.value = settings.player2;
                 }
                 if (settings.tournament) {
-                    document.getElementById('tournament').value = settings.tournament;
+                    const tournamentEl = document.getElementById('tournament');
+                    if (tournamentEl) tournamentEl.value = settings.tournament;
                 }
                 if (settings.analysisDate) {
-                    document.getElementById('analysisDate').value = settings.analysisDate;
+                    const analysisDateEl = document.getElementById('analysisDate');
+                    if (analysisDateEl) analysisDateEl.value = settings.analysisDate;
                 }
             } catch (e) {
                 console.error('Error loading settings:', e);
@@ -155,12 +156,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save settings to localStorage
     function saveSettings() {
+        // Automatically determine backend URL based on selected provider
+        const backendUrl = BACKEND_URLS[llmProviderSelect.value] || BACKEND_URLS.openai;
+        
         const settings = {
             walletBalance: parseFloat(walletBalanceInput.value) || 0,
             analysts: Array.from(document.querySelectorAll('input[name="analysts"]:checked')).map(cb => cb.value),
             researchDepth: parseInt(document.getElementById('researchDepth').value),
             llmProvider: llmProviderSelect.value,
-            backendUrl: backendUrlSelect.value,
+            backendUrl: backendUrl, // Automatically set based on provider
             shallowThinker: shallowThinkerSelect.value,
             deepThinker: deepThinkerSelect.value,
             player1: document.getElementById('player1').value,
@@ -178,13 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
         const balanceElement = document.getElementById('walletAmountDisplay');
         if (balanceElement) {
             balanceElement.textContent = `${parseFloat(balance || 0).toFixed(2)} €`;
-        }
-    }
-
-    // Update backend URL based on provider
-    function updateBackendUrl(provider) {
-        if (BACKEND_URLS[provider]) {
-            backendUrlSelect.value = BACKEND_URLS[provider];
         }
     }
 
@@ -264,7 +261,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle LLM provider change
     llmProviderSelect.addEventListener('change', function() {
         const provider = this.value;
-        updateBackendUrl(provider);
         updateModelOptions(provider);
     });
 
@@ -272,6 +268,19 @@ document.addEventListener('DOMContentLoaded', function() {
     walletBalanceInput.addEventListener('input', function() {
         updateWalletDisplay(this.value);
     });
+
+    // Handle predict button click
+    if (predictButton) {
+        predictButton.addEventListener('click', function() {
+            // Save settings before predicting
+            const settings = saveSettings();
+            console.log('Predicting with settings:', settings);
+            
+            // TODO: Implement prediction functionality
+            // This will be implemented later
+            alert('Funcionalidad de predicción pendiente de implementar');
+        });
+    }
 
     // Initialize
     updateModelOptions(llmProviderSelect.value);
@@ -297,6 +306,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Expose function to get settings
     window.getSettings = function() {
         return saveSettings();
+    };
+    
+    // Expose function to open settings modal
+    window.openSettingsModal = function() {
+        openSettingsModal();
     };
 });
 

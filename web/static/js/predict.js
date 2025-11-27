@@ -1059,13 +1059,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function attachAnalyzeListeners() {
         // Handle analyze button click
-        document.querySelectorAll('.btn-analyze').forEach(button => {
+        const analyzeButtons = document.querySelectorAll('.btn-analyze');
+        console.log('Attaching analyze listeners to', analyzeButtons.length, 'buttons');
+        
+        analyzeButtons.forEach((button, index) => {
             button.addEventListener('click', function(e) {
                 e.stopPropagation();
+                e.preventDefault();
+                
+                console.log('Analyze button clicked, index:', index);
+                
                 const player1 = this.getAttribute('data-player1');
                 const player2 = this.getAttribute('data-player2');
                 const tournament = this.getAttribute('data-tournament');
                 const matchDate = this.getAttribute('data-match-date');
+                
+                console.log('Match data:', { player1, player2, tournament, matchDate });
                 
                 // Format date to YYYY-MM-DD
                 let analysisDate = '';
@@ -1101,3 +1110,4 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load matches on page load
     fetchAndRenderMatches();
 });
+
