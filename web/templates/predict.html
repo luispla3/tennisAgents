@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -270,9 +271,67 @@
         </div>
     </div>
 
-    <script src="/static/js/main.js?v=6"></script>
-    <script src="/static/js/predict.js?v=6"></script>
-    <script src="/static/js/settings.js?v=1"></script>
+    <!-- Analysis Modal -->
+    <div id="analysisModal" class="settings-modal">
+        <div class="settings-modal-backdrop"></div>
+        <div class="settings-modal-content" style="max-width: 1400px; height: 90vh; width: 95%;">
+            <div class="settings-modal-header">
+                <h3 class="settings-modal-title" id="analysisTitle">Analysis in Progress...</h3>
+                <button class="btn-close-modal" id="closeAnalysisModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6L18 18"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="settings-modal-body" style="display: flex; flex-direction: column; gap: 20px; height: 100%; padding: 20px;">
+                <!-- Status Bar -->
+                <div id="analysisStatus" style="padding: 15px; background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; color: #22c55e; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+                    <div class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
+                    <span>Initializing system...</span>
+                </div>
+                
+                <div style="display: flex; gap: 20px; flex: 1; min-height: 0; flex-wrap: wrap;">
+                    <!-- Left Column: Logs & Progress -->
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 20px; min-width: 300px;">
+                        <!-- Active Agents -->
+                        <div class="settings-section" style="flex: 0 0 auto; margin: 0; border: none;">
+                            <h4 class="settings-section-title">Agent Status</h4>
+                            <div id="activeAgents" style="display: flex; flex-wrap: wrap; gap: 10px;">
+                                <!-- Agent badges will be injected here -->
+                            </div>
+                        </div>
+                        
+                        <!-- Logs -->
+                        <div class="settings-section" style="flex: 1; display: flex; flex-direction: column; margin: 0; min-height: 0; border: none;">
+                            <h4 class="settings-section-title">System Logs</h4>
+                            <div id="analysisLogs" style="flex: 1; overflow-y: auto; background: #0a0a0a; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; font-family: 'Menlo', 'Monaco', 'Courier New', monospace; font-size: 12px; color: #a0a0a0; white-space: pre-wrap; scroll-behavior: smooth;"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right Column: Reports -->
+                    <div class="settings-section" style="flex: 1.5; display: flex; flex-direction: column; margin: 0; min-height: 0; border: none; min-width: 300px;">
+                        <h4 class="settings-section-title">Analysis Reports</h4>
+                        <div id="analysisReports" style="flex: 1; overflow-y: auto; background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: 8px; padding: 20px;">
+                            <div style="text-align: center; color: var(--text-secondary); padding-top: 50px;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="opacity: 0.5; margin-bottom: 10px;">
+                                    <path d="M14 2H6C4.89543 2 4 2.89543 4 4V20C4 21.1046 4.89543 22 6 22H18C19.1046 22 20 21.1046 20 20V8L14 2Z"/>
+                                    <path d="M14 2V8H20"/>
+                                    <path d="M16 13H8"/>
+                                    <path d="M16 17H8"/>
+                                    <path d="M10 9H8"/>
+                                </svg>
+                                <p>Reports will appear here as they are generated...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js?v=7"></script>
+    <script src="/static/js/predict.js?v=7"></script>
+    <script src="/static/js/settings.js?v=2"></script>
 </body>
 </html>
 

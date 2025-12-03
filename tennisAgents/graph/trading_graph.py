@@ -228,11 +228,56 @@ class TennisAgentsGraph:
         STATE.individual_risk_manager_decisions: final_state.get(STATE.individual_risk_manager_decisions, {}),
     }
 
-        directory = Path(f"eval_results/{self.match}/TennisAgents_logs/")
-        directory.mkdir(parents=True, exist_ok=True)
+        # Use configuration for results directory, fallback to 'results' in current working directory
+        # We construct the path dynamically based on config to match web/app.py behavior if needed
+        # But here we just want to log the full state JSON
+        
+        # If called from web app, config['results_dir'] might be absolute
+        results_base = self.config.get("results_dir", "results")
+        
+        # If running from web/app.py, we want to save in the same folder structure
+        # Construct path: results_dir / match_pair_timestamp / date
+        
+        # We need to find the specific match folder created. 
+        # Since we don't have the timestamp here easily without passing it down,
+        # we might create a new folder or try to find the latest one.
+        # HOWEVER, web/app.py creates the directory structure.
+        
+        # Strategy: If results_dir is provided in config, use it as base.
+        # If it's absolute, use it. If relative, make it relative to project root.
+        
+        base_path = Path(results_base)
+        if not base_path.is_absolute():
+            # Assuming running from project root or relative to it
+            # If running from web/, we need to go up one level or similar?
+            # self.config["project_dir"] usually holds project root
+            project_root = Path(self.config.get("project_dir", os.getcwd()))
+            base_path = project_root / results_base
+            
+        # Create a generic logs directory if we can't match the exact timestamped folder easily
+        # OR, better: let the caller handle logging if they want precise location?
+        # But this method is called internally.
+        
+        # Let's stick to a consistent location for logs:
+        # eval_results/{match}/TennisAgents_logs/ is what was there.
+        # Let's change it to match the config results dir structure if possible.
+        
+        # For now, to ensure it works as requested "inside results of web":
+        # We'll use the base_path derived from config.
+        
+        # Note: This specific log file (full_states_log) is different from the reports.
+        # The user asked for "reports" to be saved.
+        
+        # Let's keep this logging but fix the path to be inside the configured results dir
+        # We'll create a 'logs' folder in the results base for now, or try to put it in the match folder
+        
+        # Using a simple timestamp for the log folder to avoid overwriting if called multiple times
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_dir = base_path / "logs" / f"{self.match}_{timestamp}"
+        log_dir.mkdir(parents=True, exist_ok=True)
 
         with open(
-            f"eval_results/{self.match}/TennisAgents_logs/full_states_log_{match_date}.json",
+            log_dir / f"full_states_log_{match_date}.json",
             "w",
         ) as f:
             json.dump(self.log_states_dict, f, indent=4)

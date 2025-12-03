@@ -19,6 +19,14 @@ sys.path.insert(0, str(PROJECT_ROOT))
 # Import Sportradar utilities
 from tennisAgents.dataflows.match_live_utils import fetch_live_summaries, fetch_season_summaries, fetch_daily_summaries, get_sportradar_api_key
 from tennisAgents.default_config import DEFAULT_CONFIG
+from tennisAgents.graph.trading_graph import TennisAgentsGraph
+
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from typing import List, Optional
+import asyncio
+import json
+import os
 
 # Create FastAPI app
 app = FastAPI(
@@ -33,6 +41,353 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 DATA_DIR = PROJECT_ROOT / "web" / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+# Helper function to extract content string (copied from cli/main.py)
+def extract_content_string(content):
+    """Extract string content from various message formats."""
+    if isinstance(content, str):
+        return content
+    elif isinstance(content, list):
+        # Handle Anthropic's list format
+        text_parts = []
+        for item in content:
+            if isinstance(item, dict):
+                if item.get('type') == 'text':
+                    text_parts.append(item.get('text', ''))
+                elif item.get('type') == 'tool_use':
+                    text_parts.append(f"[Tool: {item.get('name', 'unknown')}]")
+            else:
+                text_parts.append(str(item))
+        return ' '.join(text_parts)
+    else:
+        return str(content)
+
+class AnalysisRequest(BaseModel):
+    player1: str
+    player2: str
+    tournament: str
+    analysis_date: str
+    wallet_balance: float
+    analysts: List[str]
+    research_depth: int
+    llm_provider: str
+    shallow_thinker: str
+    deep_thinker: str
+    backend_url: Optional[str] = None
+
+@app.post("/api/run-analysis")
+async def run_analysis(request: AnalysisRequest):
+    """
+    Run the tennis analysis system and stream the results.
+    """
+    
+    async def event_generator():
+        try:
+            # Setup configuration
+            config = DEFAULT_CONFIG.copy()
+            config["max_debate_rounds"] = request.research_depth
+            config["max_risk_discuss_rounds"] = request.research_depth
+            config["quick_think_llm"] = request.shallow_thinker
+            config["deep_think_llm"] = request.deep_thinker
+            if request.backend_url:
+                config["backend_url"] = request.backend_url
+            config["llm_provider"] = request.llm_provider.lower()
+            
+            # For web runs, force results into web/results (separado de la CLI)
+            web_results_root = PROJECT_ROOT / "web" / "results"
+            web_results_root.mkdir(parents=True, exist_ok=True)
+            config["results_dir"] = str(web_results_root)
+                
+            # Setup results directory
+            player_pair = f"{request.player1} vs {request.player2}"
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            unique_dir_name = f"{player_pair}_{timestamp}"
+            results_dir = Path(config["results_dir"]) / unique_dir_name / request.analysis_date
+            results_dir.mkdir(parents=True, exist_ok=True)
+            report_dir = results_dir / "reports"
+            report_dir.mkdir(parents=True, exist_ok=True)
+            log_file = results_dir / "message_tool.log"
+            log_file.touch(exist_ok=True)
+            
+            # Initialize graph
+            # Note: TennisAgentsGraph is synchronous, but we run it in a way that we can stream
+            # Since graph initialization might take a moment, send a status update
+            yield json.dumps({
+                "type": "status", 
+                "data": {"message": "Initializing analysis graph...", "step": "init"}
+            }) + "\n"
+            
+            graph = TennisAgentsGraph(
+                request.analysts, 
+                config=config, 
+                debug=True
+            )
+            
+            # Helper interno para escribir en el log de mensajes/herramientas
+            def append_log_line(line: str) -> None:
+                try:
+                    with open(log_file, "a", encoding="utf-8") as f:
+                        f.write(line + "\n")
+                except Exception:
+                    # No romper el streaming por un fallo de escritura
+                    pass
+            
+            # Initialize state
+            init_agent_state = graph.propagator.create_initial_state(
+                request.player1, 
+                request.player2, 
+                request.analysis_date,
+                request.tournament,
+                request.wallet_balance
+            )
+            args = graph.propagator.get_graph_args()
+            
+            yield json.dumps({
+                "type": "status", 
+                "data": {"message": f"Starting analysis for {player_pair}...", "step": "started"}
+            }) + "\n"
+
+            # Stream the analysis
+            # Since graph.stream is a generator, we iterate over it
+            for chunk in graph.graph.stream(init_agent_state, **args):
+                
+                # 1. Handle Messages (Logs)
+                if "messages" in chunk and len(chunk["messages"]) > 0:
+                    last_message = chunk["messages"][-1]
+                    
+                    msg_content = ""
+                    msg_type = "System"
+                    
+                    if hasattr(last_message, "content"):
+                        msg_content = extract_content_string(last_message.content)
+                        msg_type = "Reasoning"
+                    else:
+                        msg_content = str(last_message)
+                    
+                    log_event = {
+                        "type": "log",
+                        "data": {
+                            "timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "type": msg_type,
+                            "content": msg_content
+                        }
+                    }
+                    # Escribir en fichero de log
+                    append_log_line(f"{log_event['data']['timestamp']} [{log_event['data']['type']}] {log_event['data']['content'].replace(chr(10), ' ')}")
+                    # Enviar al frontend
+                    yield json.dumps(log_event) + "\n"
+                    
+                    # Handle tool calls
+                    if hasattr(last_message, "tool_calls") and last_message.tool_calls:
+                        for tool_call in last_message.tool_calls:
+                            tool_name = tool_call["name"] if isinstance(tool_call, dict) else tool_call.name
+                            tool_args = tool_call["args"] if isinstance(tool_call, dict) else tool_call.args
+                            
+                            tool_event = {
+                                "type": "tool_call",
+                                "data": {
+                                    "timestamp": datetime.now().strftime("%H:%M:%S"),
+                                    "name": tool_name,
+                                    "args": str(tool_args)
+                                }
+                            }
+                            # Log de tool call
+                            append_log_line(f"{tool_event['data']['timestamp']} [Tool Call] {tool_event['data']['name']}({tool_event['data']['args']})")
+                            # Enviar al frontend
+                            yield json.dumps(tool_event) + "\n"
+
+                # 2. Handle Reports and Agent Status Updates
+                
+                # News Analyst
+                if "news_report" in chunk and chunk["news_report"]:
+                    content = chunk["news_report"]
+                    # Guardar en fichero Markdown
+                    try:
+                        with open(report_dir / "news_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "news_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "News Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Odds Analyst
+                if "odds_report" in chunk and chunk["odds_report"]:
+                    content = chunk["odds_report"]
+                    try:
+                        with open(report_dir / "odds_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "odds_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Odds Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Players Analyst
+                if "players_report" in chunk and chunk["players_report"]:
+                    content = chunk["players_report"]
+                    try:
+                        with open(report_dir / "players_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "players_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Players Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Social Analyst
+                if "sentiment_report" in chunk and chunk["sentiment_report"]:
+                    content = chunk["sentiment_report"]
+                    try:
+                        with open(report_dir / "sentiment_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "sentiment_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Social Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Tournament Analyst
+                if "tournament_report" in chunk and chunk["tournament_report"]:
+                    content = chunk["tournament_report"]
+                    try:
+                        with open(report_dir / "tournament_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "tournament_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Tournament Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Weather Analyst
+                if "weather_report" in chunk and chunk["weather_report"]:
+                    content = chunk["weather_report"]
+                    try:
+                        with open(report_dir / "weather_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "weather_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Weather Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Match Live Analyst
+                if "match_live_report" in chunk and chunk["match_live_report"]:
+                    content = chunk["match_live_report"]
+                    try:
+                        with open(report_dir / "match_live_report.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "match_live_report", "content": content}
+                    }) + "\n"
+                    yield json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Match Live Analyst", "status": "completed"}
+                    }) + "\n"
+
+                # Risk Management Debate
+                if "risk_debate_state" in chunk and chunk["risk_debate_state"]:
+                    risk_state = chunk["risk_debate_state"]
+                    
+                    # Stream specific analyst inputs if available
+                    if "aggressive_history" in risk_state:
+                        yield json.dumps({
+                            "type": "risk_update",
+                            "data": {"analyst": "Aggressive Analyst", "content": risk_state["aggressive_history"]}
+                        }) + "\n"
+                    if "safe_history" in risk_state:
+                        yield json.dumps({
+                            "type": "risk_update",
+                            "data": {"analyst": "Safe Analyst", "content": risk_state["safe_history"]}
+                        }) + "\n"
+                    if "neutral_history" in risk_state:
+                        yield json.dumps({
+                            "type": "risk_update",
+                            "data": {"analyst": "Neutral Analyst", "content": risk_state["neutral_history"]}
+                        }) + "\n"
+                    if "expected_history" in risk_state:
+                        yield json.dumps({
+                            "type": "risk_update",
+                            "data": {"analyst": "Expected Analyst", "content": risk_state["expected_history"]}
+                        }) + "\n"
+
+                # Final Decision
+                if "final_bet_decision" in chunk and chunk["final_bet_decision"]:
+                    content = chunk["final_bet_decision"]
+                    # Guardar decisión final principal
+                    try:
+                        with open(report_dir / "final_bet_decision.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "final_bet_decision", "content": content}
+                    }) + "\n"
+                    
+                # Individual Risk Manager Decisions
+                if "individual_risk_manager_decisions" in chunk and chunk["individual_risk_manager_decisions"]:
+                    individual_decisions = chunk["individual_risk_manager_decisions"]
+                    # Guardar cada decisión individual en su propio fichero (como en la CLI)
+                    if isinstance(individual_decisions, dict):
+                        for model_name, decision in individual_decisions.items():
+                            safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+                            file_name = f"final_bet_decision_{safe_model_name}.md"
+                            try:
+                                with open(report_dir / file_name, "w", encoding="utf-8") as f:
+                                    f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
+                            except Exception:
+                                pass
+                    yield json.dumps({
+                        "type": "individual_decisions",
+                        "data": individual_decisions
+                    }) + "\n"
+
+            yield json.dumps({
+                "type": "status",
+                "data": {"message": "Analysis complete!", "step": "completed"}
+            }) + "\n"
+
+        except Exception as e:
+            yield json.dumps({
+                "type": "error",
+                "data": {"message": str(e)}
+            }) + "\n"
+
+    return StreamingResponse(event_generator(), media_type="application/x-ndjson")
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
