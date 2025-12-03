@@ -3,14 +3,15 @@ FastAPI server for TennisAgents web application
 """
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import json
 import requests
 from datetime import datetime
+import re
 
 # Add parent directory to path to import tennisAgents modules
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -41,6 +42,8 @@ TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
 DATA_DIR = PROJECT_ROOT / "web" / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
+WEB_RESULTS_DIR = PROJECT_ROOT / "web" / "results"
+CLI_RESULTS_DIR = PROJECT_ROOT / "results"
 
 # Helper function to extract content string (copied from cli/main.py)
 def extract_content_string(content):
@@ -414,6 +417,12 @@ async def daily_summaries(request: Request):
     return templates.TemplateResponse("daily-summaries.html", {"request": request})
 
 
+@app.get("/predicted", response_class=HTMLResponse)
+async def predicted(request: Request):
+    """Predicted matches page"""
+    return templates.TemplateResponse("predicted.html", {"request": request})
+
+
 def fetch_competitor_profile(competitor_id: str) -> Dict[str, Any]:
     """
     Obtiene el perfil de un competidor desde la API de Sportradar.
@@ -693,4 +702,315 @@ async def fetch_daily_summaries_endpoint():
 async def health():
     """Health check endpoint"""
     return {"status": "ok"}
+
+
+@app.get("/favicon.ico")
+async def favicon():
+    """
+    Basic favicon endpoint to avoid 404s in the browser.
+    Returns an empty icon response (you can replace with a real favicon later).
+    """
+    return Response(content=b"", media_type="image/x-icon")
+
+
+def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[Dict[str, Any]]:
+    """
+    Scan a results root directory (web/results or results) and return
+    basic info about matches that have final_bet_decision files.
+    """
+    matches: List[Dict[str, Any]] = []
+
+    if not root.exists() or not root.is_dir():
+        return matches
+
+    # Sort match directories by modification time (newest first)
+    try:
+        match_dirs = sorted(
+            [p for p in root.iterdir() if p.is_dir()],
+            key=lambda p: p.stat().st_mtime,
+            reverse=True,
+        )
+    except Exception:
+        return matches
+
+    for match_dir in match_dirs:
+        # Each match dir should contain one or more analysis_date subdirs
+        try:
+            date_dirs = [d for d in match_dir.iterdir() if d.is_dir()]
+        except Exception:
+            continue
+
+        if not date_dirs:
+            continue
+
+        # Pick the latest analysis date for this match
+        date_dirs_sorted = sorted(date_dirs, key=lambda d: d.name, reverse=True)
+        analysis_dir = date_dirs_sorted[0]
+        report_dir = analysis_dir / "reports"
+
+        if not report_dir.exists() or not report_dir.is_dir():
+            continue
+
+        # Try to read tournament name from tournament_report.md
+        tournament_name = ""
+        try:
+            tournament_file = report_dir / "tournament_report.md"
+            if tournament_file.exists():
+                keywords = [
+                    "challenger",
+                    "cup",
+                    "open",
+                    "masters",
+                    "atp",
+                    "wta",
+                    "copa",
+                    "finals",
+                ]
+                fallback_name = ""
+
+                with open(tournament_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        stripped = line.strip()
+                        if not stripped:
+                            continue
+                        # Remove markdown heading markers
+                        if stripped.startswith("#"):
+                            stripped = stripped.lstrip("#").strip()
+
+                        # Heuristic: intentar extraer sólo el nombre del torneo
+                        lower = stripped.lower()
+
+                        # 1) Si aparece la palabra "torneo", usar lo que viene después
+                        candidate = None
+                        torneo_idx = lower.find("torneo ")
+                        if torneo_idx != -1:
+                            candidate = stripped[torneo_idx + len("torneo ") :]
+
+                        # 2) Si no hay "torneo", usar patrones "del / de la / de los / de"
+                        if candidate is None:
+                            start_idx = -1
+                            for prefix in ["del ", "de la ", "de los ", "de "]:
+                                i = lower.find(prefix)
+                                if i != -1:
+                                    start_idx = i + len(prefix)
+                                    break
+
+                            candidate = stripped[start_idx:] if start_idx != -1 else stripped
+
+                        # 3) Cortar en conectores típicos que suelen venir después del nombre
+                        #    (y, en, para, que, contexto, etc.) sin perder el año
+                        candidate = re.split(r"\s+(?:y|en|para|que|contexto)\b", candidate, 1)[0]
+                        # 4) Cortar en puntuación fuerte si aparece algo más después
+                        candidate = re.split(r"[.,-]", candidate, 1)[0]
+
+                        candidate = candidate.strip(" .,-")
+                        if not candidate:
+                            continue
+
+                        # 4) Decidir si este candidate parece un buen nombre de torneo
+                        cand_lower = candidate.lower()
+                        has_year = any(ch.isdigit() for ch in candidate)
+                        has_keyword = any(kw in cand_lower for kw in keywords)
+
+                        if has_keyword or has_year:
+                            tournament_name = candidate
+                            break
+
+                        # Guardar como posible fallback por si no encontramos nada mejor
+                        if not fallback_name:
+                            fallback_name = candidate
+
+                if not tournament_name:
+                    tournament_name = fallback_name
+        except Exception:
+            tournament_name = ""
+
+        # Look for up to 5 final_bet_decision*.md files
+        try:
+            final_files = sorted(report_dir.glob("final_bet_decision*.md"))
+        except Exception:
+            continue
+
+        if not final_files:
+            continue
+
+        # Derive basic match info from directory name
+        dir_name = match_dir.name
+        match_label = dir_name
+        timestamp = ""
+
+        if "_" in dir_name:
+            # Expected pattern: "Player1 vs Player2_YYYYMMDD_XXXXXX" (CLI) or similar
+            try:
+                base_label, timestamp = dir_name.rsplit("_", 1)
+            except ValueError:
+                base_label = dir_name
+                timestamp = ""
+
+            # Remove trailing date suffix (_YYYYMMDD) if present so the label is only "Player1 vs Player2"
+            m = re.match(r"^(.*)_([0-9]{8})$", base_label)
+            if m:
+                match_label = m.group(1)
+            else:
+                match_label = base_label
+
+        if " vs " in match_label:
+            player1, player2 = match_label.split(" vs ", 1)
+        else:
+            player1, player2 = match_label, ""
+
+        matches.append(
+            {
+                "storage": storage,  # "web" or "cli"
+                "match_dir": dir_name,
+                "analysis_date": analysis_dir.name,
+                "match_label": match_label,
+                "player1": player1,
+                "player2": player2,
+                "tournament": tournament_name,
+                "timestamp": timestamp,
+                "final_files": [f.name for f in final_files[:5]],
+            }
+        )
+
+        if len(matches) >= max_matches:
+            break
+
+    return matches
+
+
+@app.get("/api/predicted-matches")
+async def get_predicted_matches():
+    """
+    List recent matches that already have final_bet_decision reports.
+    It scans both web/results (web runs) and results (CLI runs).
+    """
+    try:
+        web_matches = _scan_results_root(WEB_RESULTS_DIR, storage="web")
+        cli_matches = _scan_results_root(CLI_RESULTS_DIR, storage="cli")
+
+        # Combine and sort by a rough "recency" heuristic using timestamp/analysis_date
+        all_matches = web_matches + cli_matches
+
+        def sort_key(m: Dict[str, Any]):
+            return f"{m.get('analysis_date','')}_{m.get('timestamp','')}"
+
+        all_matches_sorted = sorted(all_matches, key=sort_key, reverse=True)
+
+        return JSONResponse(
+            {
+                "success": True,
+                "matches": all_matches_sorted,
+                "total": len(all_matches_sorted),
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener partidos predichos: {str(e)}",
+        )
+
+
+@app.get("/api/predicted-match-details")
+async def get_predicted_match_details(
+    storage: str, match_dir: str, analysis_date: str
+):
+    """
+    Return up to 5 final_bet_decision*.md files for a given stored match.
+
+    Args:
+        storage: "web" or "cli" (results root)
+        match_dir: directory name of the match (e.g. "A vs B_20251123_154304")
+        analysis_date: analysis date folder (e.g. "2025-11-23")
+    """
+    try:
+        if storage not in {"web", "cli"}:
+            raise HTTPException(status_code=400, detail="storage debe ser 'web' o 'cli'")
+
+        base_dir = WEB_RESULTS_DIR if storage == "web" else CLI_RESULTS_DIR
+        target_dir = base_dir / match_dir / analysis_date / "reports"
+
+        if not target_dir.exists() or not target_dir.is_dir():
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontró el directorio de reports para este partido",
+            )
+
+        # Collect up to 5 final_bet_decision*.md files
+        final_files = sorted(target_dir.glob("final_bet_decision*.md"))
+        if not final_files:
+            raise HTTPException(
+                status_code=404,
+                detail="No se encontraron archivos final_bet_decision para este partido",
+            )
+
+        predictions = []
+        for fpath in final_files[:5]:
+            try:
+                with open(fpath, "r", encoding="utf-8") as f:
+                    content = f.read()
+            except Exception:
+                continue
+
+            # Try to use the first non-empty line as title
+            title = ""
+            for line in content.splitlines():
+                stripped = line.strip()
+                if stripped:
+                    # Remove leading markdown heading markers
+                    if stripped.startswith("#"):
+                        stripped = stripped.lstrip("#").strip()
+                    title = stripped
+                    break
+
+            predictions.append(
+                {
+                    "filename": fpath.name,
+                    "title": title or fpath.name,
+                    "content": content,
+                }
+            )
+
+        if not predictions:
+            raise HTTPException(
+                status_code=404,
+                detail="No se pudieron leer las predicciones para este partido",
+            )
+
+        # Recreate basic match info from match_dir name
+        match_label = match_dir
+        timestamp = ""
+        if "_" in match_dir:
+            try:
+                match_label, timestamp = match_dir.rsplit("_", 1)
+            except ValueError:
+                match_label = match_dir
+
+        if " vs " in match_label:
+            player1, player2 = match_label.split(" vs ", 1)
+        else:
+            player1, player2 = match_label, ""
+
+        return JSONResponse(
+            {
+                "success": True,
+                "match": {
+                    "storage": storage,
+                    "match_dir": match_dir,
+                    "analysis_date": analysis_date,
+                    "match_label": match_label,
+                    "player1": player1,
+                    "player2": player2,
+                    "timestamp": timestamp,
+                },
+                "predictions": predictions,
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al obtener detalles de la predicción: {str(e)}",
+        )
 

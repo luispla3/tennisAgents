@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const matchesContainer = document.getElementById('matchesContainer');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const emptyState = document.getElementById('emptyState');
+    const predictedButton = document.getElementById('predictedButton');
 
     // Fetch and render matches on page load
     async function fetchAndRenderMatches() {
@@ -1109,5 +1110,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Load matches on page load
     fetchAndRenderMatches();
+
+    // Predicted page navigation
+    if (predictedButton) {
+        predictedButton.addEventListener('click', function() {
+            window.location.href = '/predicted';
+        });
+    }
 });
 
