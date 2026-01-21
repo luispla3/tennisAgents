@@ -794,13 +794,13 @@ body {
 
 /* Matches Container */
 .matches-container {
-    max-width: 1400px;
+    max-width: 1600px;
     width: 100%;
     margin: 0 auto;
 }
 
 .predict-content {
-    max-width: 1400px;
+    max-width: 1600px;
     width: 100%;
     text-align: left;
 }
@@ -841,7 +841,7 @@ body {
 /* Matches Grid */
 .matches-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: var(--spacing-lg);
 }
 
@@ -986,9 +986,10 @@ body {
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    /* Allow text to wrap so names are always visible */
+    white-space: normal;
+    overflow: visible;
+    line-height: 1.2;
 }
 
 .player-abbr {
@@ -1510,7 +1511,7 @@ body {
 /* Responsive Design for Matches */
 @media (max-width: 1024px) {
     .matches-grid {
-        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     }
 }
 
