@@ -35,6 +35,7 @@ class GraphSetup:
         risk_manager_memory,
         conditional_logic: ConditionalLogic,
         additional_risk_manager_llms: list = None,
+        local_llm: ChatOpenAI = None,
     ):
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
@@ -43,6 +44,8 @@ class GraphSetup:
         self.risk_manager_memory = risk_manager_memory
         self.conditional_logic = conditional_logic
         self.additional_risk_manager_llms = additional_risk_manager_llms or []
+        self.local_llm = local_llm or quick_thinking_llm # Fallback a quick_thinking si no hay local
+
 
     def setup_graph(
         self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live, ANALYST_NODES.odds]
@@ -55,7 +58,7 @@ class GraphSetup:
         tool_nodes = {}
 
         if "news" in selected_analysts:
-            analyst_nodes["news"] = create_news_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["news"] = create_news_analyst(self.local_llm, self.toolkit)
             delete_nodes["news"] = create_msg_delete()
             tool_nodes["news"] = self.tool_nodes.get("news")
 
@@ -70,17 +73,17 @@ class GraphSetup:
             tool_nodes["players"] = self.tool_nodes.get("players")
 
         if "social" in selected_analysts:
-            analyst_nodes["social"] = create_social_media_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["social"] = create_social_media_analyst(self.local_llm, self.toolkit)
             delete_nodes["social"] = create_msg_delete()
             tool_nodes["social"] = self.tool_nodes.get("social")
 
         if "tournament" in selected_analysts:
-            analyst_nodes["tournament"] = create_tournament_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["tournament"] = create_tournament_analyst(self.local_llm, self.toolkit)
             delete_nodes["tournament"] = create_msg_delete()
             tool_nodes["tournament"] = self.tool_nodes.get("tournament")
 
         if "weather" in selected_analysts:
-            analyst_nodes["weather"] = create_weather_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["weather"] = create_weather_analyst(self.local_llm, self.toolkit)
             delete_nodes["weather"] = create_msg_delete()
             tool_nodes["weather"] = self.tool_nodes.get("weather")
 

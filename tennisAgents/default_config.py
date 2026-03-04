@@ -18,9 +18,10 @@ DEFAULT_CONFIG = {
     "openrouter_base_url": "https://openrouter.ai/api/v1",
     # Fixed models for additional risk managers (via OpenRouter)
     "additional_risk_managers": [
+        {"name": "Claude-Sonnet-4.6", "model": "anthropic/claude-sonnet-4.6"},
         {"name": "GPT-5.1", "model": "openai/gpt-5.1"},
-        {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro-preview"},
-        {"name": "Grok-4", "model": "x-ai/grok-4"},
+        {"name": "Kimi-K2.5", "model": "moonshotai/kimi-k2.5"},
+        {"name": "Qwen3.5-35B-A3B", "model": "qwen/qwen3.5-35b-a3b"},
     ],
     # Debate and discussion settings
     "max_debate_rounds": 1,
@@ -28,6 +29,13 @@ DEFAULT_CONFIG = {
     "max_recur_limit": 100,
     # Tool settings
     "online_tools": True,
+
+    # Local LLM settings (for specific analysts: News, Social, Tournament, Weather)
+    # Set to True to use local Ollama, False to use OpenRouter
+    "use_local_analysts": True,
+    "local_model_name": "qwen2.5:3b",  # Qwen2.5 3B model in Ollama
+    "local_base_url": "http://localhost:11434/v1",  # Ollama local endpoint
+    "local_api_key": "ollama",  # Dummy key for Ollama (no se usa realmente)
     
     # RAG settings
     "enable_rag": False,  # Set to True to enable RAG functionality

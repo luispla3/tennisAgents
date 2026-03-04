@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 import json
+from datetime import datetime
 from typing import Dict, Any
 
 from langchain_openai import ChatOpenAI
@@ -52,6 +53,50 @@ class TennisAgentsGraph:
             self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
         else:
             raise ValueError(f"Proveedor LLM no soportado: {self.config['llm_provider']}")
+
+        # Inicializar LLM local (Ollama) o OpenRouter para analistas específicos (News, Social, Tournament, Weather)
+        self.local_llm = None
+        if self.config.get("use_local_analysts", False):
+            try:
+                local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
+                local_model = self.config.get("local_model_name", "qwen2.5:3b")
+                
+                # Detectar si es local (Ollama) o OpenRouter basado en la URL
+                is_local = "localhost" in local_base_url or "127.0.0.1" in local_base_url
+                
+                if is_local:
+                    # Configuración para Ollama local (no requiere API key real)
+                    self.local_llm = ChatOpenAI(
+                        model=local_model,
+                        base_url=local_base_url,
+                        api_key=self.config.get("local_api_key", "ollama"),  # Dummy key
+                        temperature=0.7
+                    )
+                    if self.debug:
+                        print(f"✓ Ollama LLM local inicializado para analistas: {local_model}")
+                        print(f"  Asegúrate de tener Ollama corriendo en {local_base_url}")
+                else:
+                    # Configuración para OpenRouter (requiere API key)
+                    local_api_key = self.config.get("local_api_key") or os.getenv("OPENROUTER_API_KEY")
+                    if local_api_key:
+                        self.local_llm = ChatOpenAI(
+                            model=local_model,
+                            base_url=local_base_url,
+                            api_key=local_api_key,
+                            default_headers={
+                                "HTTP-Referer": "https://github.com/tennisAgents",
+                                "X-Title": "Tennis Agents"
+                            },
+                            temperature=0.7
+                        )
+                        if self.debug:
+                            print(f"✓ OpenRouter LLM inicializado para analistas: {local_model}")
+                    else:
+                        if self.debug:
+                            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los analistas usarán gpt-4o-mini.")
+            except Exception as e:
+                if self.debug:
+                    print(f"⚠ Warning: No se pudo inicializar LLM para analistas: {e}")
 
         self.toolkit = Toolkit(config=self.config)
 
@@ -106,6 +151,7 @@ class TennisAgentsGraph:
             self.risk_analyst_memory,
             self.conditional_logic,
             additional_risk_manager_llms=self.additional_risk_manager_llms,
+            local_llm=self.local_llm,
         )
 
         self.propagator = Propagator()         #se usa en web/app.py para inicializar el estado inicial del grafo
