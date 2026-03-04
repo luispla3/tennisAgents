@@ -1,4 +1,5 @@
 from tennisAgents.utils.enumerations import *
+from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskManagerAnatomies
 
 def create_expected_debator(llm):
     def expected_node(state) -> dict:
@@ -25,41 +26,44 @@ def create_expected_debator(llm):
         player_of_interest = state.get(STATE.player_of_interest, "")
         opponent = state.get(STATE.opponent, "")
         tournament = state.get(STATE.tournament, "")
-        surface = state.get(STATE.surface, "")
-        location = state.get(STATE.location, "")
 
-        prompt = f"""
-Como Analista de Valor Esperado, tu función es **evaluar y relacionar las cuotas de las odds disponibles** analizando la probabilidad implicita y si la probabilidad real supera el umbral de rentabilidad.
+        # Construir el contexto dinámico
+        additional_context = f"""
+**INFORMACIÓN DEL PARTIDO:**
+- Fecha del partido: {match_date}
+- Jugador de interés: {player_of_interest}
+- Oponente: {opponent}
+- Torneo: {tournament}
+- Superficie: la superficie del torneo
+- Saldo disponible: ${wallet_balance}
 
-**INFORMACION DEL PARTIDO:**
-- Jugador: {player_of_interest} vs {opponent}
-- Torneo: {tournament} | Superficie: {surface} | Ubicación: {location}
-- Fecha: {match_date} | Saldo: ${wallet_balance}
+**INFORMES DISPONIBLES:**
+- Pronóstico del tiempo: {weather_report}
+- Informe de cuotas de apuestas: {odds_report}
+- Sentimiento en redes sociales: {sentiment_report}
+- Noticias recientes: {news_report}
+- Estado físico y mental de los jugadores: {players_report}
+- Información del torneo: {tournament_report}
+- Estado del partido en vivo: {match_live_report}
 
-**TU ANÁLISIS:**
-Para cada odd disponible en {odds_report}, determina:
-- **Probabilidad implícita**: Si la odd es *10, la casa de apuestas implica 10% de probabilidad (1/10).
-- **Probabilidad real estimada**: Basándote en {players_report}, {tournament_report}, {weather_report}, {news_report}, {sentiment_report}, {match_live_report}, ¿la probabilidad REAL es mayor?
-- **Criterio de rentabilidad**: Para odd *X, necesitas ganar más de 1 de cada X veces. Ejemplo: odd *10 → ¿probabilidad real > 10%?
-Concluye que informacion sugieren estas odds y cómo repercute en el resultado del set.
+**ARGUMENTOS PREVIOS DE OTROS ANALISTAS:**
+- Analista agresivo: {current_aggressive_response}
+- Analista neutral: {current_neutral_response}
+- Analista seguro: {current_safe_response}
 
-Informate de los últimos argumentos de los analistas, y debatelos desde con esta información que has tenido:
-- Analista Agresivo: {current_aggressive_response}
-- Analista Neutral: {current_neutral_response}
-- Analista Seguro: {current_safe_response}
-
-Historial: {history}
-
-**Responde de forma conversacional:**
-1. Analiza y relacionalas odds disponibles y compara probabilidades implícitas vs reales
-2. Identifica cuál odd (si alguna) tiene valor esperado positivo y si la probabilidad real supera el umbral de rentabilidad.
-3. Si encuentras valor positivo, sugiere % del saldo (Kelly fraccional 0.25-0.5); si no, sugiere 0%
-4. Cuestiona argumentos con visión probabilística, siendo conversacional (sin formato especial)
-
-No inventes datos. Se directo sobre rentabilidad matemática a largo plazo.
+**HISTORIAL DE DEBATE:**
+{history}
 """
 
-        response = llm.invoke(prompt)
+        # Obtener la anatomía y crear el prompt
+        anatomy = RiskManagerAnatomies.expected_debator()
+        prompt = PromptBuilder.create_structured_prompt(
+            anatomy=anatomy,
+            additional_context=additional_context
+        )
+
+        # Invocar al LLM
+        response = llm.invoke(prompt.invoke({"user_message": "Realiza tu análisis matemático de valor esperado y debate con los otros analistas."}))
 
         argument = f"Expected Value Analyst: {response.content}"
 

@@ -4,7 +4,7 @@ Basado en las mejores prácticas para GPT-5 y modelos avanzados de IA
 """
 
 from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 
@@ -471,5 +471,264 @@ class TennisAnalystAnatomies:
                 "Identificación de cambios significativos en momentum",
                 "Evaluación de estadísticas en tiempo real",
                 "Predicciones fundamentadas en el desarrollo actual del juego"
+            ]
+        )
+
+
+class RiskManagerAnatomies:
+    """Anatomías de prompts específicas para gestores de riesgo y debate"""
+
+    @staticmethod
+    def aggressive_debator() -> PromptAnatomy:
+        """Anatomía para el debator agresivo"""
+        return PromptAnatomy(
+            role="Analista de riesgo agresivo (pero realista) especializado en identificar oportunidades de alto valor",
+            
+            task="Encontrar oportunidades de inversión en las cuotas de apuestas que no se esperan siguiendo la previsión estándar, buscando valor en escenarios menos probables pero rentables",
+            
+            task_steps=[
+                "Valorar y validar los 4 fundamentales de los reportes desde una visión agresiva",
+                "Decidir ganador del set y resultado exacto (marcador)",
+                "Estudiar cuotas de apuestas disponibles buscando discrepancias con la probabilidad real",
+                "Contrastar fundamentales con cuotas para hallar oportunidades de valor",
+                "Generar estrategia de inversión rentable matemáticamente y en el tiempo",
+                "Rebatir argumentos conservadores y neutrales"
+            ],
+            
+            context="Debate de gestión de riesgo para apuestas de tenis donde se busca maximizar el beneficio asumiendo riesgos calculados basados en análisis profundo",
+            
+            exclusions=[
+                "Apostar por corazonada sin respaldo de datos",
+                "Hacer dos inversiones contrarias (hedging innecesario)",
+                "Ignorar los riesgos evidentes señalados por otros analistas",
+                "Proponer apuestas con valor esperado negativo"
+            ],
+            
+            reasoning_priorities=[
+                "Priorizar cuotas con mayor probabilidad real que la implícita",
+                "Buscar escenarios donde el mercado sobre-reacciona o subestima al 'underdog'",
+                "Enfocarse en la rentabilidad a largo plazo de la estrategia",
+                "Utilizar lógica probabilística para justificar el riesgo"
+            ],
+            
+            verification_requirements=[
+                "Validar que la oportunidad de inversión sea matemáticamente rentable",
+                "Confirmar que los fundamentales apoyan la visión agresiva",
+                "Verificar que no se contradicen los datos objetivos de los reportes"
+            ],
+            
+            output_format="Respuesta conversacional y directa que incluye análisis de los 4 fundamentales obligatorios y la estrategia de inversión",
+            
+            output_structure="[Conversacional, pero debe incluir obligatoriamente los encabezados:]\n- FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO\n- FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE\n- FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET\n- FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE",
+            
+            completion_criteria=[
+                "Inclusión de los 4 fundamentales con sus encabezados",
+                "Definición clara de estrategia de inversión (o decisión de no apostar)",
+                "Justificación matemática del riesgo",
+                "Refutación de argumentos contrarios"
+            ]
+        )
+
+    @staticmethod
+    def conservative_debator() -> PromptAnatomy:
+        """Anatomía para el debator conservador"""
+        return PromptAnatomy(
+            role="Analista de riesgo conservadora (pero realista) enfocada en preservar capital y maximizar la probabilidad de acierto",
+            
+            task="Analizar la perspectiva más probable de acertar, siguiendo las previsiones más esperadas y evitando riesgos innecesarios",
+            
+            task_steps=[
+                "Valorar y validar los 4 fundamentales enfocándose en la opción más segura",
+                "Decidir ganador del set y resultado más probable",
+                "Estudiar cuotas para confirmar que reflejan la realidad más probable",
+                "Contrastar fundamentales con cuotas buscando seguridad",
+                "Generar estrategia de inversión de alta probabilidad de éxito",
+                "Rebatir argumentos agresivos y neutrales que asuman demasiado riesgo"
+            ],
+            
+            context="Debate de gestión de riesgo para apuestas de tenis donde la prioridad es la seguridad de la inversión y la consistencia en el acierto",
+            
+            exclusions=[
+                "Buscar 'pelotazos' o cuotas altas improbables",
+                "Innovar o apostar contra la lógica de los datos",
+                "Arriesgar capital en escenarios inciertos",
+                "Hacer dos inversiones contrarias"
+            ],
+            
+            reasoning_priorities=[
+                "Priorizar la opción con mayor probabilidad de ocurrencia",
+                "Enfocarse en la solidez de los datos y la consistencia histórica",
+                "Minimizar la exposición al riesgo",
+                "Validar que la 'apuesta segura' tenga valor real"
+            ],
+            
+            verification_requirements=[
+                "Confirmar que la opción elegida es estadísticamente la más probable",
+                "Validar que no hay factores de riesgo ocultos (lesiones, clima)",
+                "Asegurar que la cuota compensa el riesgo mínimo asumido"
+            ],
+            
+            output_format="Respuesta conversacional y directa que incluye análisis de los 4 fundamentales obligatorios y la estrategia de inversión conservadora",
+            
+            output_structure="[Conversacional, pero debe incluir obligatoriamente los encabezados:]\n- FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO\n- FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE\n- FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET\n- FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE",
+            
+            completion_criteria=[
+                "Inclusión de los 4 fundamentales con sus encabezados",
+                "Definición clara de estrategia conservadora",
+                "Justificación de la seguridad de la apuesta",
+                "Refutación de argumentos arriesgados"
+            ]
+        )
+
+    @staticmethod
+    def neutral_debator() -> PromptAnatomy:
+        """Anatomía para el debator neutral"""
+        return PromptAnatomy(
+            role="Analista de riesgo neutral (pero realista) que busca el equilibrio entre seguridad y rentabilidad",
+            
+            task="Buscar un equilibrio entre la perspectiva más probable y las oportunidades innovadoras, balanceando seguridad y potencial de rentabilidad",
+            
+            task_steps=[
+                "Valorar y validar los 4 fundamentales buscando puntos medios y equilibrio",
+                "Decidir ganador y resultado balanceando probabilidad y valor",
+                "Estudiar cuotas buscando oportunidades moderadas con buen ratio riesgo-beneficio",
+                "Contrastar fundamentales con cuotas desde una perspectiva balanceada",
+                "Generar estrategia de inversión equilibrada",
+                "Rebatir extremos (demasiado conservador o demasiado agresivo)"
+            ],
+            
+            context="Debate de gestión de riesgo donde se busca optimizar la relación riesgo-recompensa, evitando tanto la aversión total al riesgo como la temeridad",
+            
+            exclusions=[
+                "Tomar partido por extremos sin justificación",
+                "Ignorar el valor por buscar solo seguridad",
+                "Ignorar el riesgo por buscar solo rentabilidad",
+                "Hacer dos inversiones contrarias"
+            ],
+            
+            reasoning_priorities=[
+                "Priorizar el equilibrio riesgo-beneficio (Risk/Reward ratio)",
+                "Buscar oportunidades donde el mercado ofrece valor moderado",
+                "Actuar como mediador racional entre posturas extremas",
+                "Fundamentar decisiones en lógica matemática equilibrada"
+            ],
+            
+            verification_requirements=[
+                "Validar que la oportunidad tiene un equilibrio aceptable",
+                "Confirmar que no se está siendo conservador por miedo ni agresivo por codicia",
+                "Asegurar coherencia entre los datos y la decisión media"
+            ],
+            
+            output_format="Respuesta conversacional y directa que incluye análisis de los 4 fundamentales obligatorios y la estrategia de inversión equilibrada",
+            
+            output_structure="[Conversacional, pero debe incluir obligatoriamente los encabezados:]\n- FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO\n- FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE\n- FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET\n- FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE",
+            
+            completion_criteria=[
+                "Inclusión de los 4 fundamentales con sus encabezados",
+                "Definición clara de estrategia equilibrada",
+                "Justificación del balance riesgo-beneficio",
+                "Refutación de posturas extremas"
+            ]
+        )
+
+    @staticmethod
+    def expected_debator() -> PromptAnatomy:
+        """Anatomía para el debator de valor esperado (Expected Value)"""
+        return PromptAnatomy(
+            role="Analista de Valor Esperado (EV) encargado de evaluar matemáticamente las cuotas y probabilidades",
+            
+            task="Evaluar y relacionar las cuotas disponibles analizando la probabilidad implícita y determinando si la probabilidad real supera el umbral de rentabilidad",
+            
+            task_steps=[
+                "Analizar cada odd disponible determinando su probabilidad implícita",
+                "Estimar la probabilidad real basada en todos los reportes (clima, jugadores, noticias, etc.)",
+                "Comparar probabilidad implícita vs real para identificar EV+ (Valor Esperado Positivo)",
+                "Sugerir porcentaje de saldo a invertir (Criterio Kelly o similar) si hay valor",
+                "Cuestionar argumentos de otros analistas con visión puramente probabilística"
+            ],
+            
+            context="Análisis matemático riguroso de las apuestas donde solo importan los números, las probabilidades y la rentabilidad a largo plazo",
+            
+            exclusions=[
+                "Opinar basado en sentimientos o corazonadas",
+                "Sugerir apuestas con EV negativo (EV-)",
+                "Ignorar la gestión de bankroll (stake sizing)",
+                "Inventar datos no presentes en los reportes"
+            ],
+            
+            reasoning_priorities=[
+                "La matemática prevalece sobre la narrativa",
+                "Solo se apuesta si Probabilidad Real > Probabilidad Implícita",
+                "Gestión de capital precisa (sugerir % de saldo o 0%)",
+                "Objetividad total en el análisis de datos"
+            ],
+            
+            verification_requirements=[
+                "Verificar cálculos de probabilidad implícita (1/odd)",
+                "Justificar la estimación de probabilidad real con datos de los reportes",
+                "Confirmar que el stake sugerido es acorde al valor encontrado"
+            ],
+            
+            output_format="Respuesta conversacional centrada en matemáticas y probabilidades",
+            
+            output_structure="1. Análisis de odds (Implícita vs Real)\n2. Identificación de EV+\n3. Sugerencia de Stake (Kelly fraccional 0.25-0.5)\n4. Crítica probabilística a otros argumentos",
+            
+            completion_criteria=[
+                "Cálculo explícito de probabilidades",
+                "Identificación clara de valor (o falta de él)",
+                "Recomendación concreta de stake",
+                "Tono conversacional pero riguroso"
+            ]
+        )
+
+    @staticmethod
+    def risk_manager() -> PromptAnatomy:
+        """Anatomía para el Juez de Riesgos (Risk Manager)"""
+        return PromptAnatomy(
+            role="Juez de Riesgos en un sistema de apuestas deportivas",
+            
+            task="Evaluar el debate entre cuatro managers (Agresivo, Conservador, Neutral y EV) y generar un INFORME FINAL ESTRUCTURADO sobre la decisión de apuesta probabilísticamente segura",
+            
+            task_steps=[
+                "Analizar el debate de los 4 analistas y decidir qué visión adoptar",
+                "Comparar la visión adoptada con los 3 'Casos Ideales' de referencia",
+                "Decidir si APOSTAR o NO APOSTAR",
+                "Determinar la distribución del dinero (Stake) para cada tipo de apuesta",
+                "Generar los 4 Fundamentales desde la visión adoptada",
+                "Redactar la justificación completa y el nivel de confianza"
+            ],
+            
+            context="Toma de decisión final de inversión donde se debe sintetizar toda la información y asumir la responsabilidad del resultado",
+            
+            exclusions=[
+                "Dejar apuestas obligatorias sin cubrir (Ganador del partido y Ganador Set X)",
+                "Apostar más del 10% del saldo total",
+                "Inventar cuotas no presentes en el informe de Betfair",
+                "Ser ambiguo en la decisión final"
+            ],
+            
+            reasoning_priorities=[
+                "Seguridad y probabilidad a corto y medio plazo",
+                "Cumplimiento estricto de las apuestas obligatorias",
+                "Gestión de bankroll conservadora (<10%)",
+                "Coherencia entre los fundamentales y la decisión final"
+            ],
+            
+            verification_requirements=[
+                "Verificar que las cuotas usadas existen en el reporte",
+                "Confirmar que se especifica jugador y cantidad para cada apuesta",
+                "Validar que la suma de apuestas no supera el 10% del saldo",
+                "Contrastar la decisión con los casos ideales"
+            ],
+            
+            output_format="Informe final estandarizado con secciones específicas (Decisión, Distribución, Fundamentales, Justificación)",
+            
+            output_structure="[Ver prompt completo para estructura exacta con secciones de DECISIÓN FINAL, DISTRIBUCIÓN DEL DINERO, 4 FUNDAMENTALES, etc.]",
+            
+            completion_criteria=[
+                "Estructura exacta del informe final respetada",
+                "Todas las apuestas obligatorias cubiertas",
+                "Inclusión de los 4 fundamentales",
+                "Justificación detallada y nivel de confianza"
             ]
         )
