@@ -1,5 +1,3 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
@@ -8,7 +6,6 @@ def create_player_analyst(llm, toolkit):
         match_date = state[STATE.match_date]
         player_name = state[STATE.player_of_interest]
         opponent_name = state[STATE.opponent]
-        surface = state.get(STATE.surface, "")
         tournament = state[STATE.tournament]
 
         # Selección dinámica de herramientas - usar todas las disponibles
@@ -107,36 +104,36 @@ def create_player_analyst(llm, toolkit):
 
             "Este análisis es FUNDAMENTAL para predicciones. Para CADA jugador, debes investigar y analizar:\n\n"
             "### JUGADOR 1: {player_name}\n"
-            "**A) Estadísticas Históricas de Servicio en {surface}:**\n"
+            "**A) Estadísticas Históricas de Servicio en la superficie del torneo:**\n"
             "Usando get_recent_matches y get_surface_winrate, analiza el rendimiento histórico del servicio:\n"
-            "• % promedio de primer servicio efectivo en {surface} (últimos partidos en esta superficie)\n"
-            "• % promedio de puntos ganados con primer servicio en {surface}\n"
-            "• % promedio de puntos ganados con segundo servicio en {surface}\n"
-            "• Promedio de aces por partido en {surface}\n"
-            "• Promedio de dobles faltas por partido en {surface}\n"
-            "• % de juegos de servicio ganados en {surface}\n"
-            "• % de break points salvados en {surface}\n"
+            "• % promedio de primer servicio efectivo en la superficie del torneo (últimos partidos en esta superficie)\n"
+            "• % promedio de puntos ganados con primer servicio en la superficie del torneo\n"
+            "• % promedio de puntos ganados con segundo servicio en la superficie del torneo\n"
+            "• Promedio de aces por partido en la superficie del torneo\n"
+            "• Promedio de dobles faltas por partido en la superficie del torneo\n"
+            "• % de juegos de servicio ganados en la superficie del torneo\n"
+            "• % de break points salvados en la superficie del torneo\n"
             "• Tendencias: ¿está mejorando o empeorando su servicio en partidos recientes?\n\n"
             "**B) Solidez del Servicio Histórico - PUNTUACIÓN 1-10:**\n"
-            "Basándote en las estadísticas históricas en {surface}, asigna una puntuación donde:\n"
+            "Basándote en las estadísticas históricas en la superficie del torneo, asigna una puntuación donde:\n"
             "• 10 = Servicio dominante en esta superficie (>80% puntos ganados con 1er servicio)\n"
             "• 7-9 = Servicio muy sólido en esta superficie (65-80% puntos ganados con 1er servicio)\n"
             "• 4-6 = Servicio promedio en esta superficie (50-65% puntos ganados con 1er servicio)\n"
             "• 1-3 = Servicio débil en esta superficie (<50% puntos ganados con 1er servicio)\n"
             "\n"
-            "**PUNTUACIÓN HISTÓRICA EN {surface}: [X/10]**\n"
-            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en {surface}]\n\n"
+            "**PUNTUACIÓN HISTÓRICA EN LA SUPERFICIE DEL TORNEO: [X/10]**\n"
+            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en la superficie del torneo]\n\n"
             "### JUGADOR 2: {opponent_name}\n"
-            "**A) Estadísticas Históricas de Servicio en {surface}:**\n"
+            "**A) Estadísticas Históricas de Servicio en la superficie del torneo:**\n"
             "[Mismo análisis detallado que para el Jugador 1]\n\n"
             "**B) Solidez del Servicio Histórico - PUNTUACIÓN 1-10:**\n"
-            "**PUNTUACIÓN HISTÓRICA EN {surface}: [X/10]**\n"
-            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en {surface}]\n\n"
+            "**PUNTUACIÓN HISTÓRICA EN LA SUPERFICIE DEL TORNEO: [X/10]**\n"
+            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en la superficie del torneo]\n\n"
             "### COMPARACIÓN DE SERVICIO:\n"
-            "• ¿Quién tiene históricamente mejor servicio en {surface}?\n"
+            "• ¿Quién tiene históricamente mejor servicio en la superficie del torneo?\n"
             "• ¿La diferencia en calidad de servicio es significativa?\n"
             "• ¿Cómo afecta esto a la probabilidad de quiebres de servicio en el partido?\n"
-            "• ¿Alguno de los jugadores tiene tendencias especiales con el servicio en {surface}?\n"
+            "• ¿Alguno de los jugadores tiene tendencias especiales con el servicio en la superficie del torneo?\n"
             "• Basándote en el servicio histórico: ¿quién tiene ventaja para mantener sus servicios?\n\n"
             "**RECUERDA: En tu reporte, incluye el encabezado '## FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE' antes de esta sección.**\n\n"
             
@@ -178,7 +175,7 @@ def create_player_analyst(llm, toolkit):
             "• {opponent_name} gana el set: [XX]%\n\n"
             "**RECUERDA: En tu reporte, incluye el encabezado '## FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET' antes de esta sección.**\n\n"
             "IMPORTANTE: Proporciona análisis específico y cuantitativo, no generalidades. Incluye estadísticas concretas, fechas relevantes y contexto específico. Las herramientas te darán información detallada y actualizada.\n\n"
-            "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: {surface}, Jugadores: {player_name} vs {opponent_name}"
+            "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: la superficie del torneo, Jugadores: {player_name} vs {opponent_name}"
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -191,7 +188,6 @@ def create_player_analyst(llm, toolkit):
         # Inyección de variables al prompt
         prompt = prompt.partial(match_date=match_date)
         prompt = prompt.partial(tournament=tournament)
-        prompt = prompt.partial(surface=surface)
         prompt = prompt.partial(player_name=player_name)
         prompt = prompt.partial(opponent_name=opponent_name)
 
@@ -207,7 +203,7 @@ def create_player_analyst(llm, toolkit):
         result = chain.invoke(input_data)
 
         report = ""
-        if len(result.tool_calls) == 0:
+        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
             report = result.content
 
         return {

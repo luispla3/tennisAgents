@@ -1,5 +1,3 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
@@ -55,6 +53,7 @@ def create_news_analyst(llm, toolkit):
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(tournament=tournament)
 
+        #para crear un agente se necesita el modelo (llm), las herramientas (tools) y el prompt (prompt).
         chain = prompt | llm.bind_tools(tools)
 
         # Crear el input correcto como diccionario
@@ -63,14 +62,14 @@ def create_news_analyst(llm, toolkit):
             "user_message": f"Analiza las noticias más relevantes sobre {player} y {opponent} para el torneo {tournament}."
         }
 
-        result = chain.invoke(input_data)
+        result = chain.invoke(input_data)     #Es un Message que puede ser de 2 tipos: AIMessage, ToolMessage.
 
         report = ""
-        if len(result.tool_calls) == 0:
-            report = result.content
+        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
+            report = result.content      #result.content es el contenido de la respuesta del agente (es el texto del Message).
 
         return {
-            STATE.messages: [result],
+            STATE.messages: [result],       #AgentState hereda de MessagesState (de langgraph), lo que significa que el campo messages es una lista de mensajes de LangChain (BaseMessage). STATE['messages'] es una lista que crece (append-only por defecto en LangGraph).
             REPORTS.news_report: report,
         }
 

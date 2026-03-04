@@ -49,14 +49,6 @@ def create_odds_analyst(llm, toolkit):
 **Recomendación:** Verificar que el partido esté activo en Betfair España (www.betfair.es)
 """
         else:
-            # Definir los mercados relevantes que queremos mostrar
-            relevant_market_patterns = [
-                "Cuotas de partido",
-                "Apuestas a sets",
-                "Set",  # Captura mercados de sets específicos
-                "Resultado correcto"  # Captura resultados correctos de sets
-            ]
-            
             # Filtrar mercados relevantes
             filtered_markets = []
             for market in odds_data.get('markets', []):

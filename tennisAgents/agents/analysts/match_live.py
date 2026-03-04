@@ -1,5 +1,3 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
@@ -21,7 +19,6 @@ def create_match_live_analyst(llm, toolkit):
         player_a = state[STATE.player_of_interest]
         player_b = state[STATE.opponent]
         tournament = state[STATE.tournament]
-        surface = state.get(STATE.surface, "")
         
         # Herramienta para obtener datos reales del partido en vivo desde Sportradar API
         tools = [toolkit.get_match_live_data]
@@ -164,7 +161,6 @@ def create_match_live_analyst(llm, toolkit):
         # Inyección de variables al prompt
         prompt = prompt.partial(match_date=match_date)
         prompt = prompt.partial(tournament=tournament)
-        prompt = prompt.partial(surface=surface)
         prompt = prompt.partial(player_a=player_a)
         prompt = prompt.partial(player_b=player_b)
 
@@ -180,9 +176,8 @@ def create_match_live_analyst(llm, toolkit):
         result = chain.invoke(input_data)
 
         # Generar reporte basado en el resultado
-        report = result.content
-        if hasattr(result, 'tool_calls') and result.tool_calls:
-            # Si hay tool calls, el contenido puede estar en el resultado final
+        report = ""
+        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
             report = result.content
 
         return {

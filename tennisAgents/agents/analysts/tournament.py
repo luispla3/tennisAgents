@@ -1,5 +1,3 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
@@ -7,7 +5,6 @@ def create_tournament_analyst(llm, toolkit):
     def tournament_analyst_node(state):
         match_date = state[STATE.match_date]
         tournament = state[STATE.tournament]
-        location = state.get(STATE.location, "Ubicación no especificada")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
 
@@ -52,7 +49,6 @@ def create_tournament_analyst(llm, toolkit):
 
         # Inyección de variables al prompt
         prompt = prompt.partial(tournament=tournament)
-        prompt = prompt.partial(location=location)
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(match_date=match_date)
@@ -62,13 +58,13 @@ def create_tournament_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza el torneo {tournament} en {location} y su impacto en {player} y {opponent}."
+            "user_message": f"Analiza el torneo {tournament} y su impacto en {player} y {opponent}."
         }
 
         result = chain.invoke(input_data)
 
         report = ""
-        if len(result.tool_calls) == 0:
+        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
             report = result.content
 
         return {

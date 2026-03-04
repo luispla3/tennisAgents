@@ -1,12 +1,9 @@
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
-
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
         match_date = state[STATE.match_date]
-        location = state.get(STATE.location, "Ubicación no especificada")
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
@@ -25,7 +22,6 @@ def create_weather_analyst(llm, toolkit):
             "• get_weather_forecast(tournament, fecha_hora, location) - Obtiene pronóstico meteorológico para una ubicación y fecha específicas\n\n"
             "INFORMACIÓN DISPONIBLE:\n"
             f"• Fecha del partido: {match_date}\n"
-            f"• Ubicación: {location}\n"
             f"• Torneo: {tournament}\n"
             f"• Jugadores: {player} vs {opponent}"
         )
@@ -34,7 +30,6 @@ def create_weather_analyst(llm, toolkit):
         additional_context = (
             "INSTRUCCIONES ESPECÍFICAS:\n"
             f"• Usa la fecha del partido: {match_date}\n"
-            f"• Usa la ubicación: {location}\n"
             f"• Usa el nombre del torneo: {tournament}\n"
             f"• Procede DIRECTAMENTE con el análisis usando get_weather_forecast\n"
             "• NO pidas información adicional al usuario\n\n"
@@ -64,7 +59,6 @@ def create_weather_analyst(llm, toolkit):
         # Inyección de variables al prompt
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
-        prompt = prompt.partial(location=location)
         prompt = prompt.partial(match_date=match_date)
         prompt = prompt.partial(tournament=tournament)
 
@@ -74,7 +68,7 @@ def create_weather_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} en {location} el día {match_date}."
+            "user_message": f"Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} el día {match_date}."
         }
 
         result = chain.invoke(input_data)
