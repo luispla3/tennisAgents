@@ -3,8 +3,15 @@ dataset/
 # Python caches and bytecode
 **/__pycache__/
 *.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 # Project outputs
 results/
 rag_storage/
 output/
+# JSON data files (generated files with timestamps)
+web/data/*.json
+# Pruebas folder
+pruebas/
