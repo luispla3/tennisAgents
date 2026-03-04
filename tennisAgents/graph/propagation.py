@@ -30,10 +30,16 @@ class Propagator:
             STATE.wallet_balance: wallet_balance,
             STATE.risk_debate_state: RiskDebateState({
                 HISTORYS.history: "",
+                HISTORYS.aggressive_history: "",
+                HISTORYS.safe_history: "",
+                HISTORYS.neutral_history: "",
+                HISTORYS.expected_history: "",
+                STATE.latest_speaker: "",
                 RESPONSES.aggressive: "",
                 RESPONSES.safe: "",
                 RESPONSES.neutral: "",
                 RESPONSES.expected: "",
+                STATE.judge_decision: "",
                 STATE.count: 0
             }),
             REPORTS.players_report: "",

@@ -108,9 +108,9 @@ class TennisAgentsGraph:
             additional_risk_manager_llms=self.additional_risk_manager_llms,
         )
 
-        self.propagator = Propagator()
-        self.reflector = Reflector(self.quick_thinking_llm)
-        self.signal_processor = SignalProcessor(self.quick_thinking_llm)
+        self.propagator = Propagator()         #se usa en web/app.py para inicializar el estado inicial del grafo
+        self.reflector = Reflector(self.quick_thinking_llm)                    #no se usa en ningun sitio
+        self.signal_processor = SignalProcessor(self.quick_thinking_llm)       #no se usa en web/app.py, solo en cli
 
         self.curr_state = None
         self.match = None
@@ -167,6 +167,7 @@ class TennisAgentsGraph:
             ),
         }
 
+    #ninguno de los siguientes metodos se usa en web/app.py
 
     def propagate(self, player_pair, match_date, tournament, wallet_balance):
         self.match = player_pair

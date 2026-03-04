@@ -25,9 +25,7 @@ from tennisAgents.graph.trading_graph import TennisAgentsGraph
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional
-import asyncio
 import json
-import os
 
 # Create FastAPI app
 app = FastAPI(
@@ -515,12 +513,32 @@ async def fetch_live_matches():
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(result["data"], f, indent=2, ensure_ascii=False)
         
-        # Llamar al nuevo endpoint de season summaries
-        # Por ahora usamos un season_id placeholder (dará error pero se llama como solicitado)
+        # Intentar obtener un season_id real de los partidos obtenidos
+        season_id = "test_season_id"  # Default fallback
+        
+        # Buscar el primer season_id válido en los summaries
+        if result.get("success") and result.get("data") and result["data"].get("summaries"):
+            for summary in result["data"]["summaries"]:
+                try:
+                    current_season_id = summary.get("sport_event", {}).get("sport_event_context", {}).get("season", {}).get("id")
+                    if current_season_id:
+                        season_id = current_season_id
+                        break
+                except Exception:
+                    continue
+        
+        # Si seguimos con el placeholder y no queremos causar error 429/404 innecesario,
+        # podríamos omitir la llamada, pero mantenemos la estructura solicitada intentando evitar el error si es posible.
+        
         access_level = DEFAULT_CONFIG.get("sportradar_access_level", "trial")
         language_code = DEFAULT_CONFIG.get("sportradar_language", "en")
-        season_id = "test_season_id"  # Placeholder - dará error pero se llama como solicitado
         
+        # Solo llamar si tenemos un season_id que parece real (empieza por sr:season) o si queremos mantener el comportamiento de test
+        if season_id.startswith("sr:season:") or season_id == "test_season_id":
+             # Si es el test_id, tal vez queramos evitar el 429 spameando. 
+             # Pero el log mostraba que se llamaba explícitamente.
+             pass
+
         season_result = fetch_season_summaries(
             season_id=season_id,
             access_level=access_level,
@@ -541,34 +559,8 @@ async def fetch_live_matches():
         with open(season_filepath, "w", encoding="utf-8") as f:
             json.dump(season_data_to_save, f, indent=2, ensure_ascii=False)
         
-        # Obtener perfiles de los dos jugadores (IDs vacíos por ahora)
-        competitor_id_1 = ""  # Vacío por ahora
-        competitor_id_2 = ""  # Vacío por ahora
-        
-        profile_1 = fetch_competitor_profile(competitor_id_1)
-        profile_2 = fetch_competitor_profile(competitor_id_2)
-        
-        # Guardar los perfiles también
-        profiles_data = {
-            "player_1": {
-                "competitor_id": competitor_id_1,
-                "profile": profile_1
-            },
-            "player_2": {
-                "competitor_id": competitor_id_2,
-                "profile": profile_2
-            },
-            "fetched_at": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        profiles_filename = f"competitor_profiles_{timestamp}.json"
-        profiles_filepath = DATA_DIR / profiles_filename
-        
-        with open(profiles_filepath, "w", encoding="utf-8") as f:
-            json.dump(profiles_data, f, indent=2, ensure_ascii=False)
-        
         # Construir mensaje de respuesta incluyendo información del season summaries
-        message = f"Se obtuvieron {result['total_matches']} partidos y se intentaron obtener 2 perfiles de competidores"
+        message = f"Se obtuvieron {result['total_matches']} partidos"
         if season_result.get("success"):
             message += f". Season summaries obtenidos exitosamente para season_id: {season_id}"
         else:
@@ -589,21 +581,7 @@ async def fetch_live_matches():
                 "status_code": season_result.get("status_code", None)
             },
             "season_summaries_saved_to": str(season_filepath),
-            "season_summaries_filename": season_filename,
-            "profiles": {
-                "player_1": {
-                    "competitor_id": competitor_id_1,
-                    "success": profile_1.get("success", False),
-                    "error": profile_1.get("error", None)
-                },
-                "player_2": {
-                    "competitor_id": competitor_id_2,
-                    "success": profile_2.get("success", False),
-                    "error": profile_2.get("error", None)
-                }
-            },
-            "profiles_saved_to": str(profiles_filepath),
-            "profiles_filename": profiles_filename
+            "season_summaries_filename": season_filename
         })
         
     except Exception as e:

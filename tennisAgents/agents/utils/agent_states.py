@@ -1,7 +1,7 @@
 from typing import Annotated, Dict
 from typing_extensions import TypedDict
 from langgraph.graph import MessagesState
-from typing import Optional, List, Any
+from typing import Optional
 
 
 # Estado del debate de gestión de riesgo
@@ -30,8 +30,8 @@ class RiskDebateState(TypedDict):
         str, "Analyst that spoke last"
     ]
 
-    current_risky_response: Annotated[
-        str, "Latest response by the risky analyst"
+    current_aggressive_response: Annotated[
+        str, "Latest response by the aggressive analyst"
     ]  # Last response
 
     current_safe_response: Annotated[
@@ -40,6 +40,10 @@ class RiskDebateState(TypedDict):
 
     current_neutral_response: Annotated[
         str, "Latest response by the neutral analyst"
+    ]  # Last response
+
+    current_expected_response: Annotated[
+        str, "Latest response by the expected value analyst"
     ]  # Last response
 
     judge_decision: Annotated[
@@ -102,9 +106,8 @@ class AgentState(MessagesState):
         Optional[str], "Informe de partido en vivo"
     ]
 
-    # Decisión final
-    final_bet_decision: Annotated[
-        Optional[str], "Decisión final de apuesta"
+    risk_analysis_report: Annotated[
+        Optional[str], "Informe de análisis de riesgo"
     ]
 
     # Decisiones individuales de cada risk manager (para medir rendimiento)
@@ -115,6 +118,11 @@ class AgentState(MessagesState):
     # Estado del debate de riesgo
     risk_debate_state: Annotated[
         RiskDebateState, "Estado del debate de gestión de riesgo"
+    ]
+
+    # Decisión final
+    final_bet_decision: Annotated[
+        Optional[str], "Decisión final de apuesta"
     ]
 
 
