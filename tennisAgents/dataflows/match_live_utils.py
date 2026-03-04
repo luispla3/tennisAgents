@@ -4,12 +4,11 @@ Match Live Utilities - Herramientas para obtener datos en tiempo real de partido
 
 import os
 import json
-import time
 import requests
 import unicodedata
 from dotenv import load_dotenv
 from datetime import datetime
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional
 
 load_dotenv()
 

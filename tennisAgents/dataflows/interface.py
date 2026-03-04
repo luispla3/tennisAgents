@@ -1,4 +1,3 @@
-from tennisAgents.dataflows.config import get_config
 from .odds_utils import fetch_betfair_odds
 from .match_live_utils import fetch_match_live_data, format_match_live_report
 from .news_utils import fetch_news

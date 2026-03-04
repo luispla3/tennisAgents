@@ -60,17 +60,11 @@ class STATE:
     player_of_interest = "player_of_interest"
     opponent = "opponent"
     tournament = "tournament"
-    surface = "surface"
-    location = "location"
     wallet_balance = "wallet_balance"
-
     messages = "messages"
-
     risk_debate_state = "risk_debate_state"
-
     final_bet_decision = "final_bet_decision"
-    individual_risk_manager_decisions = "individual_risk_manager_decisions"  # Dict con decisiones individuales por modelo
-    
+    individual_risk_manager_decisions = "individual_risk_manager_decisions"
     count = "count"
     latest_speaker = "latest_speaker"
     judge_decision = "judge_decision"

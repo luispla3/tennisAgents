@@ -1,11 +1,9 @@
 import random
 import requests
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from bs4 import BeautifulSoup
-from langchain_openai import OpenAI
 from matplotlib.dates import relativedelta
-from tennisAgents.dataflows.config import get_config
 
 
 def fetch_news(query: str, curr_date: str) -> str:
