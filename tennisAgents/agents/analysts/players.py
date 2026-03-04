@@ -110,7 +110,7 @@ def create_player_analyst(llm, toolkit):
             "• % promedio de puntos ganados con primer servicio en la superficie del torneo\n"
             "• % promedio de puntos ganados con segundo servicio en la superficie del torneo\n"
             "• Promedio de aces por partido en la superficie del torneo\n"
-            "• Promedio de dobles faltas por partido en la superficie del torneo\n"
+            "• Promedio de dobles faltas por partido en la superficie del torneo.\n"
             "• % de juegos de servicio ganados en la superficie del torneo\n"
             "• % de break points salvados en la superficie del torneo\n"
             "• Tendencias: ¿está mejorando o empeorando su servicio en partidos recientes?\n\n"

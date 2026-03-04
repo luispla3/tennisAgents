@@ -19,7 +19,7 @@ def create_weather_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_weather_forecast(tournament, fecha_hora, location) - Obtiene pronóstico meteorológico para una ubicación y fecha específicas\n\n"
+            "• get_weather_forecast(tournament, fecha_hora, location) - Obtiene pronóstico meteorológico para una ubicación y fecha específicas.\n\n"
             "INFORMACIÓN DISPONIBLE:\n"
             f"• Fecha del partido: {match_date}\n"
             f"• Torneo: {tournament}\n"

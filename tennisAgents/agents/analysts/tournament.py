@@ -19,7 +19,7 @@ def create_tournament_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_tournament_info() - Obtiene información detallada sobre torneos de tenis"
+            "• get_tournament_info() - Obtiene información detallada sobre torneos de tenis."
         )
         
         # Contexto adicional específico del análisis de torneos

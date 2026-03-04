@@ -21,7 +21,7 @@ def create_social_media_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_sentiment() - Obtiene análisis de sentimiento y percepción pública en redes sociales"
+            "• get_sentiment() - Obtiene análisis de sentimiento y percepción pública en redes sociales."
         )
         
         # Contexto adicional específico del análisis de redes sociales

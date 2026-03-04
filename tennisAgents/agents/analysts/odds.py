@@ -42,7 +42,7 @@ def create_odds_analyst(llm, toolkit):
 **Estado:** No se pudo encontrar el partido en Betfair.
 
 **Posibles razones:**
-• El partido no está actualmente "En Juego" en Betfair
+• El partido no está actualmente "En Juego" en Betfair.
 • Los nombres de los jugadores no coinciden exactamente con los de Betfair
 • El partido aún no ha comenzado o ya ha finalizado
 

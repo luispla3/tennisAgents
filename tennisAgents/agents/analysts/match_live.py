@@ -12,7 +12,7 @@ def create_match_live_analyst(llm, toolkit):
            a) Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
            b) Busca el partido específico entre los dos jugadores (con búsqueda flexible)
            c) Extrae la información relevante del partido (marcador, estadísticas, etc.)
-        3. Retorna el reporte con marcador, estadísticas y análisis del momentum
+        3. Retorna el reporte con marcador, estadísticas y análisis del momentum.
         
         """
         match_date = state[STATE.match_date]

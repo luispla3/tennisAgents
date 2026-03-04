@@ -21,7 +21,7 @@ def create_news_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_news() - Obtiene noticias recientes sobre jugadores y torneos de tenis"
+            "• get_news() - Obtiene noticias recientes sobre jugadores y torneos de tenis."
         )
         
         # Contexto adicional específico del análisis de noticias
