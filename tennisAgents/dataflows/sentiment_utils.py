@@ -11,16 +11,19 @@ def get_sentiment_openai(player_name: str) -> str:
     if config.get("use_local_analysts", False):
         try:
             local_base_url = config.get("local_base_url", "http://localhost:11434/v1")
-            local_model = config.get("local_model_name", "qwen2.5:3b")
+            local_model = config.get("local_model_name", "qwen3.5:2b")
             is_local = "localhost" in local_base_url or "127.0.0.1" in local_base_url
             
             if is_local:
                 # Ollama local
+                timeout = config.get("local_llm_timeout", 120)
                 llm = ChatOpenAI(
                     model=local_model,
                     base_url=local_base_url,
                     api_key=config.get("local_api_key", "ollama"),
-                    temperature=0.7
+                    temperature=0.7,
+                    timeout=timeout,
+                    max_retries=2
                 )
                 source_label = "OLLAMA LOCAL"
             else:

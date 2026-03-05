@@ -393,7 +393,6 @@ class TennisAnalystAnatomies:
             exclusions=[
                 "Información personal no relacionada con el rendimiento deportivo",
                 "Comentarios tóxicos o irrelevantes",
-                "Análisis que viole la privacidad de los jugadores"
             ],
             
             reasoning_priorities=[
@@ -418,7 +417,6 @@ class TennisAnalystAnatomies:
                 "Análisis completo de presencia en redes sociales",
                 "Evaluación del sentimiento público",
                 "Identificación de impacto en motivación",
-                "Informe estructurado respetando privacidad"
             ]
         )
 

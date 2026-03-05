@@ -21,7 +21,7 @@ DEFAULT_CONFIG = {
         {"name": "Claude-Sonnet-4.6", "model": "anthropic/claude-sonnet-4.6"},
         {"name": "GPT-5.1", "model": "openai/gpt-5.1"},
         {"name": "Kimi-K2.5", "model": "moonshotai/kimi-k2.5"},
-        {"name": "Qwen3.5-35B-A3B", "model": "qwen/qwen3.5-35b-a3b"},
+        {"name": "Qwen3.5-2B-Local", "model": "qwen3.5:2b", "is_local": True},
     ],
     # Debate and discussion settings
     "max_debate_rounds": 1,
@@ -33,9 +33,10 @@ DEFAULT_CONFIG = {
     # Local LLM settings (for specific analysts: News, Social, Tournament, Weather)
     # Set to True to use local Ollama, False to use OpenRouter
     "use_local_analysts": True,
-    "local_model_name": "qwen2.5:3b",  # Qwen2.5 3B model in Ollama
+    "local_model_name": "qwen3.5:2b",  # Qwen3.5 2B model in Ollama
     "local_base_url": "http://localhost:11434/v1",  # Ollama local endpoint
     "local_api_key": "ollama",  # Dummy key for Ollama (no se usa realmente)
+    "local_llm_timeout": 120,  # Timeout en segundos para llamadas al LLM local (evita que se congele)
     
     # RAG settings
     "enable_rag": False,  # Set to True to enable RAG functionality

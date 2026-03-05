@@ -62,7 +62,17 @@ def create_news_analyst(llm, toolkit):
             "user_message": f"Analiza las noticias más relevantes sobre {player} y {opponent} para el torneo {tournament}."
         }
 
-        result = chain.invoke(input_data)     #Es un Message que puede ser de 2 tipos: AIMessage, ToolMessage.
+        # Agregar logging para diagnosticar problemas
+        print(f"\n[News Analyst] Iniciando análisis de noticias para {player} vs {opponent}...")
+        print(f"[News Analyst] Invocando LLM local (esto puede tardar unos segundos)...")
+        
+        try:
+            result = chain.invoke(input_data)     #Es un Message que puede ser de 2 tipos: AIMessage, ToolMessage.
+            print(f"[News Analyst] ✓ LLM respondió exitosamente")
+        except Exception as e:
+            print(f"[News Analyst] ✗ Error al invocar LLM: {e}")
+            print(f"[News Analyst] Verifica que Ollama esté corriendo y el modelo qwen3.5:2b esté disponible")
+            raise
 
         report = ""
         if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
