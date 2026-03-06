@@ -17,14 +17,11 @@ def get_tournament_info_openai(tournament_name: str, category: str, date: str) -
             
             if is_local:
                 # Ollama local
-                timeout = config.get("local_llm_timeout", 120)
                 llm = ChatOpenAI(
                     model=local_model,
                     base_url=local_base_url,
                     api_key=config.get("local_api_key", "ollama"),
-                    temperature=0.7,
-                    timeout=timeout,
-                    max_retries=2
+                    temperature=0.7
                 )
                 source_label = "OLLAMA LOCAL"
             else:

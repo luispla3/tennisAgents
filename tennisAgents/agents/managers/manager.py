@@ -3,7 +3,6 @@ from typing import Dict, Any, Optional
 
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.memory import chunk_text
-from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskManagerAnatomies
 
 def _execute_single_risk_manager(llm, state: Dict[str, Any], memory, model_name: str) -> tuple[str, str]:
     """
@@ -39,32 +38,17 @@ def _execute_single_risk_manager(llm, state: Dict[str, Any], memory, model_name:
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
 
-    # Construir el contexto dinámico
-    additional_context = f"""
-**INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Fecha del partido: {match_date}
+    prompt = f"""
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente segura a corto y medio plazo, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+
+**INFORMACIÓN DEL PARTIDO:**
+- Saldo disponible: ${wallet_balance}
+- Fecha: {match_date}
 - Jugador de interés: {player_of_interest}
 - Oponente: {opponent}
 - Torneo: {tournament}
-- Superficie: la superficie del torneo
-- Saldo disponible: ${wallet_balance}
 
-**INFORMES DISPONIBLES:**
-- Pronóstico del tiempo: {weather_report}
-- Informe de cuotas de apuestas: {odds_report}
-- Sentimiento en redes sociales: {sentiment_report}
-- Noticias recientes: {news_report}
-- Estado físico y mental de los jugadores: {players_report}
-- Información del torneo: {tournament_report}
-- Estado del partido en vivo: {match_live_report}
-
-**DEBATE ACTUAL ENTRE ANALISTAS:**
-{history}
-
-**LECCIONES APRENDIDAS DE SITUACIONES SIMILARES:**
-{past_memory_str}
-
-**TU TAREA:**
+### TU TAREA:
 Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matematicamente con cada uno de los casos ideales para tener simplemente una referencia para la decision.
 Finalmente, genera un INFORME FINAL que incluya:
 
@@ -74,18 +58,27 @@ Finalmente, genera un INFORME FINAL que incluya:
 5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
 6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
 
-**TIPO DE APUESTA A CONSIDERAR:**
+### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
 2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. Solo apostar si hay valor esperado positivo claro.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
 4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Solo apostar si hay valor esperado positivo claro.
 
-**CASOS IDEALES:**
+### CASOS IDEALES:
 - Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4 o 6-3.
 - Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
 - Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
-**FORMATO DEL INFORME FINAL:**
+### Informe de Cuotas Disponibles (Betfair):
+{odds_report}
+
+### Debate actual entre analistas:
+{history}
+
+### Lecciones aprendidas de situaciones similares:
+{past_memory_str}
+
+### FORMATO DEL INFORME FINAL:
 Tu respuesta debe seguir EXACTAMENTE esta estructura:
 
 **DECISIÓN FINAL: [APOSTAR/NO APOSTAR]**
@@ -124,15 +117,8 @@ IMPORTANTE:
 - En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """
 
-    # Obtener la anatomía y crear el prompt
-    anatomy = RiskManagerAnatomies.risk_manager()
-    prompt = PromptBuilder.create_structured_prompt(
-        anatomy=anatomy,
-        additional_context=additional_context
-    )
-
     try:
-        response = llm.invoke(prompt.invoke({"user_message": "Genera tu INFORME FINAL DE DECISIÓN DE APUESTA siguiendo estrictamente el formato solicitado."}))
+        response = llm.invoke(prompt)
         decision = response.content if hasattr(response, 'content') else str(response)
         return (model_name, decision)
     except Exception as e:
@@ -176,32 +162,17 @@ def create_risk_manager(llm, memory, additional_risk_managers: Optional[list] = 
         for i, rec in enumerate(past_memories, 1):
             past_memory_str += rec["recommendation"] + "\n\n"
 
-        # Construir el contexto dinámico
-        additional_context = f"""
-**INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Fecha del partido: {match_date}
+        prompt = f"""
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente segura a corto y medio plazo, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+
+**INFORMACIÓN DEL PARTIDO:**
+- Saldo disponible: ${wallet_balance}
+- Fecha: {match_date}
 - Jugador de interés: {player_of_interest}
 - Oponente: {opponent}
 - Torneo: {tournament}
-- Superficie: la superficie del torneo
-- Saldo disponible: ${wallet_balance}
 
-**INFORMES DISPONIBLES:**
-- Pronóstico del tiempo: {weather_report}
-- Informe de cuotas de apuestas: {odds_report}
-- Sentimiento en redes sociales: {sentiment_report}
-- Noticias recientes: {news_report}
-- Estado físico y mental de los jugadores: {players_report}
-- Información del torneo: {tournament_report}
-- Estado del partido en vivo: {match_live_report}
-
-**DEBATE ACTUAL ENTRE ANALISTAS:**
-{history}
-
-**LECCIONES APRENDIDAS DE SITUACIONES SIMILARES:**
-{past_memory_str}
-
-**TU TAREA:**
+### TU TAREA:
 Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matematicamente con cada uno de los casos ideales para tener simplemente una referencia para la decision.
 Finalmente, genera un INFORME FINAL que incluya:
 
@@ -211,18 +182,27 @@ Finalmente, genera un INFORME FINAL que incluya:
 5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
 6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
 
-**TIPO DE APUESTA A CONSIDERAR:**
+### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
 2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. Solo apostar si hay valor esperado positivo claro.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
 4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Solo apostar si hay valor esperado positivo claro.
 
-**CASOS IDEALES:**
+### CASOS IDEALES:
 - Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4 o 6-3.
 - Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
 - Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
 
-**FORMATO DEL INFORME FINAL:**
+### Informe de Cuotas Disponibles (Betfair):
+{odds_report}
+
+### Debate actual entre analistas:
+{history}
+
+### Lecciones aprendidas de situaciones similares:
+{past_memory_str}
+
+### FORMATO DEL INFORME FINAL:
 Tu respuesta debe seguir EXACTAMENTE esta estructura:
 
 **DECISIÓN FINAL: [APOSTAR/NO APOSTAR]**
@@ -258,18 +238,11 @@ IMPORTANTE:
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
+- En las apuestas a sets, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """
 
-        # Obtener la anatomía y crear el prompt
-        anatomy = RiskManagerAnatomies.risk_manager()
-        prompt = PromptBuilder.create_structured_prompt(
-            anatomy=anatomy,
-            additional_context=additional_context
-        )
-
         # Ejecutar el risk manager principal
-        main_response = llm.invoke(prompt.invoke({"user_message": "Genera tu INFORME FINAL DE DECISIÓN DE APUESTA siguiendo estrictamente el formato solicitado."}))
+        main_response = llm.invoke(prompt)
         main_decision = main_response.content if hasattr(main_response, 'content') else str(main_response)
         
         # Obtener el nombre del modelo principal del LLM

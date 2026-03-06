@@ -1,5 +1,6 @@
 from tennisAgents.utils.enumerations import *
-from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskManagerAnatomies
+from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskDebatorAnatomies
+
 
 def create_expected_debator(llm):
     def expected_node(state) -> dict:
@@ -27,43 +28,67 @@ def create_expected_debator(llm):
         opponent = state.get(STATE.opponent, "")
         tournament = state.get(STATE.tournament, "")
 
-        # Construir el contexto dinámico
-        additional_context = f"""
-**INFORMACIÓN DEL PARTIDO:**
-- Fecha del partido: {match_date}
-- Jugador de interés: {player_of_interest}
-- Oponente: {opponent}
-- Torneo: {tournament}
-- Superficie: la superficie del torneo
-- Saldo disponible: ${wallet_balance}
+        anatomy = RiskDebatorAnatomies.expected_debator()
 
-**INFORMES DISPONIBLES:**
-- Pronóstico del tiempo: {weather_report}
-- Informe de cuotas de apuestas: {odds_report}
-- Sentimiento en redes sociales: {sentiment_report}
-- Noticias recientes: {news_report}
-- Estado físico y mental de los jugadores: {players_report}
-- Información del torneo: {tournament_report}
-- Estado del partido en vivo: {match_live_report}
-
-**ARGUMENTOS PREVIOS DE OTROS ANALISTAS:**
-- Analista agresivo: {current_aggressive_response}
-- Analista neutral: {current_neutral_response}
-- Analista seguro: {current_safe_response}
-
-**HISTORIAL DE DEBATE:**
-{history}
-"""
-
-        # Obtener la anatomía y crear el prompt
-        anatomy = RiskManagerAnatomies.expected_debator()
-        prompt = PromptBuilder.create_structured_prompt(
-            anatomy=anatomy,
-            additional_context=additional_context
+        additional_context = (
+            "INFORMACIÓN DEL PARTIDO:\n"
+            "- Jugador: {player_of_interest} vs {opponent}\n"
+            "- Torneo: {tournament}\n"
+            "- Fecha: {match_date} | Saldo: ${wallet_balance}\n\n"
+            "DETALLES OBLIGATORIOS DEL ANÁLISIS:\n"
+            "- Para cada odd disponible en {odds_report}, debes determinar la probabilidad implícita.\n"
+            "- Si la odd es *10, la casa implica 10% de probabilidad (1/10).\n"
+            "- Debes estimar la probabilidad real basándote en {players_report}, {tournament_report}, {weather_report}, {news_report}, {sentiment_report} y {match_live_report}.\n"
+            "- Debes comprobar si la probabilidad real supera el umbral de rentabilidad de la odd.\n"
+            "- Debes concluir qué sugieren estas odds y cómo repercute eso en el resultado del set.\n"
+            "- Si encuentras valor positivo, sugiere porcentaje del saldo usando Kelly fraccional 0.25-0.5; si no, sugiere 0%.\n\n"
+            "ARGUMENTOS PREVIOS A REBATIR DESDE LA VISIÓN PROBABILÍSTICA:\n"
+            "- Analista Agresivo: {current_aggressive_response}\n"
+            "- Analista Neutral: {current_neutral_response}\n"
+            "- Analista Seguro: {current_safe_response}\n\n"
+            "HISTORIAL DE DEBATE:\n"
+            "{history}\n\n"
+            "REQUISITOS DE RESPUESTA NO NEGOCIABLES:\n"
+            "- Responde de forma conversacional.\n"
+            "- Analiza y relaciona las odds disponibles comparando probabilidades implícitas vs reales.\n"
+            "- Identifica cuál odd, si alguna, tiene valor esperado positivo y si la probabilidad real supera el umbral de rentabilidad.\n"
+            "- Si encuentras valor positivo, sugiere % del saldo; si no, sugiere 0%.\n"
+            "- Cuestiona los argumentos previos con visión probabilística, sin formato especial.\n"
+            "- No inventes datos. Sé directo sobre rentabilidad matemática a largo plazo."
         )
 
-        # Invocar al LLM
-        response = llm.invoke(prompt.invoke({"user_message": "Realiza tu análisis matemático de valor esperado y debate con los otros analistas."}))
+        prompt = PromptBuilder.create_debator_prompt(
+            anatomy=anatomy,
+            additional_context=additional_context,
+        )
+
+        prompt = prompt.partial(player_of_interest=player_of_interest)
+        prompt = prompt.partial(opponent=opponent)
+        prompt = prompt.partial(tournament=tournament)
+        prompt = prompt.partial(match_date=match_date)
+        prompt = prompt.partial(wallet_balance=wallet_balance)
+        prompt = prompt.partial(odds_report=odds_report)
+        prompt = prompt.partial(players_report=players_report)
+        prompt = prompt.partial(tournament_report=tournament_report)
+        prompt = prompt.partial(weather_report=weather_report)
+        prompt = prompt.partial(news_report=news_report)
+        prompt = prompt.partial(sentiment_report=sentiment_report)
+        prompt = prompt.partial(match_live_report=match_live_report)
+        prompt = prompt.partial(current_aggressive_response=current_aggressive_response)
+        prompt = prompt.partial(current_neutral_response=current_neutral_response)
+        prompt = prompt.partial(current_safe_response=current_safe_response)
+        prompt = prompt.partial(history=history)
+
+        chain = prompt | llm
+
+        input_data = {
+            "user_message": (
+                f"Evalúa el valor esperado para {player_of_interest} vs {opponent}. "
+                "Compara probabilidades implícitas y reales, identifica EV+ si existe y rebate al resto desde una visión probabilística."
+            )
+        }
+
+        response = chain.invoke(input_data)
 
         argument = f"Expected Value Analyst: {response.content}"
 

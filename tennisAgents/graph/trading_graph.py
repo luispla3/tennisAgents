@@ -59,28 +59,22 @@ class TennisAgentsGraph:
         if self.config.get("use_local_analysts", False):
             try:
                 local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
-                local_model = self.config.get("local_model_name", "qwen3.5:2b")
+                local_model = self.config.get("local_model_name", "qwen2.5:3b")
                 
                 # Detectar si es local (Ollama) o OpenRouter basado en la URL
                 is_local = "localhost" in local_base_url or "127.0.0.1" in local_base_url
                 
                 if is_local:
                     # Configuración para Ollama local (no requiere API key real)
-                    # Agregar timeout para evitar que se quede congelado
-                    timeout = self.config.get("local_llm_timeout", 120)  # 120 segundos por defecto
                     self.local_llm = ChatOpenAI(
                         model=local_model,
                         base_url=local_base_url,
                         api_key=self.config.get("local_api_key", "ollama"),  # Dummy key
-                        temperature=0.7,
-                        timeout=timeout,
-                        max_retries=2
+                        temperature=0.7
                     )
                     if self.debug:
                         print(f"✓ Ollama LLM local inicializado para analistas: {local_model}")
-                        print(f"  Base URL: {local_base_url}")
-                        print(f"  Timeout: {timeout} segundos")
-                        print(f"  Asegúrate de tener Ollama corriendo y el modelo {local_model} disponible")
+                        print(f"  Asegúrate de tener Ollama corriendo en {local_base_url}")
                 else:
                     # Configuración para OpenRouter (requiere API key)
                     local_api_key = self.config.get("local_api_key") or os.getenv("OPENROUTER_API_KEY")
@@ -103,8 +97,6 @@ class TennisAgentsGraph:
             except Exception as e:
                 if self.debug:
                     print(f"⚠ Warning: No se pudo inicializar LLM para analistas: {e}")
-                    print(f"  Los analistas (news, social, tournament, weather) usarán el LLM principal como fallback.")
-                # self.local_llm queda como None, y setup.py usará quick_thinking_llm como fallback
 
         self.toolkit = Toolkit(config=self.config)
 
@@ -122,52 +114,30 @@ class TennisAgentsGraph:
             {"name": "Grok-4", "model": "x-ai/grok-4"},
         ])
         
-        if additional_managers_config:
+        if openrouter_api_key and additional_managers_config:
             for manager_config in additional_managers_config:
                 manager_name = manager_config.get("name")
                 model_name = manager_config.get("model")
-                is_local = manager_config.get("is_local", False)
-                
                 try:
-                    if is_local:
-                        # Configuración para Ollama local
-                        local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
-                        local_api_key = self.config.get("local_api_key", "ollama")
-                        timeout = self.config.get("local_llm_timeout", 120)
-                        
-                        additional_llm = ChatOpenAI(
-                            model=model_name,
-                            base_url=local_base_url,
-                            api_key=local_api_key,
-                            temperature=0.7,
-                            timeout=timeout,
-                            max_retries=2
-                        )
-                    elif openrouter_api_key:
-                        # Configuración para OpenRouter
-                        additional_llm = ChatOpenAI(
-                            model=model_name,
-                            base_url=openrouter_base_url,
-                            api_key=openrouter_api_key,
-                            default_headers={
-                                "HTTP-Referer": "https://github.com/tennisAgents",
-                                "X-Title": "Tennis Agents"
-                            }
-                        )
-                    else:
-                        if self.debug:
-                            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Risk manager {manager_name} omitido.")
-                        continue
-
+                    # Crear LLM con OpenRouter (usando ChatOpenAI compatible con OpenRouter)
+                    additional_llm = ChatOpenAI(
+                        model=model_name,
+                        base_url=openrouter_base_url,
+                        api_key=openrouter_api_key,
+                        default_headers={
+                            "HTTP-Referer": "https://github.com/tennisAgents",
+                            "X-Title": "Tennis Agents"
+                        }
+                    )
                     self.additional_risk_manager_llms.append((manager_name, additional_llm))
                     if self.debug:
-                        print(f"✓ Risk Manager adicional creado: {manager_name} ({model_name}) [{'Local' if is_local else 'OpenRouter'}]")
+                        print(f"✓ Risk Manager adicional creado: {manager_name} ({model_name})")
                 except Exception as e:
                     # Si falla crear un LLM adicional, continuar sin él
                     if self.debug:
                         print(f"⚠ Warning: No se pudo crear risk manager adicional {manager_name}: {e}")
-        elif self.debug:
-            print(f"⚠ Warning: No hay risk managers adicionales configurados.")
+        elif self.debug and additional_managers_config:
+            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los risk managers adicionales no se crearán.")
 
         self.conditional_logic = ConditionalLogic(
             max_debate_rounds=self.config.get("max_debate_rounds", 1),

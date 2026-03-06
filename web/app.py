@@ -991,4 +991,3 @@ async def get_predicted_match_details(
             status_code=500,
             detail=f"Error al obtener detalles de la predicción: {str(e)}",
         )
-

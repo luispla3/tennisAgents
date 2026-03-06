@@ -36,7 +36,6 @@ DEFAULT_CONFIG = {
     "local_model_name": "qwen3.5:2b",  # Qwen3.5 2B model in Ollama
     "local_base_url": "http://localhost:11434/v1",  # Ollama local endpoint
     "local_api_key": "ollama",  # Dummy key for Ollama (no se usa realmente)
-    "local_llm_timeout": 120,  # Timeout en segundos para llamadas al LLM local (evita que se congele)
     
     # RAG settings
     "enable_rag": False,  # Set to True to enable RAG functionality

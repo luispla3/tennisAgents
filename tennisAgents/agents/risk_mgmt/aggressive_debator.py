@@ -1,5 +1,6 @@
 from tennisAgents.utils.enumerations import *
-from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskManagerAnatomies
+from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, RiskDebatorAnatomies
+
 
 def create_aggressive_debator(llm):
     def aggressive_node(state) -> dict:
@@ -19,7 +20,7 @@ def create_aggressive_debator(llm):
         tournament_report = state[REPORTS.tournament_report]
         weather_report = state[REPORTS.weather_report]
         match_live_report = state.get(REPORTS.match_live_report, "")
-        
+
         # Información del usuario y partido
         wallet_balance = state.get(STATE.wallet_balance, 0)
         match_date = state.get(STATE.match_date, "")
@@ -27,45 +28,82 @@ def create_aggressive_debator(llm):
         opponent = state.get(STATE.opponent, "")
         tournament = state.get(STATE.tournament, "")
 
-        # Construir el contexto dinámico
-        additional_context = f"""
-**INFORMACIÓN DEL USUARIO Y PARTIDO:**
-- Fecha del partido: {match_date}
-- Jugador de interés: {player_of_interest}
-- Oponente: {opponent}
-- Torneo: {tournament}
-- Superficie: la superficie del torneo
-- Saldo disponible: ${wallet_balance}
+        anatomy = RiskDebatorAnatomies.aggressive_debator()
 
-**INFORMES DISPONIBLES:**
-- Pronóstico del tiempo: {weather_report}
-- Informe de cuotas de apuestas: {odds_report}
-- Sentimiento en redes sociales: {sentiment_report}
-- Noticias recientes: {news_report}
-- Estado físico y mental de los jugadores: {players_report}
-- Información del torneo: {tournament_report}
-- Estado del partido en vivo: {match_live_report}
-
-**ARGUMENTOS PREVIOS DE OTROS ANALISTAS:**
-- Analista conservadora: {current_safe_response}
-- Analista neutral: {current_neutral_response}
-- Analista de probabilidades: {current_expected_response}
-
-**HISTORIAL DE DEBATE:**
-{history}
-"""
-
-        # Obtener la anatomía y crear el prompt
-        anatomy = RiskManagerAnatomies.aggressive_debator()
-        prompt = PromptBuilder.create_structured_prompt(
-            anatomy=anatomy,
-            additional_context=additional_context
+        additional_context = (
+            "INFORMACIÓN DEL USUARIO Y PARTIDO:\n"
+            "- Fecha del partido: {match_date}\n"
+            "- Jugador de interés: {player_of_interest}\n"
+            "- Oponente: {opponent}\n"
+            "- Torneo: {tournament}\n"
+            "- Saldo disponible: ${wallet_balance}\n\n"
+            "DETALLES OBLIGATORIOS DE LA TAREA:\n"
+            "- Debes valorar y validar los 4 fundamentales que aparecen en los reportes de los analistas.\n"
+            "- Debes decidir cuál de ambos jugadores gana el set y el resultado del set entre: 6-0, 6-1, 6-2, 6-3, 6-4, 7-5 o 7-6.\n"
+            "- Debes estudiar las cuotas de apuestas disponibles.\n"
+            "- Debes contrastar fundamentales y cuotas para detectar incoherencias que puedan ser oportunidades de inversión.\n"
+            "- Si una cuota tiene mayor probabilidad real de suceder que la probabilidad implícita de la casa, trátala como oportunidad potencial.\n"
+            "- La estrategia de inversión debe ser rentable matemáticamente y en el tiempo; si no existe oportunidad, debes decir explícitamente que no se apuesta.\n\n"
+            "INFORMES DISPONIBLES:\n"
+            "- Pronóstico del tiempo: {weather_report}\n"
+            "- Informe de cuotas de apuestas: {odds_report}\n"
+            "- Sentimiento en redes sociales: {sentiment_report}\n"
+            "- Noticias recientes: {news_report}\n"
+            "- Estado físico y mental de los jugadores: {players_report}\n"
+            "- Información del torneo: {tournament_report}\n"
+            "- Estado del partido en vivo: {match_live_report}\n\n"
+            "ARGUMENTOS PREVIOS:\n"
+            "- Analista conservadora: {current_safe_response}\n"
+            "- Analista neutral: {current_neutral_response}\n"
+            "- Analista de probabilidades: {current_expected_response}\n\n"
+            "HISTORIAL DE DEBATE:\n"
+            "{history}\n\n"
+            "REQUISITOS DE RESPUESTA NO NEGOCIABLES:\n"
+            "- Cuando comentes los fundamentales, debes incluir expresamente estos encabezados:\n"
+            "  * FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO\n"
+            "  * FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE\n"
+            "  * FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET\n"
+            "  * FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE\n"
+            "- Explica tu estrategia de inversión agresiva para el resultado del set y las cuotas de apuestas.\n"
+            "- Justifica matemáticamente por qué tomar riesgos tiene sentido dadas las circunstancias.\n"
+            "- Rebate directamente los argumentos de los analistas conservador y neutral.\n"
+            "- Demuestra que la estrategia agresiva pero realista es la más lógica dadas las circunstancias.\n"
+            "- Tu respuesta debe ser conversacional, directa y persuasiva.\n"
+            "- No inventes información si no hay respuestas previas."
         )
 
-        # Invocar al LLM
-        # Como PromptBuilder crea un ChatPromptTemplate que espera 'user_message', 
-        # proporcionamos una instrucción de activación.
-        response = llm.invoke(prompt.invoke({"user_message": "Genera tu análisis agresivo y estrategia de inversión basada en la información proporcionada."}))
+        prompt = PromptBuilder.create_debator_prompt(
+            anatomy=anatomy,
+            additional_context=additional_context,
+        )
+
+        prompt = prompt.partial(match_date=match_date)
+        prompt = prompt.partial(player_of_interest=player_of_interest)
+        prompt = prompt.partial(opponent=opponent)
+        prompt = prompt.partial(tournament=tournament)
+        prompt = prompt.partial(wallet_balance=wallet_balance)
+        prompt = prompt.partial(weather_report=weather_report)
+        prompt = prompt.partial(odds_report=odds_report)
+        prompt = prompt.partial(sentiment_report=sentiment_report)
+        prompt = prompt.partial(news_report=news_report)
+        prompt = prompt.partial(players_report=players_report)
+        prompt = prompt.partial(tournament_report=tournament_report)
+        prompt = prompt.partial(match_live_report=match_live_report)
+        prompt = prompt.partial(current_safe_response=current_safe_response)
+        prompt = prompt.partial(current_neutral_response=current_neutral_response)
+        prompt = prompt.partial(current_expected_response=current_expected_response)
+        prompt = prompt.partial(history=history)
+
+        chain = prompt | llm
+
+        input_data = {
+            "user_message": (
+                f"Defiende la postura agresiva para {player_of_interest} vs {opponent}. "
+                "Analiza fundamentales, resultado del set, cuotas y estrategia de inversión sin caer en inversiones contradictorias."
+            )
+        }
+
+        response = chain.invoke(input_data)
 
         argument = f"Aggressive Analyst: {response.content}"
 
