@@ -3,12 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Predicted - TennisAgents</title>
+    <title>Mis Ganancias - TennisAgents</title>
     <link rel="stylesheet" href="/static/css/style.css?v=11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -106,33 +105,14 @@
     <main class="predict-main">
         <div class="container">
             <div class="predict-content">
-                <h1 class="predict-title">Predicted</h1>
+                <h1 class="predict-title">Mis Ganancias</h1>
                 <p class="predict-description">
-                    Partidos ya analizados por el sistema y sus decisiones finales de apuesta.
+                    Histórico del balance y evolución de tus ganancias en apuestas.
                 </p>
-
-                <div class="predict-actions">
-                    <a href="/predict" class="btn btn-primary">Ir a Predict</a>
-                    <a href="/ganancias" class="btn btn-secondary" id="gananciasButton">Mis Ganancias</a>
-                </div>
-
-                <section id="predictedSection" class="predicted-section">
-                    <div class="predicted-header">
-                        <h2 class="predicted-title">Histórico de predicciones</h2>
-                        <p class="predicted-description">
-                            Revisa las últimas predicciones generadas (tanto desde la web como desde la CLI) y consulta hasta 5 decisiones finales por partido.
-                        </p>
-                    </div>
-                    <div id="predictedMatchesContainer" class="predicted-matches-container">
-                        <!-- Predicted matches will be injected here -->
-                    </div>
-                </section>
             </div>
         </div>
     </main>
 
     <script src="/static/js/main.js?v=7"></script>
-    <script src="/static/js/predicted.js?v=1"></script>
 </body>
 </html>
-

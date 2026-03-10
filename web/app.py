@@ -423,6 +423,12 @@ async def predicted(request: Request):
     return templates.TemplateResponse("predicted.html", {"request": request})
 
 
+@app.get("/ganancias", response_class=HTMLResponse)
+async def ganancias(request: Request):
+    """Earnings / profit history page"""
+    return templates.TemplateResponse("ganancias.html", {"request": request})
+
+
 def fetch_competitor_profile(competitor_id: str) -> Dict[str, Any]:
     """
     Obtiene el perfil de un competidor desde la API de Sportradar.
