@@ -38,6 +38,7 @@ app = FastAPI(
 BASE_DIR = Path(__file__).parent
 TEMPLATES_DIR = BASE_DIR / "templates"
 STATIC_DIR = BASE_DIR / "static"
+IMG_DIR = BASE_DIR / "img"
 DATA_DIR = PROJECT_ROOT / "web" / "data"
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 WEB_RESULTS_DIR = PROJECT_ROOT / "web" / "results"
@@ -392,6 +393,7 @@ async def run_analysis(request: AnalysisRequest):
 
 # Mount static files
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+app.mount("/img", StaticFiles(directory=str(IMG_DIR)), name="img")
 
 # Setup templates
 templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
