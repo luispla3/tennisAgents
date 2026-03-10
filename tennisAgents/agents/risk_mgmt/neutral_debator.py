@@ -38,10 +38,9 @@ def create_neutral_debator(llm):
             "- Torneo: {tournament}\n"
             "- Saldo disponible: ${wallet_balance}\n\n"
             "DETALLES OBLIGATORIOS DE LA TAREA:\n"
-            "- Debes valorar y validar los 4 fundamentales que aparecen en los reportes de los analistas desde una visión equilibrada entre la opción más probable y las oportunidades de inversión.\n"
-            "- Debes decidir cuál de ambos jugadores gana el set y el resultado del set entre: 6-0, 6-1, 6-2, 6-3, 6-4, 7-5 o 7-6.\n"
+            "- Debes construir tu razonamiento a partir de los reportes disponibles desde una visión equilibrada entre la opción más probable y las oportunidades de inversión.\n"
             "- Debes estudiar las cuotas de apuestas disponibles.\n"
-            "- Debes contrastar fundamentales y cuotas para comprobar tanto si la opción más probable está bien reflejada como si existen oportunidades moderadas con buen balance riesgo-beneficio.\n"
+            "- Debes contrastar la evidencia de los reportes con las cuotas para comprobar tanto si la opción más probable está bien reflejada como si existen oportunidades moderadas con buen balance riesgo-beneficio.\n"
             "- La estrategia de inversión debe equilibrar inversiones seguras y probables con oportunidades moderadamente arriesgadas pero con buen valor.\n"
             "- Si no existe ninguna oportunidad de inversión con buen equilibrio, debes decir explícitamente que no se apuesta.\n\n"
             "INFORMES DISPONIBLES:\n"
@@ -49,7 +48,7 @@ def create_neutral_debator(llm):
             "- Informe de cuotas de apuestas: {odds_report}\n"
             "- Sentimiento en redes sociales: {sentiment_report}\n"
             "- Noticias recientes: {news_report}\n"
-            "- Estado físico y mental de los jugadores: {players_report}\n"
+            "- Informe comparativo de jugadores: {players_report}\n"
             "- Información del torneo: {tournament_report}\n"
             "- Estado del partido en vivo: {match_live_report}\n\n"
             "ARGUMENTOS PREVIOS:\n"
@@ -59,15 +58,11 @@ def create_neutral_debator(llm):
             "HISTORIAL DE DEBATE:\n"
             "{history}\n\n"
             "REQUISITOS DE RESPUESTA NO NEGOCIABLES:\n"
-            "- Cuando comentes los fundamentales, debes incluir expresamente estos encabezados:\n"
-            "  * FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO\n"
-            "  * FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE\n"
-            "  * FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET\n"
-            "  * FUNDAMENTAL 4: ANÁLISIS DEL SERVICIO Y PROBABILIDAD DE MANTENER EL SAQUE\n"
-            "- Explica tu estrategia de inversión equilibrada para el resultado del set y las cuotas de apuestas, balanceando probabilidad y valor.\n"
+            "- Selecciona libremente los factores que consideres más relevantes según la evidencia disponible.\n"
+            "- Explica tu estrategia de inversión equilibrada para las cuotas o el mercado analizado, balanceando probabilidad y valor.\n"
             "- Justifica matemáticamente por qué el enfoque equilibrado tiene sentido dadas las circunstancias.\n"
             "- Rebate directamente los argumentos de los analistas agresivo y conservador.\n"
-            "- Demuestra que la estrategia equilibrada es la más lógica dadas las circunstancias.\n"
+            "- Si no hay una oportunidad equilibrada con base suficiente, dilo explícitamente.\n"
             "- Tu respuesta debe ser conversacional, directa y persuasiva.\n"
             "- No inventes información si no hay respuestas previas."
         )
@@ -99,7 +94,7 @@ def create_neutral_debator(llm):
         input_data = {
             "user_message": (
                 f"Defiende la postura neutral para {player_of_interest} vs {opponent}. "
-                "Analiza fundamentales, resultado del set, cuotas y estrategia de inversión balanceando probabilidad y valor sin inversiones contradictorias."
+                "Analiza la evidencia disponible, las cuotas y una estrategia de inversión balanceando probabilidad y valor sin inversiones contradictorias."
             )
         }
 

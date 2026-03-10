@@ -31,22 +31,23 @@ def create_weather_analyst(llm, toolkit):
             "INSTRUCCIONES ESPECÍFICAS:\n"
             f"• Usa la fecha del partido: {match_date}\n"
             f"• Usa el nombre del torneo: {tournament}\n"
-            f"• Procede DIRECTAMENTE con el análisis usando get_weather_forecast\n"
+            f"• Procede DIRECTAMENTE con la consulta usando get_weather_forecast\n"
             "• NO pidas información adicional al usuario\n\n"
-            "FACTORES CLIMÁTICOS A ANALIZAR:\n"
-            "• Temperatura y su impacto en la velocidad de la pelota y resistencia de los jugadores\n"
-            "• Viento y su efecto en la precisión de los saques y golpes\n"
-            "• Humedad y su influencia en la velocidad de la superficie y deslizamiento\n"
-            "• Posibilidad de lluvia y su impacto en la continuidad del juego\n"
-            "• Presión atmosférica y su efecto en la altitud (si aplica)\n\n"
-            "ANÁLISIS REQUERIDO:\n"
-            "• Cómo las condiciones climáticas pueden afectar el estilo de juego de ambos jugadores\n"
-            "• Historial de rendimiento de los jugadores bajo condiciones climáticas similares\n"
-            "• Impacto en la estrategia del partido y adaptaciones necesarias\n"
-            "• Comparación de ventajas/desventajas para cada jugador según el clima\n\n"
+            "INFORMACIÓN METEOROLÓGICA A REPORTAR:\n"
+            "• Temperatura prevista\n"
+            "• Viento previsto\n"
+            "• Humedad prevista\n"
+            "• Posibilidad de lluvia\n"
+            "• Presión atmosférica, nubosidad u otras variables disponibles\n\n"
+            "INTERPRETACIÓN OBJETIVA PERMITIDA:\n"
+            "• Puedes describir efectos físicos generales de las condiciones sobre el entorno de juego\n"
+            "• Limítate a relaciones generales y verificables, sin atribuir ventajas concretas a un jugador\n"
+            "• No uses historial de rendimiento de jugadores bajo clima similar si no está disponible en la herramienta\n"
+            "• No hagas predicciones ni recomendaciones estratégicas\n\n"
             "IMPORTANTE: Haz solo una llamada a get_weather_forecast y usa la información de manera eficiente y completa.\n"
-            "IMPORTANTE: Procede DIRECTAMENTE con el análisis usando la información disponible.\n"
-            "IMPORTANTE: NO pidas información adicional al usuario."
+            "IMPORTANTE: Procede DIRECTAMENTE con la información disponible.\n"
+            "IMPORTANTE: NO pidas información adicional al usuario.\n"
+            "IMPORTANTE: Si falta algún dato meteorológico, indícalo explícitamente como no disponible."
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -68,7 +69,7 @@ def create_weather_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} el día {match_date}."
+            "user_message": f"Recopila y presenta las condiciones meteorológicas previstas para el partido entre {player} y {opponent} el día {match_date}."
         }
 
         result = chain.invoke(input_data)

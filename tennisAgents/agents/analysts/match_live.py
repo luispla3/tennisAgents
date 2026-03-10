@@ -7,12 +7,12 @@ def create_match_live_analyst(llm, toolkit):
         Analista de Partidos en Vivo - Obtiene información en tiempo real usando Sportradar API con OpenAI.
         
         Flujo de trabajo automático:
-        1. Recibe los nombres de los jugadores y torneo del estado
+        1. Recibe los nombres de los jugadores y el torneo del estado
         2. Usa la herramienta get_match_live_data que internamente:
            a) Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
            b) Busca el partido específico entre los dos jugadores (con búsqueda flexible)
            c) Extrae la información relevante del partido (marcador, estadísticas, etc.)
-        3. Retorna el reporte con marcador, estadísticas y análisis del momentum.
+        3. Retorna el reporte con marcador, estadísticas.
         
         """
         match_date = state[STATE.match_date]

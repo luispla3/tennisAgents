@@ -39,7 +39,7 @@ def _execute_single_risk_manager(llm, state: Dict[str, Any], memory, model_name:
             past_memory_str += rec["recommendation"] + "\n\n"
 
     prompt = f"""
-Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente segura a corto y medio plazo, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente rentable, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
 
 **INFORMACIÓN DEL PARTIDO:**
 - Saldo disponible: ${wallet_balance}
@@ -49,25 +49,18 @@ Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evalua
 - Torneo: {tournament}
 
 ### TU TAREA:
-Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matematicamente con cada uno de los casos ideales para tener simplemente una referencia para la decision.
-Finalmente, genera un INFORME FINAL que incluya:
+Genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
-3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
-4. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
-5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
-6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
+2. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
+3. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
+4. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
 
 ### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
-2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. Solo apostar si hay valor esperado positivo claro.
+2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
-4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Solo apostar si hay valor esperado positivo claro.
-
-### CASOS IDEALES:
-- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4 o 6-3.
-- Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
-- Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
+4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6).
 
 ### Informe de Cuotas Disponibles (Betfair):
 {odds_report}
@@ -86,17 +79,11 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Para "Apuestas a sets" y "Set X - Resultado correcto", solo apostar si hay valor esperado positivo claro. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
+[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
 - Set X - Ganador: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Set X - Resultado correcto: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
-
-**4 FUNDAMENTALES:**
-[Genera los 4 fundamentals desde la vision que has adoptado.]
-
-**Comparacion de la vision adoptada con los casos ideales:**
-[Genera el resultado de la comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.]
 
 **JUSTIFICACIÓN:**
 [Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los managers y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
@@ -114,7 +101,7 @@ IMPORTANTE:
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
+- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades a futuro.
 """
 
     try:
@@ -163,7 +150,7 @@ def create_risk_manager(llm, memory, additional_risk_managers: Optional[list] = 
             past_memory_str += rec["recommendation"] + "\n\n"
 
         prompt = f"""
-Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente segura a corto y medio plazo, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
+Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evaluar el debate entre **cuatro managers** (Agresivo, Conservador, Neutral y Basado en Valor Esperado) desde una perspectiva probabilisticamente rentable, y generar un INFORME FINAL ESTRUCTURADO y CLARO sobre la decisión de apuesta.
 
 **INFORMACIÓN DEL PARTIDO:**
 - Saldo disponible: ${wallet_balance}
@@ -173,25 +160,18 @@ Como Juez de Riesgos en un sistema de apuestas deportivas, tu objetivo es evalua
 - Torneo: {tournament}
 
 ### TU TAREA:
-Decide con qué vision de los 4 fundamentals decides quedarte, y comparala matematicamente con cada uno de los casos ideales para tener simplemente una referencia para la decision.
-Finalmente, genera un INFORME FINAL que incluya:
+Genera un INFORME FINAL que incluya:
 
 1. **DECISIÓN PRINCIPAL**: ¿APOSTAR o NO APOSTAR?
-3. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
-4. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
-5. **COMPARACION DE LA VISION ADOPTADA CON LOS CASOS IDEALES**: La comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.
-6. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
+2. **DISTRIBUCIÓN DEL DINERO**: Qué apuesta/s se hace/n y cuanto se apuesta/n, teniendo en cuenta el saldo disponible ${wallet_balance}. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
+3. **VISION ADOPTADA**: La vision adoptada que has decidido seguir.
+4. **JUSTIFICACIÓN COMPLETA**: Por qué se toma esta decisión.
 
 ### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
-2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. Solo apostar si hay valor esperado positivo claro.
+2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
-4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). Solo apostar si hay valor esperado positivo claro.
-
-### CASOS IDEALES:
-- Caso ideal 1: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad alta. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion baja. Resultado probable del set: Jugador A gana el set 6-4 o 6-3.
-- Caso ideal 2: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) y el jugador B (malo) tiene una puntuacion alta. Resultado probable del set: Jugador A gana el set 7-6.
-- Caso ideal 3: en el Fundamental 1: Jugador A (bueno) junto a jugador B (malo) tiene una probabilidad media. En el Fundamental 2: Jugador A (bueno) tiene una puntuacion alta y el jugador B (malo) tiene una puntuacion media-alta. Resultado probable del set: Jugador A gana el set 7-5.
+4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6).
 
 ### Informe de Cuotas Disponibles (Betfair):
 {odds_report}
@@ -210,17 +190,11 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Para "Apuestas a sets" y "Set X - Resultado correcto", solo apostar si hay valor esperado positivo claro. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
+[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
 - Set X - Ganador: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Set X - Resultado correcto: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
-
-**4 FUNDAMENTALES:**
-[Genera los 4 fundamentals desde la vision que has adoptado.]
-
-**Comparacion de la vision adoptada con los casos ideales:**
-[Genera el resultado de la comparacion de la vision adoptada con los casos ideales, y si ha habido una coincidencia considerable, decir con cual de los casos ideales ha coincido.]
 
 **JUSTIFICACIÓN:**
 [Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los managers y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
@@ -238,7 +212,7 @@ IMPORTANTE:
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
+- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades a futuro.
 """
 
         # Ejecutar el risk manager principal

@@ -24,20 +24,17 @@ def create_tournament_analyst(llm, toolkit):
         
         # Contexto adicional específico del análisis de torneos
         additional_context = (
-            "FACTORES A EVALUAR:\n"
+            "INFORMACIÓN A DOCUMENTAR:\n"
             "• Tipo de superficie y condiciones físicas del entorno (altitud, clima habitual, velocidad de la pista)\n"
             "• Categoría del torneo y su importancia en el calendario\n"
             f"• Historial de {player} y {opponent} en este torneo o en condiciones similares\n"
-            "• Impacto del formato del torneo en el rendimiento de los jugadores\n\n"
+            "• Formato del torneo y características relevantes para contextualizar el evento\n\n"
             "CONOCIMIENTO ESPECÍFICO DEL TENIS:\n"
             "• Categorías de torneos: atpgs (ATP + Grand Slams), atp (circuito ATP), gs (Grand Slams), 1000 (Masters 1000), ch (Challenger Circuit)\n"
-            "• En Grand Slams: los jugadores juegan en días alternos, afectando la fatiga y recuperación\n"
-            "• En Grand Slams avanzados: el jugador con mejor ranking/trayectoria suele ganar por mayor confianza y menos nervios (mejor de 5 sets)\n"
-            "• En torneos menores: los jugadores buenos pueden no rendir al máximo si se reservan para torneos importantes\n"
-            "• Jugadores mayores de 30 años: menor disposición para remontar partidos/sets, especialmente en formato a 5 sets\n\n"
-            "OBJETIVO: Ayudar al equipo de predicción a entender el impacto del torneo sobre el rendimiento de los jugadores.\n\n"
+            "OBJETIVO: Proporcionar un resumen objetivo del torneo y de las condiciones relevantes del contexto competitivo.\n\n"
             "IMPORTANTE: Solo puedes hacer UNA SOLA LLAMADA a get_tournament_info. Usa esa información de manera eficiente y completa.\n\n"
-            "IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'."
+            "IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'.\n"
+            "IMPORTANTE: No hagas predicciones ni recomendaciones; limita el reporte a información verificable del torneo."
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -58,7 +55,7 @@ def create_tournament_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza el torneo {tournament} y su impacto en {player} y {opponent}."
+            "user_message": f"Recopila información objetiva del torneo {tournament} y contextualízala para {player} y {opponent}."
         }
 
         result = chain.invoke(input_data)

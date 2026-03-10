@@ -26,17 +26,20 @@ def create_news_analyst(llm, toolkit):
         
         # Contexto adicional específico del análisis de noticias
         additional_context = (
-            "OBJETIVO: Identificar información crítica que pueda influir en el rendimiento de los jugadores, incluyendo:\n"
-            "• Lesiones recientes o problemas físicos, sobretodo en los partidos anteriores de ese toreno si los hay, para ello habra que investigar bien en las noticias\n"
+            "OBJETIVO: Recopilar y resumir información reciente y verificable sobre los jugadores y el torneo, incluyendo:\n"
+            "• Lesiones recientes o problemas físicos reportados públicamente, especialmente si se mencionan durante el torneo actual\n"
             "• Cambios de entrenador o equipo técnico\n"
-            "• Declaraciones polémicas o presión mediática\n"
-            "• Estado mental o motivacional\n"
-            "• Rendimiento en torneos recientes\n"
-            "• Rivalidades o historial personal\n\n"
+            "• Declaraciones públicas relevantes\n"
+            "• Resultados o contexto reciente mencionados en las noticias\n"
+            "• Información general del torneo o del circuito relacionada con el contexto del partido\n\n"
             "INSTRUCCIONES TÉCNICAS:\n"
             "• Para búsquedas con get_news: usa ÚNICAMENTE el nombre del jugador (ej: 'Christopher O'Connell', NO 'Christopher O'Connell 2025 Motorola razr Grandstand Court')\n"
-            "• Incluye noticias generales del circuito ATP/WTA si son relevantes para el análisis del partido\n\n"
-            "IMPORTANTE: Proporciona análisis granular y específico, no generalidades como 'las tendencias son mixtas'. Incluye fechas, citas relevantes y contexto específico.\n\n"
+            "• Incluye noticias generales del circuito ATP/WTA si son relevantes para contextualizar el partido\n\n"
+            "IMPORTANTE:\n"
+            "• Proporciona información granular y específica, no generalidades\n"
+            "• Incluye fechas, citas relevantes y contexto específico cuando estén disponibles\n"
+            "• No infieras estado mental, motivación o impacto en el rendimiento si no está explícitamente respaldado por la noticia\n"
+            "• No hagas predicciones ni recomendaciones\n\n"
             "Fecha actual: {current_date}. Jugadores: {player} vs {opponent}, Torneo: {tournament}."
         )
 
@@ -59,7 +62,7 @@ def create_news_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza las noticias más relevantes sobre {player} y {opponent} para el torneo {tournament}."
+            "user_message": f"Recopila y resume las noticias más relevantes sobre {player}, {opponent} y el torneo {tournament}."
         }
 
         result = chain.invoke(input_data)     #Es un Message que puede ser de 2 tipos: AIMessage, ToolMessage.

@@ -30,15 +30,20 @@ def create_social_media_analyst(llm, toolkit):
             "• Tweets y conversaciones en Twitter/X\n"
             "• Comentarios en foros especializados de tenis\n"
             "• Publicaciones y discusiones en Reddit\n"
-            "• Cualquier indicio sobre estado físico, moral, confianza o rumores\n\n"
+            "• Conversación pública reciente relacionada con los jugadores o el torneo\n\n"
             "TIPOS DE INFORMACIÓN A EXTRAER:\n"
             "• Sentimiento objetivo (positivo/negativo/neutral) con métricas cuantitativas\n"
-            "• Percepción subjetiva y narrativa mediática\n"
-            "• Rumores sobre lesiones, cambios de entrenador o problemas personales\n"
-            "• Expectativas de los fans y expertos\n"
-            "• Comparación de la popularidad y apoyo en redes sociales\n\n"
-            "OBJETIVO: Proporcionar insights sobre el estado mental y la percepción pública que puedan influir en el rendimiento.\n\n"
-            "IMPORTANTE: Proporciona análisis específico con métricas concretas, no generalidades. Incluye porcentajes de sentimiento, ejemplos de comentarios relevantes y contexto específico de cada plataforma."
+            "• Narrativas públicas o temas recurrentes claramente observables\n"
+            "• Volumen relativo de conversación si la herramienta lo proporciona\n"
+            "• Ejemplos representativos de comentarios o temas, cuando estén disponibles\n"
+            "• Comparación del nivel de atención pública entre ambos jugadores, si puede verificarse\n\n"
+            "OBJETIVO: Documentar la percepción pública y el sentimiento observable en redes sociales de forma descriptiva y verificable.\n\n"
+            "IMPORTANTE:\n"
+            "• Proporciona análisis específico con métricas concretas, no generalidades\n"
+            "• Incluye porcentajes de sentimiento, ejemplos de comentarios relevantes y contexto específico de cada plataforma cuando estén disponibles\n"
+            "• No presentes rumores no verificados como hechos\n"
+            "• No infieras estado mental, confianza o rendimiento futuro a partir de la conversación social\n"
+            "• No hagas predicciones ni recomendaciones"
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -60,7 +65,7 @@ def create_social_media_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Analiza la percepción en redes sociales de {player} y {opponent} para el torneo {tournament}."
+            "user_message": f"Recopila y resume la percepción pública en redes sociales sobre {player} y {opponent} para el torneo {tournament}."
         }
 
         result = chain.invoke(input_data)
