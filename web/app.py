@@ -21,6 +21,7 @@ sys.path.insert(0, str(PROJECT_ROOT))
 from tennisAgents.dataflows.match_live_utils import fetch_live_summaries, fetch_season_summaries, fetch_daily_summaries, get_sportradar_api_key
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.graph.trading_graph import TennisAgentsGraph
+from tennisAgents.utils.earnings_manager import EarningsManager
 
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -999,3 +1000,26 @@ async def get_predicted_match_details(
             status_code=500,
             detail=f"Error al obtener detalles de la predicción: {str(e)}",
         )
+
+
+@app.post("/api/calculate-earnings")
+async def calculate_earnings_endpoint():
+    """Trigger earnings calculation."""
+    try:
+        manager = EarningsManager()
+        result = await manager.calculate_earnings()
+        return JSONResponse(result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/get-earnings")
+async def get_earnings_endpoint():
+    """Get earnings history."""
+    try:
+        manager = EarningsManager()
+        data = manager._load_earnings()
+        return JSONResponse({"success": True, "data": data})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
