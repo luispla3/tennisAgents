@@ -112,6 +112,25 @@ async def run_analysis(request: AnalysisRequest):
             log_file = results_dir / "message_tool.log"
             log_file.touch(exist_ok=True)
             
+            # Determinar el nombre del modelo para etiquetar informes de analistas
+            # Analistas locales (News, Social, Tournament, Weather) pueden usar un LLM distinto
+            if config.get("use_local_analysts", False):
+                analyst_model_name = config.get(
+                    "local_model_name",
+                    config.get("deep_think_llm", "unknown_model"),
+                )
+            else:
+                analyst_model_name = config.get("deep_think_llm", "unknown_model")
+
+            # Modelo principal usado por el resto de analistas (Players, Match Live, etc.)
+            main_model_name = config.get("deep_think_llm", "unknown_model")
+
+            def _sanitize_model_name(name: str) -> str:
+                return str(name).replace("/", "_").replace("\\", "_").replace(":", "_")
+
+            safe_analyst_model_name = _sanitize_model_name(analyst_model_name)
+            safe_main_model_name = _sanitize_model_name(main_model_name)
+            
             # Initialize graph
             # Note: TennisAgentsGraph is synchronous, but we run it in a way that we can stream
             # Since graph initialization might take a moment, send a status update
@@ -204,9 +223,10 @@ async def run_analysis(request: AnalysisRequest):
                 # News Analyst
                 if "news_report" in chunk and chunk["news_report"]:
                     content = chunk["news_report"]
-                    # Guardar en fichero Markdown
+                    # Guardar en fichero Markdown usando el modelo del analista
+                    file_name = f"news_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "news_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
@@ -223,6 +243,7 @@ async def run_analysis(request: AnalysisRequest):
                 if "odds_report" in chunk and chunk["odds_report"]:
                     content = chunk["odds_report"]
                     try:
+                        # Odds Analyst no usa LLM, mantenemos nombre fijo
                         with open(report_dir / "odds_report.md", "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
@@ -240,7 +261,8 @@ async def run_analysis(request: AnalysisRequest):
                 if "players_report" in chunk and chunk["players_report"]:
                     content = chunk["players_report"]
                     try:
-                        with open(report_dir / "players_report.md", "w", encoding="utf-8") as f:
+                        file_name = f"players_report_{safe_main_model_name}.md"
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
@@ -257,7 +279,8 @@ async def run_analysis(request: AnalysisRequest):
                 if "sentiment_report" in chunk and chunk["sentiment_report"]:
                     content = chunk["sentiment_report"]
                     try:
-                        with open(report_dir / "sentiment_report.md", "w", encoding="utf-8") as f:
+                        file_name = f"sentiment_report_{safe_analyst_model_name}.md"
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
@@ -274,7 +297,8 @@ async def run_analysis(request: AnalysisRequest):
                 if "tournament_report" in chunk and chunk["tournament_report"]:
                     content = chunk["tournament_report"]
                     try:
-                        with open(report_dir / "tournament_report.md", "w", encoding="utf-8") as f:
+                        file_name = f"tournament_report_{safe_analyst_model_name}.md"
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
@@ -291,7 +315,8 @@ async def run_analysis(request: AnalysisRequest):
                 if "weather_report" in chunk and chunk["weather_report"]:
                     content = chunk["weather_report"]
                     try:
-                        with open(report_dir / "weather_report.md", "w", encoding="utf-8") as f:
+                        file_name = f"weather_report_{safe_analyst_model_name}.md"
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
@@ -308,7 +333,8 @@ async def run_analysis(request: AnalysisRequest):
                 if "match_live_report" in chunk and chunk["match_live_report"]:
                     content = chunk["match_live_report"]
                     try:
-                        with open(report_dir / "match_live_report.md", "w", encoding="utf-8") as f:
+                        file_name = f"match_live_report_{safe_main_model_name}.md"
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
