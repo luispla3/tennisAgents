@@ -114,7 +114,7 @@ IMPORTANTE:
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
+- En las apuestas a sets, buscamos rentabilidades seguras y probables, asi que apuesta SOLO cuando veas una rentabilidad considerablemente segura y probable, aunque la rentabilidad sea menor (1.10 - 1.50).
 """
 
     try:
@@ -255,7 +255,18 @@ IMPORTANTE:
 
         # Ejecutar el risk manager principal
         main_response = llm.invoke(prompt)
-        main_decision = main_response.content if hasattr(main_response, 'content') else str(main_response)
+        # Extraer contenido intentando evitar respuestas vacías
+        if hasattr(main_response, "content"):
+            main_decision = main_response.content or ""
+        else:
+            main_decision = str(main_response) if main_response is not None else ""
+
+        # Si por cualquier motivo la decisión viene vacía, dejar rastro útil
+        if not str(main_decision).strip():
+            main_decision = (
+                f"[AVISO] El modelo principal no devolvió contenido útil.\n\n"
+                f"Respuesta bruta del LLM:\n{main_response!r}"
+            )
         
         # Obtener el nombre del modelo principal del LLM
         try:
@@ -304,3 +315,74 @@ IMPORTANTE:
         }
 
     return risk_manager_node
+
+
+def create_synthesis_node(llm):
+    """
+    Crea un nodo que sintetiza todas las decisiones de los risk managers en un solo informe.
+    """
+    def synthesis_node(state) -> dict:
+        individual_decisions = state.get(STATE.individual_risk_manager_decisions, {})
+        
+        if not individual_decisions:
+            return {STATE.final_response: "No hay decisiones de risk managers para sintetizar."}
+
+        # Construir el prompt con todas las decisiones
+        decisions_text = ""
+        for model_name, decision in individual_decisions.items():
+            decisions_text += f"\n\n--- INICIO DECISIÓN MODELO: {model_name} ---\n"
+            decisions_text += decision
+            decisions_text += f"\n--- FIN DECISIÓN MODELO: {model_name} ---\n"
+
+        prompt = f"""
+Eres un asistente experto en apuestas deportivas. Tu tarea es sintetizar las decisiones de múltiples modelos de riesgo en un único informe consolidado y fácil de leer.
+
+A continuación te presento las decisiones finales de varios modelos (Risk Managers) para un partido de tenis:
+
+{decisions_text}
+
+### TU TAREA:
+Genera un informe llamado "SÍNTESIS FINAL DE APUESTAS" que extraiga y resuma la información clave de CADA modelo por separado.
+Para cada modelo, debes extraer EXCLUSIVAMENTE las siguientes secciones, manteniendo el formato original pero asegurando que sea limpio y legible:
+
+1. **DISTRIBUCIÓN DEL DINERO**
+2. **NIVEL DE CONFIANZA DE LA ESTRATEGIA FINAL**
+3. **RECOMENDACIONES ADICIONALES**
+4. **TOTAL APOSTADO** (Si no aparece explícitamente, calcúlalo sumando las cantidades de la distribución del dinero)
+
+### FORMATO DE SALIDA DESEADO:
+
+# SÍNTESIS FINAL DE APUESTAS
+
+## Modelo: [Nombre del Modelo 1]
+**DISTRIBUCIÓN DEL DINERO:**
+...
+**NIVEL DE CONFIANZA:** ...
+**RECOMENDACIONES ADICIONALES:** ...
+**TOTAL APOSTADO:** ...
+
+---
+
+## Modelo: [Nombre del Modelo 2]
+**DISTRIBUCIÓN DEL DINERO:**
+...
+**NIVEL DE CONFIANZA:** ...
+**RECOMENDACIONES ADICIONALES:** ...
+**TOTAL APOSTADO:** ...
+
+---
+
+(Repetir para todos los modelos)
+
+NO inventes información. Solo extrae y formatea lo que dicen los modelos. Si un modelo no tiene alguna sección, indícalo como "No especificado".
+"""
+        
+        try:
+            response = llm.invoke(prompt)
+            final_response = response.content if hasattr(response, "content") else str(response)
+        except Exception as e:
+            final_response = f"Error al generar la síntesis: {str(e)}"
+
+        return {STATE.final_response: final_response}
+
+    return synthesis_node

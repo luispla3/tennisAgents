@@ -125,3 +125,7 @@ class AgentState(MessagesState):
         Optional[str], "Decisión final de apuesta"
     ]
 
+    # Informe final sintetizado
+    final_response: Annotated[
+        Optional[str], "Informe final sintetizado para el usuario"
+    ]

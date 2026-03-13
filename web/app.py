@@ -405,9 +405,28 @@ async def run_analysis(request: AnalysisRequest):
                         "data": individual_decisions
                     }) + "\n"
 
+                # Final Synthesis Report
+                if "final_response" in chunk and chunk["final_response"]:
+                    content = chunk["final_response"]
+                    try:
+                        with open(report_dir / "final_response.md", "w", encoding="utf-8") as f:
+                            f.write(content)
+                    except Exception:
+                        pass
+                    yield json.dumps({
+                        "type": "report",
+                        "data": {"section": "final_response", "content": content}
+                    }) + "\n"
+
             yield json.dumps({
                 "type": "status",
-                "data": {"message": "Analysis complete!", "step": "completed"}
+                "data": {
+                    "message": "Analysis complete!",
+                    "step": "completed",
+                    "match_dir": unique_dir_name,
+                    "analysis_date": request.analysis_date,
+                    "storage": "web"
+                }
             }) + "\n"
 
         except Exception as e:
@@ -949,6 +968,16 @@ async def get_predicted_match_details(
                 detail="No se encontró el directorio de reports para este partido",
             )
 
+        # Try to read final_response.md
+        final_response_content = ""
+        try:
+            final_response_file = target_dir / "final_response.md"
+            if final_response_file.exists():
+                with open(final_response_file, "r", encoding="utf-8") as f:
+                    final_response_content = f.read()
+        except Exception:
+            pass
+
         # Collect up to 5 final_bet_decision*.md files
         final_files = sorted(target_dir.glob("final_bet_decision*.md"))
         if not final_files:
@@ -1017,6 +1046,7 @@ async def get_predicted_match_details(
                     "timestamp": timestamp,
                 },
                 "predictions": predictions,
+                "final_response": final_response_content,
             }
         )
     except HTTPException:

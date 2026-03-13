@@ -68,3 +68,4 @@ class STATE:
     count = "count"
     latest_speaker = "latest_speaker"
     judge_decision = "judge_decision"
+    final_response = "final_response"

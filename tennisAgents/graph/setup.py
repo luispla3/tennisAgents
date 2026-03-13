@@ -15,7 +15,7 @@ from tennisAgents.agents.risk_mgmt.aggressive_debator import create_aggressive_d
 from tennisAgents.agents.risk_mgmt.conservative_debator import create_conservative_debator
 from tennisAgents.agents.risk_mgmt.expected_debator import create_expected_debator
 from tennisAgents.agents.risk_mgmt.neutral_debator import create_neutral_debator
-from tennisAgents.agents.managers.manager import create_risk_manager
+from tennisAgents.agents.managers.manager import create_risk_manager, create_synthesis_node
 
 from tennisAgents.agents.utils.agent_states import AgentState
 from tennisAgents.agents.utils.agent_utils import Toolkit, create_msg_delete
@@ -101,6 +101,9 @@ class GraphSetup:
             self.risk_manager_memory,
             additional_risk_managers=self.additional_risk_manager_llms
         )
+        
+        # Nodo de síntesis final
+        synthesis_node = create_synthesis_node(self.deep_thinking_llm)
 
         workflow = StateGraph(AgentState)
 
@@ -114,6 +117,7 @@ class GraphSetup:
         workflow.add_node(ANALYSTS.expected, expected_debator)
         workflow.add_node(ANALYSTS.neutral, neutral_debator)
         workflow.add_node(ANALYSTS.judge, risk_manager_node)
+        workflow.add_node("synthesis", synthesis_node)
 
         first_analyst = selected_analysts[0]
         workflow.add_edge(START, f"{first_analyst.capitalize()} Analyst")
@@ -177,6 +181,7 @@ class GraphSetup:
             },
         )
 
-        workflow.add_edge(ANALYSTS.judge, END)
+        workflow.add_edge(ANALYSTS.judge, "synthesis")
+        workflow.add_edge("synthesis", END)
 
         return workflow.compile()

@@ -469,6 +469,20 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>
                     <span>${message}</span>
                 `;
+                
+                // Redirigir a la página de predicted con los parámetros del partido
+                if (event.data.match_dir && event.data.analysis_date) {
+                    // Esperar un momento para que el usuario vea el mensaje de completado
+                    setTimeout(() => {
+                        const params = new URLSearchParams({
+                            storage: event.data.storage || 'web',
+                            match_dir: event.data.match_dir,
+                            analysis_date: event.data.analysis_date,
+                            show_summary: 'true'
+                        });
+                        window.location.href = `/predicted?${params.toString()}`;
+                    }, 1500); // Esperar 1.5 segundos antes de redirigir
+                }
             } else {
                 analysisStatus.innerHTML = `
                     <div class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
