@@ -119,7 +119,19 @@ IMPORTANTE:
 
     try:
         response = llm.invoke(prompt)
-        decision = response.content if hasattr(response, 'content') else str(response)
+        # Extraer contenido intentando evitar respuestas vacías
+        if hasattr(response, "content"):
+            decision = response.content or ""
+        else:
+            decision = str(response) if response is not None else ""
+
+        # Si por cualquier motivo la decisión viene vacía, dejar rastro útil
+        if not str(decision).strip():
+            decision = (
+                f"[AVISO] El modelo '{model_name}' no devolvió contenido útil.\n\n"
+                f"Respuesta bruta del LLM:\n{response!r}"
+            )
+
         return (model_name, decision)
     except Exception as e:
         return (model_name, f"Error al ejecutar risk manager {model_name}: {str(e)}")

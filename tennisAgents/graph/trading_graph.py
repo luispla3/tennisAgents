@@ -64,6 +64,9 @@ class TennisAgentsGraph:
                 # Detectar si es local (Ollama) o OpenRouter basado en la URL
                 is_local = "localhost" in local_base_url or "127.0.0.1" in local_base_url
                 
+                if self.debug:
+                    print(f"DEBUG: Analistas locales - URL: {local_base_url}, is_local: {is_local}")
+
                 if is_local:
                     # Configuración para Ollama local (no requiere API key real)
                     self.local_llm = ChatOpenAI(
@@ -104,7 +107,7 @@ class TennisAgentsGraph:
 
         self.tool_nodes = self._create_tool_nodes()
 
-        # Crear LLMs adicionales para risk managers desde OpenRouter
+        # Crear LLMs adicionales para risk managers desde OpenRouter o local (Ollama)
         self.additional_risk_manager_llms = []
         openrouter_api_key = self.config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
         openrouter_base_url = self.config.get("openrouter_base_url", "https://openrouter.ai/api/v1")
@@ -114,30 +117,60 @@ class TennisAgentsGraph:
             {"name": "Grok-4", "model": "x-ai/grok-4"},
         ])
         
-        if openrouter_api_key and additional_managers_config:
+        if additional_managers_config:
             for manager_config in additional_managers_config:
                 manager_name = manager_config.get("name")
                 model_name = manager_config.get("model")
+                is_local = manager_config.get("is_local", False)
+                
                 try:
-                    # Crear LLM con OpenRouter (usando ChatOpenAI compatible con OpenRouter)
-                    additional_llm = ChatOpenAI(
-                        model=model_name,
-                        base_url=openrouter_base_url,
-                        api_key=openrouter_api_key,
-                        default_headers={
-                            "HTTP-Referer": "https://github.com/tennisAgents",
-                            "X-Title": "Tennis Agents"
-                        }
-                    )
-                    self.additional_risk_manager_llms.append((manager_name, additional_llm))
-                    if self.debug:
-                        print(f"✓ Risk Manager adicional creado: {manager_name} ({model_name})")
+                    if is_local:
+                        # Crear LLM local con Ollama
+                        local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
+                        local_api_key = self.config.get("local_api_key", "ollama")
+                        
+                        if self.debug:
+                            print(f"DEBUG: Creando Risk Manager local - URL: {local_base_url}, Model: {model_name}, is_local: {is_local}")
+                        
+                        additional_llm = ChatOpenAI(
+                            model=model_name,
+                            base_url=local_base_url,
+                            api_key=local_api_key,
+                            temperature=0.7
+                        )
+                        # Verificar que el LLM tiene la base_url correcta
+                        if self.debug:
+                            actual_base_url = getattr(additional_llm, 'openai_api_base', None) or getattr(additional_llm, 'base_url', None)
+                            print(f"DEBUG: LLM creado - base_url configurada: {actual_base_url}")
+                        
+                        self.additional_risk_manager_llms.append((manager_name, additional_llm))
+                        if self.debug:
+                            print(f"✓ Risk Manager local creado: {manager_name} ({model_name}) en {local_base_url}")
+                            
+                    elif openrouter_api_key:
+                        # Crear LLM con OpenRouter
+                        additional_llm = ChatOpenAI(
+                            model=model_name,
+                            base_url=openrouter_base_url,
+                            api_key=openrouter_api_key,
+                            default_headers={
+                                "HTTP-Referer": "https://github.com/tennisAgents",
+                                "X-Title": "Tennis Agents"
+                            }
+                        )
+                        self.additional_risk_manager_llms.append((manager_name, additional_llm))
+                        if self.debug:
+                            print(f"✓ Risk Manager OpenRouter creado: {manager_name} ({model_name})")
+                    else:
+                        if self.debug:
+                            print(f"⚠ Warning: No se pudo crear risk manager {manager_name} - OPENROUTER_API_KEY no configurada y no es local.")
+                            
                 except Exception as e:
                     # Si falla crear un LLM adicional, continuar sin él
                     if self.debug:
                         print(f"⚠ Warning: No se pudo crear risk manager adicional {manager_name}: {e}")
         elif self.debug and additional_managers_config:
-            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los risk managers adicionales no se crearán.")
+            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los risk managers de OpenRouter no se crearán.")
 
         self.conditional_logic = ConditionalLogic(
             max_debate_rounds=self.config.get("max_debate_rounds", 1),
