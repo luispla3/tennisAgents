@@ -94,6 +94,13 @@ async def run_analysis(request: AnalysisRequest):
                 config["backend_url"] = request.backend_url
             config["llm_provider"] = request.llm_provider.lower()
             
+            # Determinar qué modelo usar para los analistas locales
+            # Si use_local_analysts está activo, usar local_model_name, sino usar deep_thinker
+            analyst_model_name = request.deep_thinker
+            if config.get("use_local_analysts", False):
+                analyst_model_name = config.get("local_model_name", "qwen3.5:2b")
+            safe_analyst_model_name = analyst_model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
+            
             # For web runs, force results into web/results (separado de la CLI)
             web_results_root = PROJECT_ROOT / "web" / "results"
             web_results_root.mkdir(parents=True, exist_ok=True)
@@ -202,15 +209,17 @@ async def run_analysis(request: AnalysisRequest):
                 # News Analyst
                 if "news_report" in chunk and chunk["news_report"]:
                     content = chunk["news_report"]
-                    # Guardar en fichero Markdown
+                    # Usar el modelo correcto según si se usan analistas locales o no
+                    file_name = f"news_report_{safe_analyst_model_name}.md"
+                    
                     try:
-                        with open(report_dir / "news_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "news_report", "content": content}
+                        "data": {"section": "news_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -220,14 +229,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Odds Analyst
                 if "odds_report" in chunk and chunk["odds_report"]:
                     content = chunk["odds_report"]
+                    file_name = f"odds_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "odds_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "odds_report", "content": content}
+                        "data": {"section": "odds_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -237,14 +247,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Players Analyst
                 if "players_report" in chunk and chunk["players_report"]:
                     content = chunk["players_report"]
+                    file_name = f"players_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "players_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "players_report", "content": content}
+                        "data": {"section": "players_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -254,14 +265,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Social Analyst
                 if "sentiment_report" in chunk and chunk["sentiment_report"]:
                     content = chunk["sentiment_report"]
+                    file_name = f"sentiment_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "sentiment_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "sentiment_report", "content": content}
+                        "data": {"section": "sentiment_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -271,14 +283,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Tournament Analyst
                 if "tournament_report" in chunk and chunk["tournament_report"]:
                     content = chunk["tournament_report"]
+                    file_name = f"tournament_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "tournament_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "tournament_report", "content": content}
+                        "data": {"section": "tournament_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -288,14 +301,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Weather Analyst
                 if "weather_report" in chunk and chunk["weather_report"]:
                     content = chunk["weather_report"]
+                    file_name = f"weather_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "weather_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "weather_report", "content": content}
+                        "data": {"section": "weather_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",
@@ -305,14 +319,15 @@ async def run_analysis(request: AnalysisRequest):
                 # Match Live Analyst
                 if "match_live_report" in chunk and chunk["match_live_report"]:
                     content = chunk["match_live_report"]
+                    file_name = f"match_live_report_{safe_analyst_model_name}.md"
                     try:
-                        with open(report_dir / "match_live_report.md", "w", encoding="utf-8") as f:
+                        with open(report_dir / file_name, "w", encoding="utf-8") as f:
                             f.write(content)
                     except Exception:
                         pass
                     yield json.dumps({
                         "type": "report",
-                        "data": {"section": "match_live_report", "content": content}
+                        "data": {"section": "match_live_report", "content": content, "model": analyst_model_name}
                     }) + "\n"
                     yield json.dumps({
                         "type": "agent_status",

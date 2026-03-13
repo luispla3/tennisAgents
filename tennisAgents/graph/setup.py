@@ -63,12 +63,12 @@ class GraphSetup:
             tool_nodes["news"] = self.tool_nodes.get("news")
 
         if "odds" in selected_analysts:
-            analyst_nodes["odds"] = create_odds_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["odds"] = create_odds_analyst(self.local_llm, self.toolkit)
             delete_nodes["odds"] = create_msg_delete()
             tool_nodes["odds"] = self.tool_nodes.get("odds")
 
         if "players" in selected_analysts:
-            analyst_nodes["players"] = create_player_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["players"] = create_player_analyst(self.local_llm, self.toolkit)
             delete_nodes["players"] = create_msg_delete()
             tool_nodes["players"] = self.tool_nodes.get("players")
 
@@ -88,7 +88,7 @@ class GraphSetup:
             tool_nodes["weather"] = self.tool_nodes.get("weather")
 
         if "match_live" in selected_analysts:
-            analyst_nodes["match_live"] = create_match_live_analyst(self.quick_thinking_llm, self.toolkit)
+            analyst_nodes["match_live"] = create_match_live_analyst(self.local_llm, self.toolkit)
             delete_nodes["match_live"] = create_msg_delete()
             tool_nodes["match_live"] = self.tool_nodes.get("match_live")
 
