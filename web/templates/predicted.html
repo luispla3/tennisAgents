@@ -123,6 +123,56 @@
                             Revisa las últimas predicciones generadas (tanto desde la web como desde la CLI) y consulta hasta 5 decisiones finales por partido.
                         </p>
                     </div>
+                    
+                    <!-- Filter Section -->
+                    <div class="predicted-filters">
+                        <div class="filters-header">
+                            <h3 class="filters-title">Filtros</h3>
+                            <button id="clearFilters" class="btn-clear-filters" style="display: none;">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 4L4 12M4 4L12 12" stroke-linecap="round"/>
+                                </svg>
+                                Limpiar
+                            </button>
+                        </div>
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label for="filterDate" class="filter-label">Fecha del Partido</label>
+                                <input 
+                                    type="date" 
+                                    id="filterDate" 
+                                    class="filter-input"
+                                    placeholder="Seleccionar fecha"
+                                >
+                            </div>
+                            <div class="filter-group">
+                                <label for="filterPlayer1" class="filter-label">Jugador 1</label>
+                                <input 
+                                    type="text" 
+                                    id="filterPlayer1" 
+                                    class="filter-input"
+                                    placeholder="Nombre del jugador"
+                                >
+                            </div>
+                            <div class="filter-group">
+                                <label for="filterPlayer2" class="filter-label">Jugador 2</label>
+                                <input 
+                                    type="text" 
+                                    id="filterPlayer2" 
+                                    class="filter-input"
+                                    placeholder="Nombre del jugador"
+                                >
+                            </div>
+                        </div>
+                        <p class="filters-hint">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                                <path d="M8 12V8M8 4H8.01" stroke-linecap="round"/>
+                                <circle cx="8" cy="8" r="6"/>
+                            </svg>
+                            Si ingresas ambos jugadores, se mostrarán solo los partidos donde ambos participen.
+                        </p>
+                    </div>
+                    
                     <div id="predictedMatchesContainer" class="predicted-matches-container">
                         <!-- Predicted matches will be injected here -->
                     </div>
@@ -133,7 +183,7 @@
 
     <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=7"></script>
-    <script src="/static/js/predicted.js?v=2"></script>
+    <script src="/static/js/predicted.js?v=3"></script>
     <script>
         // Check authentication on page load
         if (typeof requireAuth === 'function') {

@@ -133,6 +133,55 @@
                     Partidos en vivo de Sportradar
                 </p>
 
+                <!-- Filter Section -->
+                <div class="predicted-filters" id="filtersSection" style="display: none;">
+                    <div class="filters-header">
+                        <h3 class="filters-title">Filtros</h3>
+                        <button id="clearFilters" class="btn-clear-filters" style="display: none;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+                                <path d="M12 4L4 12M4 4L12 12" stroke-linecap="round"/>
+                            </svg>
+                            Limpiar
+                        </button>
+                    </div>
+                    <div class="filters-grid">
+                        <div class="filter-group">
+                            <label for="filterDate" class="filter-label">Fecha del Partido</label>
+                            <input 
+                                type="date" 
+                                id="filterDate" 
+                                class="filter-input"
+                                placeholder="Seleccionar fecha"
+                            >
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterPlayer1" class="filter-label">Jugador 1</label>
+                            <input 
+                                type="text" 
+                                id="filterPlayer1" 
+                                class="filter-input"
+                                placeholder="Nombre del jugador"
+                            >
+                        </div>
+                        <div class="filter-group">
+                            <label for="filterPlayer2" class="filter-label">Jugador 2</label>
+                            <input 
+                                type="text" 
+                                id="filterPlayer2" 
+                                class="filter-input"
+                                placeholder="Nombre del jugador"
+                            >
+                        </div>
+                    </div>
+                    <p class="filters-hint">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" style="display: inline-block; vertical-align: middle; margin-right: 4px;">
+                            <path d="M8 12V8M8 4H8.01" stroke-linecap="round"/>
+                            <circle cx="8" cy="8" r="6"/>
+                        </svg>
+                        Si ingresas ambos jugadores, se mostrarán solo los partidos donde ambos participen.
+                    </p>
+                </div>
+
                 <!-- Loading indicator -->
                 <div id="loadingIndicator" class="loading-indicator">
                     <div class="loading-spinner"></div>
@@ -170,7 +219,7 @@
             <div class="settings-modal-body">
                 <form id="settingsForm">
                     <!-- Información del Partido (Read-only) -->
-                    <div class="settings-section">
+                    <div class="settings-section" id="matchInfoSection" style="display: none;">
                         <h4 class="settings-section-title">Información del Partido</h4>
                         <div class="settings-grid">
                             <div class="settings-field">
@@ -192,6 +241,17 @@
                             <div class="settings-field">
                                 <label class="settings-label">Cantidad a apostar (€)</label>
                                 <input type="number" class="settings-input" id="walletBalanceInput" step="0.01" min="0" placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Cantidad a apostar (solo cuando se abre desde configuración) -->
+                    <div class="settings-section" id="walletOnlySection">
+                        <h4 class="settings-section-title">Cantidad a apostar</h4>
+                        <div class="settings-grid">
+                            <div class="settings-field">
+                                <label class="settings-label">Cantidad a apostar (€)</label>
+                                <input type="number" class="settings-input" id="walletBalanceInputConfig" step="0.01" min="0" placeholder="0.00">
                             </div>
                         </div>
                     </div>
@@ -278,8 +338,8 @@
                         <button type="submit" class="btn-settings-primary">Guardar Configuración</button>
                     </div>
 
-                    <!-- Predict Button -->
-                    <div class="settings-predict-section">
+                    <!-- Predict Button (only shown when opened from Predict button) -->
+                    <div class="settings-predict-section" id="predictButtonSection" style="display: none;">
                         <button type="button" class="btn-settings-predict" id="predictButton">
                             <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5">
                                 <path d="M10 2L3 7V14H13V7L10 2Z"/>
@@ -353,8 +413,8 @@
 
     <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=7"></script>
-    <script src="/static/js/predict.js?v=7"></script>
-    <script src="/static/js/settings.js?v=2"></script>
+    <script src="/static/js/predict.js?v=9"></script>
+    <script src="/static/js/settings.js?v=4"></script>
     <script>
         // Check authentication on page load
         if (typeof requireAuth === 'function') {

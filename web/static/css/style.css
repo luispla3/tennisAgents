@@ -823,12 +823,16 @@ body {
     max-width: 1600px;
     width: 100%;
     margin: 0 auto;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .predict-content {
     max-width: 1600px;
     width: 100%;
     text-align: left;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 /* Season Groups */
@@ -869,6 +873,9 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(450px, 1fr));
     gap: var(--spacing-lg);
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 /* Match Card */
@@ -877,12 +884,15 @@ body {
     border: 1px solid var(--border-color);
     border-radius: 16px;
     padding: var(--spacing-lg);
-    transition: all var(--transition-base);
+    transition: border-color var(--transition-base), transform var(--transition-base), box-shadow var(--transition-base);
     position: relative;
     overflow: hidden;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .match-card::before {
@@ -1938,6 +1948,152 @@ body {
 
 .predicted-predictions {
     margin-top: var(--spacing-md);
+}
+
+/* Predicted Filters */
+.predicted-filters {
+    margin-top: var(--spacing-lg);
+    margin-bottom: var(--spacing-lg);
+    padding: var(--spacing-lg);
+    background-color: var(--bg-tertiary);
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    width: 100%;
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.filters-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-md);
+}
+
+.filters-title {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.btn-clear-filters {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    background-color: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-family: inherit;
+}
+
+.btn-clear-filters:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
+.btn-clear-filters svg {
+    flex-shrink: 0;
+}
+
+.filters-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-sm);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    width: 100%;
+}
+
+.filter-label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.filter-input {
+    padding: 10px 14px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    font-family: inherit;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast), background-color var(--transition-fast);
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    flex-shrink: 0;
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(255, 107, 53, 0.1);
+    background-color: var(--bg-primary);
+}
+
+.filter-input::placeholder {
+    color: var(--text-tertiary);
+    opacity: 0.6;
+}
+
+.filters-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary);
+    margin: var(--spacing-sm) 0 0 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filters-hint svg {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+@media (max-width: 768px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filters-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-sm);
+    }
+    
+    .btn-clear-filters {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 1024px) {
+    .filters-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .filters-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .prediction-item + .prediction-item {

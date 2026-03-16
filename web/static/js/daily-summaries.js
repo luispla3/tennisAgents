@@ -3,6 +3,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const matchesContainer = document.getElementById('matchesContainer');
     const loadingIndicator = document.getElementById('loadingIndicator');
     const emptyState = document.getElementById('emptyState');
+    const filtersSection = document.getElementById('filtersSection');
+    const filterDate = document.getElementById('filterDate');
+    const filterPlayer1 = document.getElementById('filterPlayer1');
+    const filterPlayer2 = document.getElementById('filterPlayer2');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+
+    // Store original matches data
+    let allMatchesData = null;
 
     // Fetch and render matches on page load
     async function fetchAndRenderMatches() {
@@ -21,6 +29,12 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
 
             if (data.success && data.matches_data) {
+                // Store original data for filtering
+                allMatchesData = data.matches_data;
+                // Show filters section
+                if (filtersSection) {
+                    filtersSection.style.display = 'block';
+                }
                 renderMatches(data.matches_data);
             } else {
                 showEmptyState();
@@ -34,13 +48,16 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     function renderMatches(matchesData) {
-        const summaries = matchesData.summaries || [];
+        let summaries = matchesData.summaries || [];
         
         // Filtrar solo partidos finalizados (estado "ended" o "closed")
-        const endedMatches = summaries.filter(summary => {
+        let endedMatches = summaries.filter(summary => {
             const status = summary.sport_event_status?.status;
             return status === 'ended' || status === 'closed';
         });
+        
+        // Apply filters if active
+        endedMatches = applyFilters(endedMatches);
         
         if (endedMatches.length === 0) {
             showEmptyState();
@@ -779,6 +796,123 @@ document.addEventListener('DOMContentLoaded', function() {
     function showEmptyState() {
         emptyState.style.display = 'flex';
         matchesContainer.style.display = 'none';
+    }
+
+    // Filter functionality
+    function applyFilters(matches) {
+        if (!matches || matches.length === 0) {
+            return matches;
+        }
+
+        const dateFilter = filterDate ? filterDate.value : '';
+        const player1Filter = filterPlayer1 ? filterPlayer1.value.trim().toLowerCase() : '';
+        const player2Filter = filterPlayer2 ? filterPlayer2.value.trim().toLowerCase() : '';
+
+        // Check if any filter is active
+        const hasActiveFilters = dateFilter || player1Filter || player2Filter;
+        
+        // Show/hide clear button
+        if (clearFiltersBtn) {
+            clearFiltersBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+        }
+
+        if (!hasActiveFilters) {
+            return matches;
+        }
+
+        // Filter matches
+        return matches.filter(summary => {
+            // Filter by date
+            if (dateFilter) {
+                const startTime = summary.sport_event?.start_time || '';
+                if (startTime) {
+                    const matchDate = new Date(startTime).toISOString().split('T')[0];
+                    if (matchDate !== dateFilter) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // Get player names
+            const competitors = summary.sport_event?.competitors || [];
+            const homePlayer = competitors.find(c => c.qualifier === 'home') || competitors[0] || {};
+            const awayPlayer = competitors.find(c => c.qualifier === 'away') || competitors[1] || {};
+            
+            const player1Name = (homePlayer.name || '').toLowerCase();
+            const player2Name = (awayPlayer.name || '').toLowerCase();
+
+            // If both players are specified, both must be present
+            if (player1Filter && player2Filter) {
+                const hasPlayer1 = player1Name.includes(player1Filter) || player2Name.includes(player1Filter);
+                const hasPlayer2 = player1Name.includes(player2Filter) || player2Name.includes(player2Filter);
+                
+                // Both players must be present
+                if (!hasPlayer1 || !hasPlayer2) {
+                    return false;
+                }
+            } else {
+                // If only one player is specified, check if that player is in the match
+                if (player1Filter) {
+                    const hasPlayer1 = player1Name.includes(player1Filter) || player2Name.includes(player1Filter);
+                    if (!hasPlayer1) {
+                        return false;
+                    }
+                }
+                
+                if (player2Filter) {
+                    const hasPlayer2 = player1Name.includes(player2Filter) || player2Name.includes(player2Filter);
+                    if (!hasPlayer2) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        });
+    }
+
+    // Add event listeners for filters
+    if (filterDate) {
+        filterDate.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+        filterDate.addEventListener('change', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    if (filterPlayer1) {
+        filterPlayer1.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    if (filterPlayer2) {
+        filterPlayer2.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    // Clear filters button
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            if (filterDate) filterDate.value = '';
+            if (filterPlayer1) filterPlayer1.value = '';
+            if (filterPlayer2) filterPlayer2.value = '';
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
     }
 
     // Load matches on page load

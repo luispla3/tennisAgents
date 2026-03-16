@@ -4,6 +4,14 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadingIndicator = document.getElementById('loadingIndicator');
     const emptyState = document.getElementById('emptyState');
     const predictedButton = document.getElementById('predictedButton');
+    const filtersSection = document.getElementById('filtersSection');
+    const filterDate = document.getElementById('filterDate');
+    const filterPlayer1 = document.getElementById('filterPlayer1');
+    const filterPlayer2 = document.getElementById('filterPlayer2');
+    const clearFiltersBtn = document.getElementById('clearFilters');
+
+    // Store original matches data
+    let allMatchesData = null;
 
     // Fetch and render matches on page load
     async function fetchAndRenderMatches() {
@@ -30,6 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
             });
 
             if (data.success && data.matches_data) {
+                // Store original data for filtering
+                allMatchesData = data.matches_data;
+                // Show filters section
+                if (filtersSection) {
+                    filtersSection.style.display = 'block';
+                }
                 const summaries = data.matches_data.summaries || [];
                 console.log('Summaries received:', summaries.length);
                 if (summaries.length > 0) {
@@ -54,7 +68,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderMatches(matchesData) {
         console.log('renderMatches called with:', matchesData);
-        const summaries = matchesData.summaries || [];
+        let summaries = matchesData.summaries || [];
         console.log('Summaries in renderMatches:', summaries.length);
         
         // El backend ya filtra los partidos en vivo (include_all_statuses=False)
@@ -65,6 +79,9 @@ document.addEventListener('DOMContentLoaded', function() {
             showEmptyState();
             return;
         }
+        
+        // Apply filters
+        summaries = applyFilters(summaries);
         
         // Usar todos los summaries como live matches ya que el backend ya los filtró
         const liveMatches = summaries;
@@ -1091,20 +1108,146 @@ document.addEventListener('DOMContentLoaded', function() {
                     analysisDate = new Date().toISOString().split('T')[0];
                 }
                 
-                // Update match info in settings modal if function exists
+                // Update match info and open settings modal with match info visible
                 if (window.updateMatchInfo) {
                     window.updateMatchInfo(player1, player2, tournament, analysisDate);
                 }
                 
-                // Open settings modal
-                const settingsButton = document.getElementById('settingsButton');
-                if (settingsButton) {
-                    settingsButton.click();
+                // Open settings modal with match info section visible
+                if (window.openSettingsModal) {
+                    window.openSettingsModal(true); // true = show match info
                 } else {
-                    // Fallback: show alert
-                    alert(`Partido seleccionado:\n${player1} vs ${player2}\nTorneo: ${tournament}\nFecha: ${analysisDate}`);
+                    // Fallback: use settings button
+                    const settingsButton = document.getElementById('settingsButton');
+                    if (settingsButton) {
+                        // First update match info, then open modal
+                        if (window.updateMatchInfo) {
+                            window.updateMatchInfo(player1, player2, tournament, analysisDate);
+                        }
+                        settingsButton.click();
+                    } else {
+                        // Fallback: show alert
+                        alert(`Partido seleccionado:\n${player1} vs ${player2}\nTorneo: ${tournament}\nFecha: ${analysisDate}`);
+                    }
                 }
             });
+        });
+    }
+
+    // Filter functionality
+    function applyFilters(summaries) {
+        if (!summaries || summaries.length === 0) {
+            return summaries;
+        }
+
+        const dateFilter = filterDate ? filterDate.value : '';
+        const player1Filter = filterPlayer1 ? filterPlayer1.value.trim().toLowerCase() : '';
+        const player2Filter = filterPlayer2 ? filterPlayer2.value.trim().toLowerCase() : '';
+
+        // Check if any filter is active
+        const hasActiveFilters = dateFilter || player1Filter || player2Filter;
+        
+        // Show/hide clear button
+        if (clearFiltersBtn) {
+            clearFiltersBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+        }
+
+        if (!hasActiveFilters) {
+            return summaries;
+        }
+
+        // Filter matches
+        return summaries.filter(summary => {
+            // Filter by date
+            if (dateFilter) {
+                const startTime = summary.sport_event?.start_time || '';
+                if (startTime) {
+                    const matchDate = new Date(startTime).toISOString().split('T')[0];
+                    if (matchDate !== dateFilter) {
+                        return false;
+                    }
+                } else {
+                    return false;
+                }
+            }
+
+            // Get player names
+            const competitors = summary.sport_event?.competitors || [];
+            const homePlayer = competitors.find(c => c.qualifier === 'home') || competitors[0] || {};
+            const awayPlayer = competitors.find(c => c.qualifier === 'away') || competitors[1] || {};
+            
+            const player1Name = (homePlayer.name || '').toLowerCase();
+            const player2Name = (awayPlayer.name || '').toLowerCase();
+
+            // If both players are specified, both must be present
+            if (player1Filter && player2Filter) {
+                const hasPlayer1 = player1Name.includes(player1Filter) || player2Name.includes(player1Filter);
+                const hasPlayer2 = player1Name.includes(player2Filter) || player2Name.includes(player2Filter);
+                
+                // Both players must be present
+                if (!hasPlayer1 || !hasPlayer2) {
+                    return false;
+                }
+            } else {
+                // If only one player is specified, check if that player is in the match
+                if (player1Filter) {
+                    const hasPlayer1 = player1Name.includes(player1Filter) || player2Name.includes(player1Filter);
+                    if (!hasPlayer1) {
+                        return false;
+                    }
+                }
+                
+                if (player2Filter) {
+                    const hasPlayer2 = player1Name.includes(player2Filter) || player2Name.includes(player2Filter);
+                    if (!hasPlayer2) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        });
+    }
+
+    // Add event listeners for filters
+    if (filterDate) {
+        filterDate.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+        filterDate.addEventListener('change', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    if (filterPlayer1) {
+        filterPlayer1.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    if (filterPlayer2) {
+        filterPlayer2.addEventListener('input', function() {
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
+        });
+    }
+
+    // Clear filters button
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            if (filterDate) filterDate.value = '';
+            if (filterPlayer1) filterPlayer1.value = '';
+            if (filterPlayer2) filterPlayer2.value = '';
+            if (allMatchesData) {
+                renderMatches(allMatchesData);
+            }
         });
     }
 

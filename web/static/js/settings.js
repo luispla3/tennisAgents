@@ -112,6 +112,14 @@ document.addEventListener('DOMContentLoaded', function() {
         ollama: "http://localhost:11434/v1"
     };
 
+    // Store current match info in memory (not in form fields)
+    let currentMatchInfo = {
+        player1: '',
+        player2: '',
+        tournament: '',
+        analysisDate: ''
+    };
+
     // Load saved settings from localStorage
     function loadSettings() {
         const savedSettings = localStorage.getItem('tennisAgentsSettings');
@@ -119,10 +127,23 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const settings = JSON.parse(savedSettings);
                 
-                // Load wallet balance
-                if (settings.walletBalance !== undefined && walletBalanceInput) {
-                    walletBalanceInput.value = settings.walletBalance;
-                    updateWalletDisplay(settings.walletBalance);
+                // Load wallet balance (sync both inputs)
+                if (settings.walletBalance !== undefined) {
+                    const walletValue = settings.walletBalance;
+                    const walletInputMatch = document.getElementById('walletBalanceInput');
+                    const walletInputConfig = document.getElementById('walletBalanceInputConfig');
+                    
+                    if (walletInputMatch) {
+                        walletInputMatch.value = walletValue;
+                    }
+                    if (walletInputConfig) {
+                        walletInputConfig.value = walletValue;
+                    }
+                    // Also update the original walletBalanceInput if it exists
+                    if (walletBalanceInput && walletBalanceInput.id !== 'walletBalanceInput' && walletBalanceInput.id !== 'walletBalanceInputConfig') {
+                        walletBalanceInput.value = walletValue;
+                    }
+                    updateWalletDisplay(walletValue);
                 }
                 
                 // Load analysts
@@ -154,23 +175,11 @@ document.addEventListener('DOMContentLoaded', function() {
                     deepThinkerSelect.value = settings.deepThinker;
                 }
                 
-                // Load match info if available
-                if (settings.player1) {
-                    const player1El = document.getElementById('player1');
-                    if (player1El) player1El.value = settings.player1;
-                }
-                if (settings.player2) {
-                    const player2El = document.getElementById('player2');
-                    if (player2El) player2El.value = settings.player2;
-                }
-                if (settings.tournament) {
-                    const tournamentEl = document.getElementById('tournament');
-                    if (tournamentEl) tournamentEl.value = settings.tournament;
-                }
-                if (settings.analysisDate) {
-                    const analysisDateEl = document.getElementById('analysisDate');
-                    if (analysisDateEl) analysisDateEl.value = settings.analysisDate;
-                }
+                // Load match info into memory (not form fields)
+                if (settings.player1) currentMatchInfo.player1 = settings.player1;
+                if (settings.player2) currentMatchInfo.player2 = settings.player2;
+                if (settings.tournament) currentMatchInfo.tournament = settings.tournament;
+                if (settings.analysisDate) currentMatchInfo.analysisDate = settings.analysisDate;
             } catch (e) {
                 console.error('Error loading settings:', e);
             }
@@ -188,8 +197,12 @@ document.addEventListener('DOMContentLoaded', function() {
         // Automatically determine backend URL based on selected provider
         const backendUrl = BACKEND_URLS[llmProviderSelect.value] || BACKEND_URLS.openai;
         
-            const settings = {
-            walletBalance: parseFloat(walletBalanceInput.value) || 0,
+        // Get wallet balance from either input (they should be synced)
+        const walletInput = walletBalanceInput || document.getElementById('walletBalanceInputConfig');
+        const walletValue = walletInput ? (parseFloat(walletInput.value) || 0) : 0;
+        
+        const settings = {
+            walletBalance: walletValue,
             // Ensure analysts are in the correct execution order
             analysts: orderAnalysts(Array.from(document.querySelectorAll('input[name="analysts"]:checked')).map(cb => cb.value)),
             researchDepth: parseInt(document.getElementById('researchDepth').value),
@@ -197,10 +210,11 @@ document.addEventListener('DOMContentLoaded', function() {
             backendUrl: backendUrl, // Automatically set based on provider
             shallowThinker: shallowThinkerSelect.value,
             deepThinker: deepThinkerSelect.value,
-            player1: document.getElementById('player1').value,
-            player2: document.getElementById('player2').value,
-            tournament: document.getElementById('tournament').value,
-            analysisDate: document.getElementById('analysisDate').value
+            // Use match info from memory instead of form fields
+            player1: currentMatchInfo.player1,
+            player2: currentMatchInfo.player2,
+            tournament: currentMatchInfo.tournament,
+            analysisDate: currentMatchInfo.analysisDate
         };
         
         localStorage.setItem('tennisAgentsSettings', JSON.stringify(settings));
@@ -250,9 +264,35 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Open settings modal
-    function openSettingsModal() {
+    function openSettingsModal(showMatchInfo = false) {
         settingsModal.classList.add('active');
         document.body.style.overflow = 'hidden';
+        
+        // Show/hide match info section based on parameter BEFORE loading settings
+        const matchInfoSection = document.getElementById('matchInfoSection');
+        const walletOnlySection = document.getElementById('walletOnlySection');
+        const predictButtonSection = document.getElementById('predictButtonSection');
+        
+        if (matchInfoSection && walletOnlySection) {
+            if (showMatchInfo) {
+                // Show match info section (from Predict button)
+                matchInfoSection.style.display = 'block';
+                walletOnlySection.style.display = 'none';
+                // Show predict button
+                if (predictButtonSection) {
+                    predictButtonSection.style.display = 'block';
+                }
+            } else {
+                // Hide match info section (from settings button)
+                matchInfoSection.style.display = 'none';
+                walletOnlySection.style.display = 'block';
+                // Hide predict button
+                if (predictButtonSection) {
+                    predictButtonSection.style.display = 'none';
+                }
+            }
+        }
+        
         loadSettings();
     }
 
@@ -263,7 +303,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Event listeners
-    settingsButton.addEventListener('click', openSettingsModal);
+    settingsButton.addEventListener('click', function() {
+        openSettingsModal(false); // Don't show match info when opening from settings button
+    });
     closeSettingsModal.addEventListener('click', closeModal);
     cancelSettings.addEventListener('click', closeModal);
     
@@ -294,10 +336,45 @@ document.addEventListener('DOMContentLoaded', function() {
         updateModelOptions(provider);
     });
 
-    // Handle wallet balance input change
-    walletBalanceInput.addEventListener('input', function() {
-        updateWalletDisplay(this.value);
-    });
+    // Handle wallet balance input change (sync both inputs)
+    function syncWalletInputs(sourceInput) {
+        const value = sourceInput.value;
+        updateWalletDisplay(value);
+        
+        // Sync to the other input if it exists
+        const walletInputMatch = document.getElementById('walletBalanceInput');
+        const walletInputConfig = document.getElementById('walletBalanceInputConfig');
+        
+        if (walletInputMatch && sourceInput !== walletInputMatch) {
+            walletInputMatch.value = value;
+        }
+        if (walletInputConfig && sourceInput !== walletInputConfig) {
+            walletInputConfig.value = value;
+        }
+    }
+    
+    // Add event listeners to both wallet inputs
+    const walletInputMatch = document.getElementById('walletBalanceInput');
+    const walletInputConfig = document.getElementById('walletBalanceInputConfig');
+    
+    if (walletInputMatch) {
+        walletInputMatch.addEventListener('input', function() {
+            syncWalletInputs(this);
+        });
+    }
+    
+    if (walletInputConfig) {
+        walletInputConfig.addEventListener('input', function() {
+            syncWalletInputs(this);
+        });
+    }
+    
+    // Also handle the original walletBalanceInput if it's different
+    if (walletBalanceInput && walletBalanceInput !== walletInputMatch && walletBalanceInput !== walletInputConfig) {
+        walletBalanceInput.addEventListener('input', function() {
+            syncWalletInputs(this);
+        });
+    }
 
     // Handle predict button click
     if (predictButton) {
@@ -736,18 +813,45 @@ document.addEventListener('DOMContentLoaded', function() {
     updateModelOptions(llmProviderSelect.value);
     loadSettings();
     
-    // Initialize wallet balance to 0 if not set
-    if (!walletBalanceInput.value || walletBalanceInput.value === '' || parseFloat(walletBalanceInput.value) === 0) {
-        walletBalanceInput.value = '0.00';
+    // Initialize wallet balance to 0 if not set (sync both inputs)
+    const walletInput = walletBalanceInput || document.getElementById('walletBalanceInputConfig');
+    if (walletInput && (!walletInput.value || walletInput.value === '' || parseFloat(walletInput.value) === 0)) {
+        walletInput.value = '0.00';
+        // Sync to other input
+        const otherInput = walletInput.id === 'walletBalanceInput' ? 
+            document.getElementById('walletBalanceInputConfig') : 
+            document.getElementById('walletBalanceInput');
+        if (otherInput) {
+            otherInput.value = '0.00';
+        }
     }
-    updateWalletDisplay(walletBalanceInput.value || 0);
+    const walletValue = walletInput ? (walletInput.value || '0.00') : '0.00';
+    updateWalletDisplay(walletValue);
     
     // Expose function to update match info from predict.js
     window.updateMatchInfo = function(player1, player2, tournament, date) {
-        if (player1) document.getElementById('player1').value = player1;
-        if (player2) document.getElementById('player2').value = player2;
-        if (tournament) document.getElementById('tournament').value = tournament;
-        if (date) document.getElementById('analysisDate').value = date;
+        // Store match info in memory
+        if (player1) currentMatchInfo.player1 = player1;
+        if (player2) currentMatchInfo.player2 = player2;
+        if (tournament) currentMatchInfo.tournament = tournament;
+        if (date) currentMatchInfo.analysisDate = date;
+        
+        // Update form fields if they exist (when opened from Predict button)
+        const player1El = document.getElementById('player1');
+        const player2El = document.getElementById('player2');
+        const tournamentEl = document.getElementById('tournament');
+        const analysisDateEl = document.getElementById('analysisDate');
+        
+        if (player1El && player1) player1El.value = player1;
+        if (player2El && player2) player2El.value = player2;
+        if (tournamentEl && tournament) tournamentEl.value = tournament;
+        if (analysisDateEl && date) analysisDateEl.value = date;
+        
+        // Show match info section and hide wallet-only section
+        const matchInfoSection = document.getElementById('matchInfoSection');
+        const walletOnlySection = document.getElementById('walletOnlySection');
+        if (matchInfoSection) matchInfoSection.style.display = 'block';
+        if (walletOnlySection) walletOnlySection.style.display = 'none';
         
         // Save updated match info
         saveSettings();
@@ -759,8 +863,8 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     // Expose function to open settings modal
-    window.openSettingsModal = function() {
-        openSettingsModal();
+    window.openSettingsModal = function(showMatchInfo = false) {
+        openSettingsModal(showMatchInfo);
     };
 });
 

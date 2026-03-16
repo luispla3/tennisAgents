@@ -2,10 +2,17 @@
 document.addEventListener('DOMContentLoaded', function() {
     const predictedSection = document.getElementById('predictedSection');
     const predictedMatchesContainer = document.getElementById('predictedMatchesContainer');
+    const filterDate = document.getElementById('filterDate');
+    const filterPlayer1 = document.getElementById('filterPlayer1');
+    const filterPlayer2 = document.getElementById('filterPlayer2');
+    const clearFiltersBtn = document.getElementById('clearFilters');
 
     if (!predictedSection || !predictedMatchesContainer) {
         return;
     }
+
+    // Store original matches data
+    let allMatches = [];
 
     // Initial load
     loadPredictedMatches();
@@ -38,12 +45,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p>Todavía no hay partidos analizados con predicciones guardadas.</p>
                     </div>
                 `;
+                allMatches = [];
                 return;
             }
 
-            predictedMatchesContainer.innerHTML = renderPredictedMatches(matches);
-            attachPredictionsListeners();
-            attachSummaryListeners();
+            // Store all matches for filtering
+            allMatches = matches;
+            
+            // Apply initial filters and render
+            applyFilters();
             
             // Verificar si hay parámetros en la URL para abrir automáticamente el resumen
             const urlParams = new URLSearchParams(window.location.search);
@@ -367,6 +377,107 @@ document.addEventListener('DOMContentLoaded', function() {
                     `;
                 }
             });
+        });
+    }
+
+    // Filter functionality
+    function applyFilters() {
+        if (allMatches.length === 0) {
+            return;
+        }
+
+        const dateFilter = filterDate ? filterDate.value : '';
+        const player1Filter = filterPlayer1 ? filterPlayer1.value.trim().toLowerCase() : '';
+        const player2Filter = filterPlayer2 ? filterPlayer2.value.trim().toLowerCase() : '';
+
+        // Check if any filter is active
+        const hasActiveFilters = dateFilter || player1Filter || player2Filter;
+        
+        // Show/hide clear button
+        if (clearFiltersBtn) {
+            clearFiltersBtn.style.display = hasActiveFilters ? 'inline-flex' : 'none';
+        }
+
+        // Filter matches
+        let filteredMatches = allMatches.filter(match => {
+            // Filter by date
+            if (dateFilter) {
+                const matchDate = match.analysis_date || '';
+                if (matchDate !== dateFilter) {
+                    return false;
+                }
+            }
+
+            // Get player names (case-insensitive matching)
+            const player1 = (match.player1 || '').toLowerCase();
+            const player2 = (match.player2 || '').toLowerCase();
+            const matchLabel = (match.match_label || '').toLowerCase();
+
+            // If both players are specified, both must be present
+            if (player1Filter && player2Filter) {
+                // Check if both players are in the match
+                const hasPlayer1 = player1.includes(player1Filter) || matchLabel.includes(player1Filter);
+                const hasPlayer2 = player2.includes(player2Filter) || matchLabel.includes(player2Filter);
+                
+                // Both players must be present
+                if (!hasPlayer1 || !hasPlayer2) {
+                    return false;
+                }
+            } else {
+                // If only one player is specified, check if that player is in the match
+                if (player1Filter) {
+                    const hasPlayer1 = player1.includes(player1Filter) || matchLabel.includes(player1Filter);
+                    if (!hasPlayer1) {
+                        return false;
+                    }
+                }
+                
+                if (player2Filter) {
+                    const hasPlayer2 = player2.includes(player2Filter) || matchLabel.includes(player2Filter);
+                    if (!hasPlayer2) {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        });
+
+        // Render filtered matches
+        if (filteredMatches.length === 0) {
+            predictedMatchesContainer.innerHTML = `
+                <div class="empty-state">
+                    <p>No se encontraron partidos que coincidan con los filtros aplicados.</p>
+                </div>
+            `;
+        } else {
+            predictedMatchesContainer.innerHTML = renderPredictedMatches(filteredMatches);
+            attachPredictionsListeners();
+            attachSummaryListeners();
+        }
+    }
+
+    // Add event listeners for filters
+    if (filterDate) {
+        filterDate.addEventListener('input', applyFilters);
+        filterDate.addEventListener('change', applyFilters);
+    }
+
+    if (filterPlayer1) {
+        filterPlayer1.addEventListener('input', applyFilters);
+    }
+
+    if (filterPlayer2) {
+        filterPlayer2.addEventListener('input', applyFilters);
+    }
+
+    // Clear filters button
+    if (clearFiltersBtn) {
+        clearFiltersBtn.addEventListener('click', function() {
+            if (filterDate) filterDate.value = '';
+            if (filterPlayer1) filterPlayer1.value = '';
+            if (filterPlayer2) filterPlayer2.value = '';
+            applyFilters();
         });
     }
 
