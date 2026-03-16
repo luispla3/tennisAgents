@@ -52,6 +52,7 @@ class Propagator:
             REPORTS.risk_analysis_report: "",
             STATE.final_bet_decision: "",
             STATE.individual_risk_manager_decisions: {},
+            STATE.final_response: "",
         }
 
     def get_graph_args(self) -> Dict[str, Any]:

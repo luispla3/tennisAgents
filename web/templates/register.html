@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Cuenta - TennisAgents</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=12">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <!-- Logo/Brand -->
+            <div class="navbar-brand">
+                <a href="/" class="brand-link">
+                    <img src="/img/logo.png" alt="TennisAgents logo" class="brand-logo" width="28" height="28">
+                    <span class="brand-text">TennisAgents</span>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="navbar-links">
+                <a href="/" class="nav-link">Inicio</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth Container -->
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 class="auth-title">Crear Cuenta</h1>
+                    <p class="auth-subtitle">Únete a TennisAgents y comienza a predecir</p>
+                </div>
+
+                <form id="registerForm" class="auth-form">
+                    <div class="auth-form-group">
+                        <label for="registerName" class="auth-label">Nombre Completo</label>
+                        <input 
+                            type="text" 
+                            id="registerName" 
+                            name="name" 
+                            class="auth-input" 
+                            placeholder="Juan Pérez"
+                            required
+                            autocomplete="name"
+                        >
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="registerEmail" class="auth-label">Correo Electrónico</label>
+                        <input 
+                            type="email" 
+                            id="registerEmail" 
+                            name="email" 
+                            class="auth-input" 
+                            placeholder="tu@email.com"
+                            required
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="registerPassword" class="auth-label">Contraseña</label>
+                        <input 
+                            type="password" 
+                            id="registerPassword" 
+                            name="password" 
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                            autocomplete="new-password"
+                            minlength="8"
+                        >
+                        <small class="auth-hint">Mínimo 8 caracteres</small>
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label for="registerPasswordConfirm" class="auth-label">Confirmar Contraseña</label>
+                        <input 
+                            type="password" 
+                            id="registerPasswordConfirm" 
+                            name="passwordConfirm" 
+                            class="auth-input" 
+                            placeholder="••••••••"
+                            required
+                            autocomplete="new-password"
+                        >
+                    </div>
+
+                    <div class="auth-form-group">
+                        <label class="auth-checkbox-label">
+                            <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
+                            <span>Acepto los <a href="#" class="auth-link-inline">términos y condiciones</a></span>
+                        </label>
+                    </div>
+
+                    <div id="registerError" class="auth-error" style="display: none;"></div>
+                    <div id="registerSuccess" class="auth-success" style="display: none;"></div>
+
+                    <button type="submit" class="auth-button auth-button-primary">
+                        Crear Cuenta
+                    </button>
+                </form>
+
+                <div class="auth-divider">
+                    <span>¿Ya tienes una cuenta?</span>
+                </div>
+
+                <a href="/login" class="auth-button auth-button-secondary">
+                    Iniciar Sesión
+                </a>
+
+                <div class="auth-footer">
+                    <a href="/" class="auth-link">Volver al inicio</a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/auth.js?v=1"></script>
+    <script src="/static/js/register.js?v=1"></script>
+</body>
+</html>

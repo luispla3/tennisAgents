@@ -285,7 +285,7 @@
                                 <path d="M10 2L3 7V14H13V7L10 2Z"/>
                                 <path d="M10 8V12M8 10H12"/>
                             </svg>
-                            Predecir
+                            Iniciar Predicción
                         </button>
                     </div>
                 </form>
@@ -351,9 +351,16 @@
         </div>
     </div>
 
+    <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=7"></script>
     <script src="/static/js/predict.js?v=7"></script>
     <script src="/static/js/settings.js?v=2"></script>
+    <script>
+        // Check authentication on page load
+        if (typeof requireAuth === 'function') {
+            requireAuth(window.location.pathname);
+        }
+    </script>
 </body>
 </html>
 

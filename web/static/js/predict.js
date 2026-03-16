@@ -289,7 +289,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             <path d="M8 2L3 7V14H13V7L8 2Z"/>
                             <path d="M8 8V12M6 10H10"/>
                         </svg>
-                        Analizar
+                        Predecir
                     </button>
                     <button class="btn-action btn-stats" data-modal-id="${modalId}" data-match-id="${uniqueMatchId}">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">

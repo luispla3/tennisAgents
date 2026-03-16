@@ -451,6 +451,18 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
+@app.get("/login", response_class=HTMLResponse)
+async def login(request: Request):
+    """Login page"""
+    return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/register", response_class=HTMLResponse)
+async def register(request: Request):
+    """Register page"""
+    return templates.TemplateResponse("register.html", {"request": request})
+
+
 @app.get("/predict", response_class=HTMLResponse)
 async def predict(request: Request):
     """Predict page"""

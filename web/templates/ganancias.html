@@ -209,7 +209,14 @@
         </div>
     </main>
 
+    <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=7"></script>
+    <script>
+        // Check authentication on page load
+        if (typeof requireAuth === 'function') {
+            requireAuth(window.location.pathname);
+        }
+    </script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const container = document.getElementById('earningsContainer');

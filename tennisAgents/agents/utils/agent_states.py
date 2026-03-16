@@ -106,13 +106,10 @@ class AgentState(MessagesState):
         Optional[str], "Informe de partido en vivo"
     ]
 
+
+    #creo que no se usa
     risk_analysis_report: Annotated[
         Optional[str], "Informe de análisis de riesgo"
-    ]
-
-    # Decisiones individuales de cada risk manager (para medir rendimiento)
-    individual_risk_manager_decisions: Annotated[
-        Optional[Dict[str, str]], "Decisiones individuales de cada risk manager por modelo"
     ]
 
     # Estado del debate de riesgo
@@ -120,10 +117,18 @@ class AgentState(MessagesState):
         RiskDebateState, "Estado del debate de gestión de riesgo"
     ]
 
+
+    # Decisiones individuales de cada MANAGER
+    individual_risk_manager_decisions: Annotated[
+        Optional[Dict[str, str]], "Decisiones individuales de cada manager por modelo"
+    ]
+
+
     # Decisión final
     final_bet_decision: Annotated[
         Optional[str], "Decisión final de apuesta"
     ]
+    
 
     # Informe final sintetizado
     final_response: Annotated[

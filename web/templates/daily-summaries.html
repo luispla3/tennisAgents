@@ -132,7 +132,14 @@
         </div>
     </main>
 
+    <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=6"></script>
     <script src="/static/js/daily-summaries.js?v=6"></script>
+    <script>
+        // Check authentication on page load
+        if (typeof requireAuth === 'function') {
+            requireAuth(window.location.pathname);
+        }
+    </script>
 </body>
 </html>
