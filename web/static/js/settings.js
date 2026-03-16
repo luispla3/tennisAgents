@@ -127,23 +127,21 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 const settings = JSON.parse(savedSettings);
                 
-                // Load wallet balance (sync both inputs)
+                // Load wallet balance (saldo) - solo para display, no se modifica desde los inputs
                 if (settings.walletBalance !== undefined) {
-                    const walletValue = settings.walletBalance;
-                    const walletInputMatch = document.getElementById('walletBalanceInput');
-                    const walletInputConfig = document.getElementById('walletBalanceInputConfig');
-                    
-                    if (walletInputMatch) {
-                        walletInputMatch.value = walletValue;
-                    }
-                    if (walletInputConfig) {
-                        walletInputConfig.value = walletValue;
-                    }
-                    // Also update the original walletBalanceInput if it exists
-                    if (walletBalanceInput && walletBalanceInput.id !== 'walletBalanceInput' && walletBalanceInput.id !== 'walletBalanceInputConfig') {
-                        walletBalanceInput.value = walletValue;
-                    }
-                    updateWalletDisplay(walletValue);
+                    updateWalletDisplay(settings.walletBalance);
+                }
+                
+                // Load bet amount (cantidad a apostar) - independiente del saldo
+                const betAmount = settings.betAmount !== undefined ? settings.betAmount : (settings.walletBalance !== undefined ? settings.walletBalance : 0);
+                const walletInputMatch = document.getElementById('walletBalanceInput');
+                const walletInputConfig = document.getElementById('walletBalanceInputConfig');
+                
+                if (walletInputMatch) {
+                    walletInputMatch.value = betAmount;
+                }
+                if (walletInputConfig) {
+                    walletInputConfig.value = betAmount;
                 }
                 
                 // Load analysts
@@ -197,12 +195,25 @@ document.addEventListener('DOMContentLoaded', function() {
         // Automatically determine backend URL based on selected provider
         const backendUrl = BACKEND_URLS[llmProviderSelect.value] || BACKEND_URLS.openai;
         
-        // Get wallet balance from either input (they should be synced)
+        // Get bet amount (cantidad a apostar) from either input (they should be synced)
         const walletInput = walletBalanceInput || document.getElementById('walletBalanceInputConfig');
-        const walletValue = walletInput ? (parseFloat(walletInput.value) || 0) : 0;
+        const betAmount = walletInput ? (parseFloat(walletInput.value) || 0) : 0;
+        
+        // Get wallet balance (saldo) from saved settings or keep current value
+        const savedSettings = localStorage.getItem('tennisAgentsSettings');
+        let walletBalance = 0;
+        if (savedSettings) {
+            try {
+                const parsed = JSON.parse(savedSettings);
+                walletBalance = parsed.walletBalance !== undefined ? parsed.walletBalance : 0;
+            } catch (e) {
+                console.error('Error parsing saved settings:', e);
+            }
+        }
         
         const settings = {
-            walletBalance: walletValue,
+            walletBalance: walletBalance, // Saldo - no se modifica desde los inputs
+            betAmount: betAmount, // Cantidad a apostar - independiente del saldo
             // Ensure analysts are in the correct execution order
             analysts: orderAnalysts(Array.from(document.querySelectorAll('input[name="analysts"]:checked')).map(cb => cb.value)),
             researchDepth: parseInt(document.getElementById('researchDepth').value),
@@ -323,7 +334,7 @@ document.addEventListener('DOMContentLoaded', function() {
     settingsForm.addEventListener('submit', function(e) {
         e.preventDefault();
         const settings = saveSettings();
-        updateWalletDisplay(settings.walletBalance);
+        // NO actualizar el display del saldo aquí - el saldo es independiente
         closeModal();
         
         // Show success message (optional)
@@ -336,10 +347,10 @@ document.addEventListener('DOMContentLoaded', function() {
         updateModelOptions(provider);
     });
 
-    // Handle wallet balance input change (sync both inputs)
-    function syncWalletInputs(sourceInput) {
+    // Handle bet amount input change (sync both inputs, but NOT the wallet display)
+    function syncBetAmountInputs(sourceInput) {
         const value = sourceInput.value;
-        updateWalletDisplay(value);
+        // NO actualizar el display del saldo - solo sincronizar los inputs de cantidad a apostar
         
         // Sync to the other input if it exists
         const walletInputMatch = document.getElementById('walletBalanceInput');
@@ -353,26 +364,26 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Add event listeners to both wallet inputs
+    // Add event listeners to both bet amount inputs (cantidad a apostar)
     const walletInputMatch = document.getElementById('walletBalanceInput');
     const walletInputConfig = document.getElementById('walletBalanceInputConfig');
     
     if (walletInputMatch) {
         walletInputMatch.addEventListener('input', function() {
-            syncWalletInputs(this);
+            syncBetAmountInputs(this);
         });
     }
     
     if (walletInputConfig) {
         walletInputConfig.addEventListener('input', function() {
-            syncWalletInputs(this);
+            syncBetAmountInputs(this);
         });
     }
     
     // Also handle the original walletBalanceInput if it's different
     if (walletBalanceInput && walletBalanceInput !== walletInputMatch && walletBalanceInput !== walletInputConfig) {
         walletBalanceInput.addEventListener('input', function() {
-            syncWalletInputs(this);
+            syncBetAmountInputs(this);
         });
     }
 
@@ -461,7 +472,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             player2: settings.player2,
                             tournament: settings.tournament,
                             analysis_date: settings.analysisDate,
-                            wallet_balance: settings.walletBalance,
+                            wallet_balance: settings.betAmount, // Enviar cantidad a apostar, no el saldo
                             analysts: settings.analysts,
                             research_depth: settings.researchDepth,
                             llm_provider: settings.llmProvider,
@@ -813,7 +824,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateModelOptions(llmProviderSelect.value);
     loadSettings();
     
-    // Initialize wallet balance to 0 if not set (sync both inputs)
+    // Initialize bet amount (cantidad a apostar) to 0 if not set (sync both inputs)
     const walletInput = walletBalanceInput || document.getElementById('walletBalanceInputConfig');
     if (walletInput && (!walletInput.value || walletInput.value === '' || parseFloat(walletInput.value) === 0)) {
         walletInput.value = '0.00';
@@ -825,8 +836,19 @@ document.addEventListener('DOMContentLoaded', function() {
             otherInput.value = '0.00';
         }
     }
-    const walletValue = walletInput ? (walletInput.value || '0.00') : '0.00';
-    updateWalletDisplay(walletValue);
+    
+    // Initialize wallet balance (saldo) from saved settings or 0
+    const savedSettings = localStorage.getItem('tennisAgentsSettings');
+    let initialWalletBalance = 0;
+    if (savedSettings) {
+        try {
+            const parsed = JSON.parse(savedSettings);
+            initialWalletBalance = parsed.walletBalance !== undefined ? parsed.walletBalance : 0;
+        } catch (e) {
+            console.error('Error parsing saved settings:', e);
+        }
+    }
+    updateWalletDisplay(initialWalletBalance);
     
     // Expose function to update match info from predict.js
     window.updateMatchInfo = function(player1, player2, tournament, date) {
