@@ -11,6 +11,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const shallowThinkerSelect = document.getElementById('shallowThinker');
     const deepThinkerSelect = document.getElementById('deepThinker');
     const predictButton = document.getElementById('predictButton');
+    
+    // Analysis Control
+    let currentAnalysisController = null;
+    const cancelAnalysisBtn = document.getElementById('cancelAnalysisBtn');
 
     // Analysis Modal Elements
     const analysisModal = document.getElementById('analysisModal');
@@ -401,6 +405,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 analysisModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
                 
+                // Show cancel button
+                if (cancelAnalysisBtn) {
+                    cancelAnalysisBtn.style.display = 'block';
+                }
+                
                 // Reset UI
                 analysisStatus.innerHTML = `
                     <div class="loading-spinner" style="width: 20px; height: 20px; border-width: 2px;"></div>
@@ -464,6 +473,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 try {
+                    // Create AbortController for cancellation
+                    currentAnalysisController = new AbortController();
+                    
                     const response = await fetch('/api/run-analysis', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -479,7 +491,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             shallow_thinker: settings.shallowThinker,
                             deep_thinker: settings.deepThinker,
                             backend_url: settings.backendUrl
-                        })
+                        }),
+                        signal: currentAnalysisController.signal
                     });
 
                     const reader = response.body.getReader();
@@ -528,17 +541,120 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.error('Error parsing final buffer:', e, buffer);
                         }
                     }
+                    
+                    // Hide cancel button on completion
+                    if (cancelAnalysisBtn) {
+                        cancelAnalysisBtn.style.display = 'none';
+                    }
+                    currentAnalysisController = null;
 
                 } catch (error) {
-                    console.error('Analysis error:', error);
-                    analysisStatus.innerHTML = `
-                        <span style="color: #ef4444;">Error: ${error.message}</span>
-                    `;
-                    analysisStatus.style.borderColor = '#ef4444';
-                    analysisStatus.style.background = 'rgba(239, 68, 68, 0.1)';
+                    if (error.name === 'AbortError') {
+                        console.log('Analysis cancelled by user');
+                        // UI update handled in cancel button click handler
+                        // Popup and redirect also handled there
+                    } else {
+                        console.error('Analysis error:', error);
+                        analysisStatus.innerHTML = `
+                            <span style="color: #ef4444;">Error: ${error.message}</span>
+                        `;
+                        analysisStatus.style.borderColor = '#ef4444';
+                        analysisStatus.style.background = 'rgba(239, 68, 68, 0.1)';
+                        
+                        if (cancelAnalysisBtn) {
+                            cancelAnalysisBtn.style.display = 'none';
+                        }
+                    }
                 }
             } else {
                 alert('Error: Analysis modal not found');
+            }
+        });
+    }
+    
+    // Function to show cancellation popup
+    function showCancellationPopup() {
+        // Create popup element
+        const popup = document.createElement('div');
+        popup.id = 'cancellationPopup';
+        popup.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            z-index: 10000;
+            background: var(--bg-secondary);
+            border: 2px solid rgba(239, 68, 68, 0.3);
+            border-radius: 16px;
+            padding: 24px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(239, 68, 68, 0.1);
+            backdrop-filter: blur(10px);
+            min-width: 320px;
+            max-width: 500px;
+            text-align: center;
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        `;
+        
+        popup.innerHTML = `
+            <div style="display: flex; flex-direction: column; align-items: center; gap: 16px;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(239, 68, 68, 0.3);">
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M15 9L9 15M9 9L15 15"/>
+                    </svg>
+                </div>
+                <div>
+                    <h3 style="font-size: 20px; font-weight: 600; color: var(--text-primary); margin: 0 0 8px 0;">Análisis Cancelado</h3>
+                    <p style="font-size: 14px; color: var(--text-secondary); margin: 0;">La predicción ha sido cancelada. Serás redirigido a la página de predicciones.</p>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(popup);
+        
+        // Trigger animation
+        requestAnimationFrame(() => {
+            popup.style.opacity = '1';
+            popup.style.transform = 'translate(-50%, -50%) scale(1)';
+        });
+        
+        // Remove popup and redirect after 3 seconds
+        setTimeout(() => {
+            popup.style.opacity = '0';
+            popup.style.transform = 'translate(-50%, -50%) scale(0.9)';
+            setTimeout(() => {
+                popup.remove();
+                window.location.href = '/predict';
+            }, 300);
+        }, 3000);
+    }
+    
+    // Handle cancel analysis button
+    if (cancelAnalysisBtn) {
+        cancelAnalysisBtn.addEventListener('click', function() {
+            if (currentAnalysisController) {
+                currentAnalysisController.abort();
+                currentAnalysisController = null;
+                
+                analysisStatus.innerHTML = `
+                    <span style="color: #ef4444;">Análisis cancelado por el usuario</span>
+                `;
+                analysisStatus.style.borderColor = '#ef4444';
+                analysisStatus.style.background = 'rgba(239, 68, 68, 0.1)';
+                
+                // Hide cancel button
+                this.style.display = 'none';
+                
+                // Log cancellation
+                const logEntry = document.createElement('div');
+                logEntry.style.color = '#ef4444';
+                logEntry.textContent = `[${new Date().toLocaleTimeString()}] Analysis cancelled by user.`;
+                analysisLogs.appendChild(logEntry);
+                analysisLogs.scrollTop = analysisLogs.scrollHeight;
+                
+                // Show popup and redirect
+                showCancellationPopup();
             }
         });
     }

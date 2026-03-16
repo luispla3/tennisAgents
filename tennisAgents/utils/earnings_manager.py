@@ -112,6 +112,20 @@ class EarningsManager:
                     if not date_dir.is_dir(): continue
                     
                     analysis_date = date_dir.name
+                    
+                    # Check if this match was cancelled
+                    status_file = date_dir / "status.json"
+                    if status_file.exists():
+                        try:
+                            with open(status_file, "r", encoding="utf-8") as f:
+                                status_data = json.load(f)
+                                if status_data.get("status") == "cancelled":
+                                    print(f"Skipping cancelled match: {match_dir.name} ({analysis_date})")
+                                    continue
+                        except Exception as e:
+                            print(f"Error reading status file for {match_dir.name}: {e}")
+                            # Continue processing if status file is corrupted
+                    
                     reports_dir = date_dir / "reports"
                     if not reports_dir.exists(): continue
 
@@ -275,7 +289,48 @@ class EarningsManager:
         if self.earnings_file.exists():
             try:
                 with open(self.earnings_file, "r", encoding="utf-8") as f:
-                    return json.load(f)
+                    earnings_data = json.load(f)
+                    
+                # Filter out cancelled matches from existing data
+                filtered_data = []
+                for entry in earnings_data:
+                    run_id = entry.get("run_id", "")
+                    match_name = entry.get("match_name", "")
+                    analysis_date = entry.get("analysis_date", "")
+                    
+                    # Check if this match was cancelled
+                    is_cancelled = False
+                    for results_dir in self.results_dirs:
+                        if not results_dir.exists():
+                            continue
+                        
+                        # Try to find the match directory
+                        match_dir = results_dir / match_name
+                        if match_dir.exists() and match_dir.is_dir():
+                            date_dir = match_dir / analysis_date
+                            if date_dir.exists() and date_dir.is_dir():
+                                status_file = date_dir / "status.json"
+                                if status_file.exists():
+                                    try:
+                                        with open(status_file, "r", encoding="utf-8") as f:
+                                            status_data = json.load(f)
+                                            if status_data.get("status") == "cancelled":
+                                                is_cancelled = True
+                                                break
+                                    except Exception:
+                                        # If status file is corrupted, keep the entry
+                                        pass
+                    
+                    if not is_cancelled:
+                        filtered_data.append(entry)
+                    else:
+                        print(f"Removing cancelled match from earnings: {match_name} ({analysis_date})")
+                
+                # If we filtered out entries, save the cleaned data
+                if len(filtered_data) < len(earnings_data):
+                    self._save_earnings(filtered_data)
+                
+                return filtered_data
             except: return []
         return []
 

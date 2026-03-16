@@ -79,22 +79,23 @@ class AnalysisRequest(BaseModel):
     backend_url: Optional[str] = None
 
 @app.post("/api/run-analysis")
-async def run_analysis(request: AnalysisRequest):
+async def run_analysis(request: Request, analysis_request: AnalysisRequest):
     """
     Run the tennis analysis system and stream the results.
     """
     
     async def event_generator():
+        results_dir = None
         try:
             # Setup configuration
             config = DEFAULT_CONFIG.copy()
-            config["max_debate_rounds"] = request.research_depth
-            config["max_risk_discuss_rounds"] = request.research_depth
-            config["quick_think_llm"] = request.shallow_thinker
-            config["deep_think_llm"] = request.deep_thinker
-            if request.backend_url:
-                config["backend_url"] = request.backend_url
-            config["llm_provider"] = request.llm_provider.lower()
+            config["max_debate_rounds"] = analysis_request.research_depth
+            config["max_risk_discuss_rounds"] = analysis_request.research_depth
+            config["quick_think_llm"] = analysis_request.shallow_thinker
+            config["deep_think_llm"] = analysis_request.deep_thinker
+            if analysis_request.backend_url:
+                config["backend_url"] = analysis_request.backend_url
+            config["llm_provider"] = analysis_request.llm_provider.lower()
             
             # For web runs, force results into web/results (separado de la CLI)
             web_results_root = PROJECT_ROOT / "web" / "results"
@@ -102,15 +103,26 @@ async def run_analysis(request: AnalysisRequest):
             config["results_dir"] = str(web_results_root)
                 
             # Setup results directory
-            player_pair = f"{request.player1} vs {request.player2}"
+            player_pair = f"{analysis_request.player1} vs {analysis_request.player2}"
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             unique_dir_name = f"{player_pair}_{timestamp}"
-            results_dir = Path(config["results_dir"]) / unique_dir_name / request.analysis_date
+            results_dir = Path(config["results_dir"]) / unique_dir_name / analysis_request.analysis_date
             results_dir.mkdir(parents=True, exist_ok=True)
             report_dir = results_dir / "reports"
             report_dir.mkdir(parents=True, exist_ok=True)
             log_file = results_dir / "message_tool.log"
             log_file.touch(exist_ok=True)
+            
+            # Initial status: In Progress
+            status_file = results_dir / "status.json"
+            with open(status_file, "w", encoding="utf-8") as f:
+                json.dump({
+                    "status": "in_progress",
+                    "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                    "player1": analysis_request.player1,
+                    "player2": analysis_request.player2,
+                    "tournament": analysis_request.tournament
+                }, f)
             
             # Determinar el nombre del modelo para etiquetar informes de analistas
             # Analistas locales (News, Social, Tournament, Weather) pueden usar un LLM distinto
@@ -140,7 +152,7 @@ async def run_analysis(request: AnalysisRequest):
             }) + "\n"
             
             graph = TennisAgentsGraph(
-                request.analysts, 
+                analysis_request.analysts, 
                 config=config, 
                 debug=True
             )
@@ -156,11 +168,11 @@ async def run_analysis(request: AnalysisRequest):
             
             # Initialize state
             init_agent_state = graph.propagator.create_initial_state(
-                request.player1, 
-                request.player2, 
-                request.analysis_date,
-                request.tournament,
-                request.wallet_balance
+                analysis_request.player1, 
+                analysis_request.player2, 
+                analysis_request.analysis_date,
+                analysis_request.tournament,
+                analysis_request.wallet_balance
             )
             args = graph.propagator.get_graph_args()
             
@@ -173,6 +185,22 @@ async def run_analysis(request: AnalysisRequest):
             # Since graph.stream is a generator, we iterate over it
             for chunk in graph.graph.stream(init_agent_state, **args):
                 
+                # Check for client disconnection (cancellation)
+                if await request.is_disconnected():
+                    print(f"Client disconnected during analysis of {player_pair}")
+                    # Mark as cancelled
+                    if results_dir:
+                        status_file = results_dir / "status.json"
+                        with open(status_file, "w", encoding="utf-8") as f:
+                            json.dump({
+                                "status": "cancelled",
+                                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                                "player1": analysis_request.player1,
+                                "player2": analysis_request.player2,
+                                "tournament": analysis_request.tournament
+                            }, f)
+                    return # Stop generator
+
                 # 1. Handle Messages (Logs)
                 if "messages" in chunk and len(chunk["messages"]) > 0:
                     last_message = chunk["messages"][-1]
@@ -418,18 +446,56 @@ async def run_analysis(request: AnalysisRequest):
                         "data": {"section": "final_response", "content": content}
                     }) + "\n"
 
+            # Mark as completed
+            if results_dir:
+                status_file = results_dir / "status.json"
+                with open(status_file, "w", encoding="utf-8") as f:
+                    json.dump({
+                        "status": "completed",
+                        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                        "player1": analysis_request.player1,
+                        "player2": analysis_request.player2,
+                        "tournament": analysis_request.tournament
+                    }, f)
+
             yield json.dumps({
                 "type": "status",
                 "data": {
                     "message": "Analysis complete!",
                     "step": "completed",
                     "match_dir": unique_dir_name,
-                    "analysis_date": request.analysis_date,
+                    "analysis_date": analysis_request.analysis_date,
                     "storage": "web"
                 }
             }) + "\n"
 
         except Exception as e:
+            # Check if it was a cancellation (sometimes manifests as exception)
+            if "disconnect" in str(e).lower() or "cancel" in str(e).lower():
+                 if results_dir:
+                    status_file = results_dir / "status.json"
+                    with open(status_file, "w", encoding="utf-8") as f:
+                        json.dump({
+                            "status": "cancelled",
+                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "player1": analysis_request.player1,
+                            "player2": analysis_request.player2,
+                            "tournament": analysis_request.tournament
+                        }, f)
+            else:
+                # Mark as error
+                if results_dir:
+                    status_file = results_dir / "status.json"
+                    with open(status_file, "w", encoding="utf-8") as f:
+                        json.dump({
+                            "status": "error",
+                            "error": str(e),
+                            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            "player1": analysis_request.player1,
+                            "player2": analysis_request.player2,
+                            "tournament": analysis_request.tournament
+                        }, f)
+
             yield json.dumps({
                 "type": "error",
                 "data": {"message": str(e)}
@@ -869,19 +935,32 @@ def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[
         except Exception:
             tournament_name = ""
 
-        # Look for up to 5 final_bet_decision*.md files
+        # Look for up to 5 final_bet_decision*.md files OR if cancelled
         try:
             final_files = sorted(report_dir.glob("final_bet_decision*.md"))
         except Exception:
             continue
+        
+        # Check status first to decide if we include it even without final files
+        status = "completed"
+        status_file = analysis_dir / "status.json"
+        if status_file.exists():
+            try:
+                with open(status_file, "r", encoding="utf-8") as f:
+                    status_data = json.load(f)
+                    status = status_data.get("status", "completed")
+            except Exception:
+                pass
 
-        if not final_files:
+        # If cancelled, include even if no final files (so it shows up in history)
+        if not final_files and status != "cancelled":
             continue
 
         # Derive basic match info from directory name
         dir_name = match_dir.name
         match_label = dir_name
         timestamp = ""
+        # status variable is already set above
 
         if "_" in dir_name:
             # Expected pattern: "Player1 vs Player2_YYYYMMDD_XXXXXX" (CLI) or similar
@@ -913,6 +992,7 @@ def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[
                 "player2": player2,
                 "tournament": tournament_name,
                 "timestamp": timestamp,
+                "status": status,
                 "final_files": [f.name for f in final_files[:5]],
             }
         )
@@ -992,7 +1072,19 @@ async def get_predicted_match_details(
 
         # Collect up to 5 final_bet_decision*.md files
         final_files = sorted(target_dir.glob("final_bet_decision*.md"))
-        if not final_files:
+        
+        # Check status
+        status = "completed"
+        status_file = base_dir / match_dir / analysis_date / "status.json"
+        if status_file.exists():
+            try:
+                with open(status_file, "r", encoding="utf-8") as f:
+                    status_data = json.load(f)
+                    status = status_data.get("status", "completed")
+            except Exception:
+                pass
+
+        if not final_files and status != "cancelled":
             raise HTTPException(
                 status_code=404,
                 detail="No se encontraron archivos final_bet_decision para este partido",
@@ -1025,7 +1117,7 @@ async def get_predicted_match_details(
                 }
             )
 
-        if not predictions:
+        if not predictions and status != "cancelled":
             raise HTTPException(
                 status_code=404,
                 detail="No se pudieron leer las predicciones para este partido",
@@ -1056,6 +1148,7 @@ async def get_predicted_match_details(
                     "player1": player1,
                     "player2": player2,
                     "timestamp": timestamp,
+                    "status": status,
                 },
                 "predictions": predictions,
                 "final_response": final_response_content,

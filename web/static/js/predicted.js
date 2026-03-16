@@ -108,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const player2 = match.player2 || '';
             const matchLabel = match.match_label || `${player1}${player2 ? ' vs ' + player2 : ''}`;
             const tournament = match.tournament || '';
+            const status = match.status || 'completed';
 
             html += `
                 <article class="predicted-match-card"
@@ -116,7 +117,10 @@ document.addEventListener('DOMContentLoaded', function() {
                          data-analysis-date="${escapeHtml(analysisDate)}">
                     <div class="predicted-match-header">
                         <div style="flex: 1;">
-                            <h3 class="predicted-match-title">${escapeHtml(matchLabel)}</h3>
+                            <h3 class="predicted-match-title">
+                                ${escapeHtml(matchLabel)}
+                                ${status === 'cancelled' ? '<span style="font-size: 0.7em; background-color: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle;">CANCELADO</span>' : ''}
+                            </h3>
                             <div class="predicted-match-meta">
                                 <span>${escapeHtml(analysisDate)}</span>
                                 ${tournament ? `<span class="predicted-tournament">${escapeHtml(tournament)}</span>` : ''}
