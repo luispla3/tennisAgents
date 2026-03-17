@@ -167,6 +167,17 @@ body {
     color: var(--text-primary);
 }
 
+.nav-link.logout-link {
+    color: #fca5a5;
+    background-color: rgba(185, 28, 28, 0.2);
+    padding: var(--spacing-xs) var(--spacing-md);
+}
+
+.nav-link.logout-link:hover {
+    background-color: rgba(185, 28, 28, 0.4);
+    color: #fecaca;
+}
+
 /* Dropdown Styles */
 .dropdown-toggle {
     background: none;

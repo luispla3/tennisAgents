@@ -1,5 +1,22 @@
-// Navbar dropdown functionality
+// Navbar dropdown functionality + auth nav toggle
 document.addEventListener('DOMContentLoaded', function() {
+    // Toggle Log in / Cerrar sesión según estado de autenticación
+    const navLogin = document.getElementById('navLogin');
+    const navLogout = document.getElementById('navLogout');
+    if (navLogin && navLogout && typeof isAuthenticated === 'function') {
+        if (isAuthenticated()) {
+            navLogin.style.display = 'none';
+            navLogout.style.display = '';
+            navLogout.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (typeof clearAuth === 'function') clearAuth();
+                window.location.href = '/';
+            });
+        } else {
+            navLogin.style.display = '';
+            navLogout.style.display = 'none';
+        }
+    }
     // Dropdown toggle
     const tennisDropdown = document.getElementById('tennisDropdown');
     const tennisDropdownMenu = document.getElementById('tennisDropdownMenu');

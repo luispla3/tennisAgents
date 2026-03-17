@@ -6,6 +6,17 @@ import {
 } from "./firebase-auth.js";
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Mostrar Cerrar sesión si ya está autenticado
+  const navLogout = document.getElementById("navLogout");
+  if (navLogout && typeof isAuthenticated === "function" && isAuthenticated()) {
+    navLogout.style.display = "";
+    navLogout.addEventListener("click", (e) => {
+      e.preventDefault();
+      if (typeof clearAuth === "function") clearAuth();
+      window.location.href = "/";
+    });
+  }
+
   const registerForm = document.getElementById("registerForm");
   const registerError = document.getElementById("registerError");
   const registerSuccess = document.getElementById("registerSuccess");
