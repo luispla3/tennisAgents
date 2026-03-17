@@ -20,11 +20,19 @@ document.addEventListener('DOMContentLoaded', function() {
             matchesContainer.style.display = 'none';
             emptyState.style.display = 'none';
 
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            if (typeof getAuthToken === 'function') {
+                const token = getAuthToken();
+                if (token) {
+                    headers['Authorization'] = `Bearer ${token}`;
+                }
+            }
+
             const response = await fetch('/api/fetch-live-matches', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                headers,
             });
 
             const data = await response.json();

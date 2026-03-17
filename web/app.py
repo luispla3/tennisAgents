@@ -4,7 +4,7 @@ FastAPI server for TennisAgents web application
 import sys
 from pathlib import Path
 from typing import Dict, Any, List
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -22,6 +22,7 @@ from tennisAgents.dataflows.match_live_utils import fetch_live_summaries, fetch_
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.graph.trading_graph import TennisAgentsGraph
 from tennisAgents.utils.earnings_manager import EarningsManager
+from tennisAgents.utils.auth_backend import get_current_user
 
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -79,7 +80,11 @@ class AnalysisRequest(BaseModel):
     backend_url: Optional[str] = None
 
 @app.post("/api/run-analysis")
-async def run_analysis(request: Request, analysis_request: AnalysisRequest):
+async def run_analysis(
+    request: Request,
+    analysis_request: AnalysisRequest,
+    current_user: dict = Depends(get_current_user),
+):
     """
     Run the tennis analysis system and stream the results.
     """

@@ -1,89 +1,87 @@
-// Login page functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const loginForm = document.getElementById('loginForm');
-    const loginError = document.getElementById('loginError');
+// Login con Firebase Auth
+import { auth, signInWithEmailAndPassword } from "./firebase-auth.js";
 
-    if (loginForm) {
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+document.addEventListener("DOMContentLoaded", () => {
+  const loginForm = document.getElementById("loginForm");
+  const loginError = document.getElementById("loginError");
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const rememberMe = document.getElementById('rememberMe').checked;
-
-            // Hide previous errors
-            loginError.style.display = 'none';
-            loginError.textContent = '';
-
-            // Basic validation
-            if (!email || !password) {
-                showError('Por favor, completa todos los campos');
-                return;
-            }
-
-            // Simulate authentication (since we're not connecting to a database)
-            // In a real app, this would be an API call
-            simulateLogin(email, password, rememberMe);
-        });
+  const showError = (message) => {
+    if (loginError) {
+      loginError.textContent = message;
+      loginError.style.display = "block";
     }
+  };
+
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+
+      loginError.style.display = "none";
+      loginError.textContent = "";
+
+      if (!email || !password) {
+        showError("Por favor, completa todos los campos");
+        return;
+      }
+
+      const submitButton = document.querySelector(
+        "#loginForm button[type=\"submit\"]",
+      );
+      const originalText = submitButton.textContent;
+      submitButton.disabled = true;
+      submitButton.textContent = "Iniciando sesión...";
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(
+          auth,
+          email,
+          password,
+        );
+        const user = userCredential.user;
+        const token = await user.getIdToken();
+
+        // `setAuth` y `getRedirect` vienen de auth.js (script global)
+        setAuth(token, {
+          email: user.email,
+          name:
+            user.displayName ||
+            (user.email ? user.email.split("@")[0] : ""),
+          uid: user.uid,
+        });
+
+        const redirectUrl = getRedirect() || "/";
+
+        submitButton.textContent = "¡Éxito!";
+        submitButton.style.background =
+          "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 500);
+      } catch (err) {
+        console.error(err);
+        showError("Credenciales inválidas o error al iniciar sesión.");
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+      }
+    });
+  }
+
+  // Mensaje de éxito al venir de registro
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get("registered") === "true") {
+    const loginFormEl = document.getElementById("loginForm");
+    if (loginFormEl) {
+      const successDiv = document.createElement("div");
+      successDiv.className = "auth-success";
+      successDiv.style.display = "block";
+      successDiv.textContent =
+        "¡Cuenta creada exitosamente! Por favor, inicia sesión.";
+      loginFormEl.insertBefore(successDiv, loginFormEl.firstChild);
+    }
+  }
 });
 
-/**
- * Simulate login process
- * In a real application, this would make an API call to authenticate
- */
-function simulateLogin(email, password, rememberMe) {
-    // Show loading state
-    const submitButton = document.querySelector('#loginForm button[type="submit"]');
-    const originalText = submitButton.textContent;
-    submitButton.disabled = true;
-    submitButton.textContent = 'Iniciando sesión...';
-
-    // Simulate API delay
-    setTimeout(() => {
-        // For demo purposes, accept any email/password combination
-        // In a real app, this would validate against a database
-        if (email && password) {
-            // Create mock user data
-            const user = {
-                email: email,
-                name: email.split('@')[0], // Use email prefix as name
-                id: Date.now().toString()
-            };
-
-            // Generate a simple token (in real app, this comes from the server)
-            const token = 'mock_token_' + Date.now();
-
-            // Save authentication
-            setAuth(token, user);
-
-            // Get redirect URL or default to home
-            const redirectUrl = getRedirect() || '/';
-
-            // Show success message briefly
-            submitButton.textContent = '¡Éxito!';
-            submitButton.style.background = 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)';
-
-            // Redirect after short delay
-            setTimeout(() => {
-                window.location.href = redirectUrl;
-            }, 500);
-        } else {
-            // This shouldn't happen due to validation, but handle it anyway
-            showError('Error al iniciar sesión. Por favor, intenta de nuevo.');
-            submitButton.disabled = false;
-            submitButton.textContent = originalText;
-        }
-    }, 1000); // Simulate 1 second API call
-}
-
-/**
- * Show error message
- */
-function showError(message) {
-    const loginError = document.getElementById('loginError');
-    if (loginError) {
-        loginError.textContent = message;
-        loginError.style.display = 'block';
-    }
-}
