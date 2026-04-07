@@ -105,6 +105,7 @@ class GraphSetup:
         # Nodo de síntesis final
         synthesis_node = create_synthesis_node(self.deep_thinking_llm)
 
+        # Estado inicial del grafo
         workflow = StateGraph(AgentState)
 
         for analyst_type, node in analyst_nodes.items():

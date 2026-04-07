@@ -6,6 +6,7 @@ import os
 import json
 import requests
 import unicodedata
+import time
 from dotenv import load_dotenv
 from datetime import datetime
 from typing import Dict, Any, Optional
@@ -260,7 +261,16 @@ def fetch_season_summaries(season_id: str, access_level: str = "trial", language
         print(f"[INFO] Consultando Sportradar Season Summaries API...")
         print(f"[INFO] URL: {url}")
         
-        response = requests.get(url, headers=headers, timeout=30)
+        response = None
+        max_retries = 2
+        for attempt in range(max_retries + 1):
+            response = requests.get(url, headers=headers, timeout=30)
+            if response.status_code != 429 or attempt == max_retries:
+                break
+            retry_after = response.headers.get("Retry-After")
+            wait_seconds = int(retry_after) if retry_after and retry_after.isdigit() else (2 ** attempt)
+            print(f"[WARN] Sportradar rate limit (429) en season summaries. Reintentando en {wait_seconds}s...")
+            time.sleep(wait_seconds)
         response.raise_for_status()
         
         data = response.json()

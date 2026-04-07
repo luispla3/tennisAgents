@@ -651,7 +651,7 @@ async def fetch_live_matches():
             json.dump(result["data"], f, indent=2, ensure_ascii=False)
         
         # Intentar obtener un season_id real de los partidos obtenidos
-        season_id = "test_season_id"  # Default fallback
+        season_id = None
         
         # Buscar el primer season_id válido en los summaries
         if result.get("success") and result.get("data") and result["data"].get("summaries"):
@@ -664,24 +664,22 @@ async def fetch_live_matches():
                 except Exception:
                     continue
         
-        # Si seguimos con el placeholder y no queremos causar error 429/404 innecesario,
-        # podríamos omitir la llamada, pero mantenemos la estructura solicitada intentando evitar el error si es posible.
-        
         access_level = DEFAULT_CONFIG.get("sportradar_access_level", "trial")
         language_code = DEFAULT_CONFIG.get("sportradar_language", "en")
-        
-        # Solo llamar si tenemos un season_id que parece real (empieza por sr:season) o si queremos mantener el comportamiento de test
-        if season_id.startswith("sr:season:") or season_id == "test_season_id":
-             # Si es el test_id, tal vez queramos evitar el 429 spameando. 
-             # Pero el log mostraba que se llamaba explícitamente.
-             pass
 
-        season_result = fetch_season_summaries(
-            season_id=season_id,
-            access_level=access_level,
-            language_code=language_code,
-            format="json"
-        )
+        if season_id and season_id.startswith("sr:season:"):
+            season_result = fetch_season_summaries(
+                season_id=season_id,
+                access_level=access_level,
+                language_code=language_code,
+                format="json"
+            )
+        else:
+            season_result = {
+                "success": False,
+                "error": "No se encontró un season_id válido en los partidos live; se omitió la llamada para evitar rate-limit.",
+                "status_code": None,
+            }
         
         # Guardar los datos de season summaries también (aunque den error)
         season_filename = f"season_summaries_{timestamp}.json"
@@ -701,7 +699,7 @@ async def fetch_live_matches():
         if season_result.get("success"):
             message += f". Season summaries obtenidos exitosamente para season_id: {season_id}"
         else:
-            message += f". Season summaries falló (esperado): {season_result.get('error', 'Error desconocido')}"
+            message += f". Season summaries omitido/falló: {season_result.get('error', 'Error desconocido')}"
         
         return JSONResponse({
             "success": True,

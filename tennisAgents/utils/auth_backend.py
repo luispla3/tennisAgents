@@ -19,6 +19,7 @@ if not firebase_admin._apps:
 
 async def get_current_user(authorization: str = Header(None)) -> dict:
     if not authorization or not authorization.startswith("Bearer "):
+        print("[AUTH ERROR] Missing or invalid Authorization header:", authorization)
         raise HTTPException(
             status_code=401, detail="Missing or invalid Authorization header"
         )
@@ -26,8 +27,9 @@ async def get_current_user(authorization: str = Header(None)) -> dict:
     token = authorization.split(" ", 1)[1]
     try:
         decoded = fb_auth.verify_id_token(token)
-    except Exception:
-        raise HTTPException(status_code=401, detail="Invalid or expired token")
+    except Exception as e:
+        print(f"[AUTH ERROR] Invalid or expired token: {str(e)}")
+        raise HTTPException(status_code=401, detail=f"Invalid or expired token: {str(e)}")
 
     return decoded
 

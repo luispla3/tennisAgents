@@ -476,9 +476,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Create AbortController for cancellation
                     currentAnalysisController = new AbortController();
                     
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (typeof getAuthToken === 'function') {
+                        const token = getAuthToken();
+                        if (token) {
+                            headers['Authorization'] = `Bearer ${token}`;
+                        }
+                    }
+
                     const response = await fetch('/api/run-analysis', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
+                        headers,
                         body: JSON.stringify({
                             player1: settings.player1,
                             player2: settings.player2,
@@ -494,6 +502,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         }),
                         signal: currentAnalysisController.signal
                     });
+
+                    if (!response.ok) {
+                        let errorText = `HTTP ${response.status}`;
+                        try {
+                            const errorJson = await response.json();
+                            errorText = errorJson?.detail || errorJson?.message || errorText;
+                        } catch (_) {
+                            // Ignorar parse error y usar fallback
+                        }
+                        throw new Error(errorText);
+                    }
 
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
