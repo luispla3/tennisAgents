@@ -15,24 +15,24 @@ import re
 
 def extraer_apellido(nombre_completo):
     """
-    Extrae el apellido (última palabra) del nombre completo.
+    Extrae el apellido del nombre completo.
+    
+    Soporta dos formatos:
+        - "Nombre Apellido"  -> "Apellido"
+        - "Apellido, Nombre" -> "Apellido"
     
     Ejemplos:
         "Maxim Mrva" -> "Mrva"
-        "Carlos Alcaraz Garfia" -> "Garfia"
+        "Auger-Aliassime, Felix" -> "Auger-Aliassime"
         "Medvedev" -> "Medvedev"
-    
-    Args:
-        nombre_completo (str): Nombre completo del jugador
-    
-    Returns:
-        str: El apellido (última palabra del nombre)
     """
-    partes = nombre_completo.strip().split()
-    # Si solo hay una palabra, es el apellido
+    nombre_completo = nombre_completo.strip()
+    # Formato "Apellido, Nombre"
+    if ',' in nombre_completo:
+        return nombre_completo.split(',')[0].strip()
+    partes = nombre_completo.split()
     if len(partes) == 1:
         return partes[0]
-    # Si hay varias palabras, tomar la última (apellido)
     return partes[-1]
 
 
@@ -60,13 +60,27 @@ def extraer_partes_nombre(nombre_completo):
     """
     Extrae todas las partes del nombre (nombre, apellidos).
     
+    Soporta dos formatos:
+        - "Nombre Apellido"  -> apellido = última palabra
+        - "Apellido, Nombre" -> apellido = parte antes de la coma
+    
     Args:
         nombre_completo (str): Nombre completo del jugador
     
     Returns:
         dict: Diccionario con 'nombre', 'apellido', 'todas_partes'
     """
-    partes = nombre_completo.strip().split()
+    nombre_completo = nombre_completo.strip()
+    
+    # Formato "Apellido, Nombre"
+    if ',' in nombre_completo:
+        partes_coma = nombre_completo.split(',', 1)
+        apellido = partes_coma[0].strip()
+        nombre = partes_coma[1].strip() if len(partes_coma) > 1 else ''
+        todas_partes = [apellido] + nombre.split() if nombre else [apellido]
+        return {'nombre': nombre, 'apellido': apellido, 'todas_partes': todas_partes}
+    
+    partes = nombre_completo.split()
     
     if len(partes) == 0:
         return {'nombre': '', 'apellido': '', 'todas_partes': []}

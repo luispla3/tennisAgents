@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, HumanMessage
 from tennisAgents.dataflows.config import get_config
 
@@ -28,12 +29,15 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
                 
                 if is_local:
                     # Ollama local
-                    llm = ChatOpenAI(
+                    base_url_cleaned = local_base_url.replace("/v1", "") if local_base_url.endswith("/v1") else local_base_url
+                    llm = ChatOllama(
                         model=local_model,
-                        base_url=local_base_url,
-                        api_key=config.get("local_api_key", "ollama"),
-                        temperature=0.7
-                    )
+                        base_url=base_url_cleaned,
+                        temperature=0.1,
+                    num_ctx=16384,
+                    num_predict=4096,
+                    reasoning=False
+                )
                     source_label = "OLLAMA LOCAL"
                     source_name = f"Ollama {local_model}"
                 else:

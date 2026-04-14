@@ -5,6 +5,7 @@ from datetime import datetime
 from typing import Dict, Any
 
 from langchain_openai import ChatOpenAI
+from langchain_ollama import ChatOllama
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 
@@ -69,11 +70,14 @@ class TennisAgentsGraph:
 
                 if is_local:
                     # Configuración para Ollama local (no requiere API key real)
-                    self.local_llm = ChatOpenAI(
+                    base_url_cleaned = local_base_url.replace("/v1", "") if local_base_url.endswith("/v1") else local_base_url
+                    self.local_llm = ChatOllama(
                         model=local_model,
-                        base_url=local_base_url,
-                        api_key=self.config.get("local_api_key", "ollama"),  # Dummy key
-                        temperature=0.7
+                        base_url=base_url_cleaned,
+                        temperature=0.1,
+                        num_ctx=16384,
+                        num_predict=4096,
+                        reasoning=False
                     )
                     if self.debug:
                         print(f"✓ Ollama LLM local inicializado para analistas: {local_model}")
@@ -132,11 +136,13 @@ class TennisAgentsGraph:
                         if self.debug:
                             print(f"DEBUG: Creando Risk Manager local - URL: {local_base_url}, Model: {model_name}, is_local: {is_local}")
                         
-                        additional_llm = ChatOpenAI(
+                        base_url_cleaned = local_base_url.replace("/v1", "") if local_base_url.endswith("/v1") else local_base_url
+                        additional_llm = ChatOllama(
                             model=model_name,
-                            base_url=local_base_url,
-                            api_key=local_api_key,
-                            temperature=0.7
+                            base_url=base_url_cleaned,
+                            temperature=0.1,
+                            num_ctx=16384,
+                            num_predict=4096
                         )
                         # Verificar que el LLM tiene la base_url correcta
                         if self.debug:
