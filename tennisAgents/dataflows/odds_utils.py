@@ -16,19 +16,28 @@ import re
 def extraer_apellido(nombre_completo):
     """
     Extrae el apellido (última palabra) del nombre completo.
+    Maneja el formato "Apellidos, Nombres" y el tradicional.
     
     Ejemplos:
         "Maxim Mrva" -> "Mrva"
         "Carlos Alcaraz Garfia" -> "Garfia"
         "Medvedev" -> "Medvedev"
+        "Borges, Nuno" -> "Borges"
     
     Args:
         nombre_completo (str): Nombre completo del jugador
     
     Returns:
-        str: El apellido (última palabra del nombre)
+        str: El apellido (última palabra del nombre o la primera de los apellidos)
     """
-    partes = nombre_completo.strip().split()
+    nombre_completo = nombre_completo.strip()
+    
+    if ',' in nombre_completo:
+        # Formato "Apellidos, Nombres"
+        apellidos = nombre_completo.split(',')[0].strip().split()
+        return apellidos[0] if apellidos else ''
+        
+    partes = nombre_completo.split()
     # Si solo hay una palabra, es el apellido
     if len(partes) == 1:
         return partes[0]
@@ -38,7 +47,7 @@ def extraer_apellido(nombre_completo):
 
 def normalizar_nombre(nombre):
     """
-    Normaliza un nombre para comparación: lowercase, sin acentos, sin espacios extra.
+    Normaliza un nombre para comparación: lowercase, sin acentos, sin puntuación, sin espacios extra.
     
     Args:
         nombre (str): Nombre a normalizar
@@ -47,18 +56,22 @@ def normalizar_nombre(nombre):
         str: Nombre normalizado
     """
     import unicodedata
+    import re
     
     # Remover acentos
     nombre = ''.join(c for c in unicodedata.normalize('NFD', nombre) 
                      if unicodedata.category(c) != 'Mn')
     
-    # Lowercase y quitar espacios extra
-    return ' '.join(nombre.lower().split())
+    # Lowercase, reemplazar comas/puntos con espacios y quitar espacios extra
+    nombre = nombre.lower()
+    nombre = re.sub(r'[,.\-]', ' ', nombre)
+    return ' '.join(nombre.split())
 
 
 def extraer_partes_nombre(nombre_completo):
     """
     Extrae todas las partes del nombre (nombre, apellidos).
+    Maneja el formato "Apellidos, Nombres" además del tradicional "Nombre Apellidos".
     
     Args:
         nombre_completo (str): Nombre completo del jugador
@@ -66,7 +79,26 @@ def extraer_partes_nombre(nombre_completo):
     Returns:
         dict: Diccionario con 'nombre', 'apellido', 'todas_partes'
     """
-    partes = nombre_completo.strip().split()
+    nombre_completo = nombre_completo.strip()
+    
+    # Formato "Apellidos, Nombres" (e.g., "Borges, Nuno", "Etcheverry, Tomas Martin")
+    if ',' in nombre_completo:
+        partes_coma = nombre_completo.split(',', 1)
+        apellidos = partes_coma[0].strip().split()
+        nombres = partes_coma[1].strip().split()
+        
+        apellido_principal = apellidos[0] if apellidos else ''
+        nombre_principal = nombres[0] if nombres else ''
+        todas_partes = apellidos + nombres
+        
+        return {
+            'nombre': nombre_principal,
+            'apellido': apellido_principal,
+            'todas_partes': todas_partes
+        }
+        
+    # Formato tradicional "Nombre Apellidos"
+    partes = nombre_completo.split()
     
     if len(partes) == 0:
         return {'nombre': '', 'apellido': '', 'todas_partes': []}
@@ -115,6 +147,14 @@ def calcular_score_coincidencia(nombre_jugador, event_name):
     # Bonus si el nombre completo está presente
     if nombre_norm in event_norm:
         score += 20
+        
+    # Bonus si el nombre invertido ("Nombres Apellidos") está presente
+    # Útil para el caso de input "Borges, Nuno" frente a un evento "Nuno Borges v ..."
+    if ',' in nombre_jugador:
+        nombre_invertido = f"{partes['nombre']} {partes['apellido']}"
+        nombre_invertido_norm = normalizar_nombre(nombre_invertido)
+        if nombre_invertido_norm and nombre_invertido_norm in event_norm:
+            score += 20
     
     return score
 
