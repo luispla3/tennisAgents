@@ -32,7 +32,7 @@ DEFAULT_CONFIG = {
 
     # Local LLM settings (for specific analysts: News, Social, Tournament, Weather)
     # Set to True to use local Ollama, False to use OpenRouter
-    "use_local_analysts": True,
+    "use_local_analysts": False,
     "local_model_name": "qwen3.5:2b",  # Qwen3.5 2B model in Ollama
     "local_base_url": "http://localhost:11434/v1",  # Ollama local endpoint
     "local_api_key": "ollama",  # Dummy key for Ollama (no se usa realmente)

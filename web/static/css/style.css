@@ -2381,14 +2381,14 @@ body {
 }
 
 .btn-settings-predict {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--spacing-sm);
-    padding: var(--spacing-md) var(--spacing-2xl);
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    border-radius: 12px;
+    padding: var(--spacing-sm) var(--spacing-lg);
+    font-size: var(--font-size-base);
+    font-weight: 600;
+    border-radius: 8px;
     cursor: pointer;
     transition: all var(--transition-base);
     border: none;
@@ -2396,8 +2396,7 @@ body {
     background: var(--gradient-primary);
     color: var(--text-primary);
     box-shadow: 0 4px 20px rgba(255, 107, 53, 0.3);
-    width: 100%;
-    max-width: 300px;
+    width: auto;
 }
 
 .btn-settings-predict:hover {
