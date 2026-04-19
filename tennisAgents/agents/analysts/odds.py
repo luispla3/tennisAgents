@@ -75,6 +75,7 @@ def create_odds_analyst(llm, toolkit):
 **Partido:** {odds_data.get('event_name', f"{player} vs {opponent}")}
 **Competición:** {odds_data.get('competition', tournament)}
 **Fecha de extracción:** {odds_data.get('timestamp', match_date)}
+**Enlace al partido en Betfair:** [Ver en Betfair](https://www.betfair.es/sport/tennis?eventId={odds_data.get('event_id', 'N/A')})
 **Total de mercados disponibles:** {len(filtered_markets)}
 **Total de opciones de apuesta:** {sum(len(m.get('runners', [])) for m in filtered_markets)}
 

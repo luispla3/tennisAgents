@@ -323,6 +323,14 @@ def create_synthesis_node(llm):
     """
     def synthesis_node(state) -> dict:
         individual_decisions = state.get(STATE.individual_risk_manager_decisions, {})
+        odds_report = state.get(REPORTS.odds_report, "")
+        
+        # Extraer enlace de Betfair del reporte de cuotas si existe
+        import re
+        betfair_link = ""
+        url_match = re.search(r"\[Ver en Betfair\]\((https://www\.betfair\.es/sport/tennis\?eventId=\d+)\)", odds_report)
+        if url_match:
+            betfair_link = f"\n**Enlace al partido en Betfair:** {url_match.group(1)}\n"
         
         if not individual_decisions:
             return {STATE.final_response: "No hay decisiones de risk managers para sintetizar."}
@@ -352,7 +360,7 @@ Para cada modelo, debes extraer EXCLUSIVAMENTE las siguientes secciones, manteni
 
 ### FORMATO DE SALIDA DESEADO:
 
-# SÍNTESIS FINAL DE APUESTAS
+# SÍNTESIS FINAL DE APUESTAS{betfair_link}
 
 ## Modelo: [Nombre del Modelo 1]
 **DISTRIBUCIÓN DEL DINERO:**
