@@ -58,9 +58,9 @@ Genera un INFORME FINAL que incluya:
 
 ### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
-2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido.
+2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
-4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6).
+4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis.
 
 ### Informe de Cuotas Disponibles (Betfair):
 {odds_report}
@@ -79,11 +79,11 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
+[IMPORTANTE: Las 4 modalidades de apuestas ("Cuotas de partido", "Apuestas a sets", "Set X - Ganador", y "Set X - Resultado correcto") son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
-- Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
+- Apuestas a sets: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Set X - Ganador: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
-- Set X - Resultado correcto: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
+- Set X - Resultado correcto: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 
 **JUSTIFICACIÓN:**
 [Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los managers y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
@@ -94,14 +94,13 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
 IMPORTANTE: 
-- **OBLIGATORIO APOSTAR SIEMPRE**: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS. Debes apostar siempre a estos tipos de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar según tu análisis probabilístico.
-- Para "Apuestas a sets" y "Set X - Resultado correcto", solo apostar si hay valor esperado positivo claro. Puedes poner $0 en estas apuestas si no hay valor esperado positivo.
+- **OBLIGATORIO APOSTAR SIEMPRE**: Las 4 modalidades de apuestas ("Cuotas de partido", "Apuestas a sets", "Set X - Ganador" y "Set X - Resultado correcto") son OBLIGATORIAS. Debes apostar siempre a estos tipos de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar según tu análisis probabilístico.
 - Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades a futuro.
+- En todas las apuestas, buscamos rentabilidades a futuro.
 """
 
     try:
@@ -169,9 +168,9 @@ Genera un INFORME FINAL que incluya:
 
 ### TIPO DE APUESTA A CONSIDERAR:
 1. **Cuotas de partido** - Que jugador gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el partido según tu análisis.
-2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido.
+2. **Apuestas a sets** - Que jugador gana el partido, determinando los X-Y sets en que gana el partido. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis.
 3. **Set X - Ganador** - Que jugador gana el set X. **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar el set X según tu análisis.
-4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6).
+4. **Set X - Resultado correcto** - Que jugador gana el set X y el resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6). **OBLIGATORIO APOSTAR SIEMPRE**: Debes apostar siempre a este tipo de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis.
 
 ### Informe de Cuotas Disponibles (Betfair):
 {odds_report}
@@ -190,11 +189,11 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 **JUGADOR FAVORITO: [Nombre del jugador o N/A si no se apuesta]**
 
 **DISTRIBUCIÓN DEL DINERO:**
-[IMPORTANTE: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
+[IMPORTANTE: Las 4 modalidades de apuestas ("Cuotas de partido", "Apuestas a sets", "Set X - Ganador", y "Set X - Resultado correcto") son OBLIGATORIAS y debes apostar siempre, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable según tu análisis. Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.]
 - Cuotas de partido: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
-- Apuestas a sets: [Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
+- Apuestas a sets: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [X-Y sets] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 - Set X - Ganador: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
-- Set X - Resultado correcto: [Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)] [Puede ser $0 si no hay valor esperado positivo]
+- Set X - Resultado correcto: [OBLIGATORIO - Nombre del jugador ganador de la apuesta] [Resultado del set (6-0, 6-1, 6-2, 6-3, 6-4, 7-5, 7-6)] [valor de la apuesta (*1.5, *2, *3...)] [Cantidad a apostar] [Confianza en la apuesta (0-10)]
 
 **JUSTIFICACIÓN:**
 [Explicación detallada de por qué se toma esta decisión, basándose en el análisis de los managers y los informes disponibles. Explica también por qué NO se apuesta en ciertos tipos si es el caso]
@@ -205,14 +204,13 @@ Tu respuesta debe seguir EXACTAMENTE esta estructura:
 [Consejos sobre cuándo ejecutar las apuestas, qué monitorear, etc.]
 
 IMPORTANTE: 
-- **OBLIGATORIO APOSTAR SIEMPRE**: Las apuestas de "Cuotas de partido" y "Set X - Ganador" son OBLIGATORIAS. Debes apostar siempre a estos tipos de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar según tu análisis probabilístico.
-- Para "Apuestas a sets" y "Set X - Resultado correcto", solo apostar si hay valor esperado positivo claro. Puedes poner $0 en estas apuestas si no hay valor esperado positivo.
+- **OBLIGATORIO APOSTAR SIEMPRE**: Las 4 modalidades de apuestas ("Cuotas de partido", "Apuestas a sets", "Set X - Ganador" y "Set X - Resultado correcto") son OBLIGATORIAS. Debes apostar siempre a estos tipos de apuesta, aunque no haya valor esperado positivo. Simplemente apuesta al jugador más probable de ganar según tu análisis probabilístico.
 - Se trata de conseguir beneficios a medio y largo plazo, no en un solo partido, ni en un rango de fechas corto. No apostar mas del 10% del saldo disponible sumando todas las apuestas a realizar.
 - SIEMPRE especifica el nombre del jugador en CADA tipo de apuesta que decidas hacer. No dejes ninguna apuesta sin indicar claramente a qué jugador se apuesta.
 - Usa análisis matemático y probabilístico para justificar la distribución del dinero. 
 - **IMPORTANTE**: Consulta SIEMPRE el "Informe de Cuotas Disponibles (Betfair)" para obtener las cuotas exactas. NO inventes cuotas ni uses cuotas del debate si no están verificadas en el informe de cuotas. Si una cuota no aparece en el informe, indica "N/A" en lugar de inventar un valor.
 - No inventes información, usa solo los datos disponibles en el debate y los informes.
-- En las apuestas a sets y Set X - Resultado correcto, buscamos rentabilidades a futuro.
+- En todas las apuestas, buscamos rentabilidades a futuro.
 """
 
         # Ejecutar el risk manager principal

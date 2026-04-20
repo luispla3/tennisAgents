@@ -27,12 +27,25 @@ def create_odds_analyst(llm, toolkit):
         odds_data = fetch_betfair_odds(player)
         
         # Si no se encuentra, intentar con el oponente
-        if not odds_data:
+        if not odds_data or not odds_data.get('success', True):
             print(f"\n⚠️  No se encontró partido buscando '{player}', intentando con '{opponent}'...")
-            odds_data = fetch_betfair_odds(opponent)
+            odds_data_opp = fetch_betfair_odds(opponent)
+            
+            if odds_data_opp and odds_data_opp.get('success', True):
+                odds_data = odds_data_opp
+            elif odds_data_opp:
+                odds_data = odds_data_opp
         
         # Generar el reporte basado en los datos obtenidos
-        if not odds_data:
+        if not odds_data or not odds_data.get('success', True):
+            live_events = odds_data.get('live_events', []) if odds_data else []
+            live_events_str = "\n".join([f"• {e}" for e in live_events[:20]])
+            if len(live_events) > 20:
+                live_events_str += f"\n• ...y {len(live_events) - 20} más"
+                
+            if not live_events_str:
+                live_events_str = "• No se encontraron eventos de tenis en juego."
+
             report = f"""## ❌ Error al Obtener Cuotas de Betfair
 
 **Partido:** {player} vs {opponent}
@@ -41,12 +54,18 @@ def create_odds_analyst(llm, toolkit):
 
 **Estado:** No se pudo encontrar el partido en Betfair.
 
+**Enlaces verificados/utilizados:**
+- Betfair obtiene los partidos en juego globalmente mediante API: [Betfair Tenis En Juego](https://www.betfair.es/sport/tennis)
+- Comprobar manualmente búsqueda: [Buscar {player}](https://www.betfair.es/search?q={player.replace(' ', '+')})
+- Comprobar manualmente búsqueda: [Buscar {opponent}](https://www.betfair.es/search?q={opponent.replace(' ', '+')})
+
+**Partidos en juego detectados en el momento de la búsqueda:**
+{live_events_str}
+
 **Posibles razones:**
 • El partido no está actualmente "En Juego" en Betfair.
-• Los nombres de los jugadores no coinciden exactamente con los de Betfair
-• El partido aún no ha comenzado o ya ha finalizado
-
-**Recomendación:** Verificar que el partido esté activo en Betfair España (www.betfair.es)
+• Los nombres de los jugadores no coinciden exactamente con los de Betfair (revisa la lista arriba).
+• El partido aún no ha comenzado o ya ha finalizado.
 """
         else:
             # Filtrar mercados relevantes
@@ -70,10 +89,12 @@ def create_odds_analyst(llm, toolkit):
                     continue
             
             # Formatear el reporte con los datos filtrados
+            url_partido = f"https://www.betfair.es/sport/tennis?eventId={odds_data.get('event_id', '')}"
             report = f"""## 💰 Cuotas de Apuestas - Betfair
 
 **Partido:** {odds_data.get('event_name', f"{player} vs {opponent}")}
 **Competición:** {odds_data.get('competition', tournament)}
+**Enlace del partido:** [{url_partido}]({url_partido})
 **Fecha de extracción:** {odds_data.get('timestamp', match_date)}
 **Total de mercados disponibles:** {len(filtered_markets)}
 **Total de opciones de apuesta:** {sum(len(m.get('runners', [])) for m in filtered_markets)}

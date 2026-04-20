@@ -210,7 +210,7 @@ def buscar_jugador(nombre_jugador):
     # Si no hay candidatos
     if not candidatos:
         print(f"\n❌ No se encontró ningún partido de '{nombre_jugador}' en juego")
-        return None
+        return {'error': 'not_found', 'live_events': [m.get('event', 'Desconocido') for m in markets]}
     
     # Ordenar por score (mayor primero)
     candidatos.sort(key=lambda x: x['score'], reverse=True)
@@ -490,11 +490,16 @@ def fetch_betfair_odds(nombre_jugador):
     
     event_info = buscar_jugador(nombre_jugador)
     
-    if not event_info:
+    if not event_info or 'error' in event_info:
         print("\n❌ No se pudo encontrar el partido. Verifica que:")
         print("   • El jugador esté jugando ahora mismo (En Juego)")
         print("   • El nombre esté escrito correctamente")
-        return None
+        return {
+            'success': False,
+            'error_type': 'not_found',
+            'player_searched': nombre_jugador,
+            'live_events': event_info.get('live_events', []) if event_info else []
+        }
     
     # PASO 2: Scrapear página
     print("\n" + "─" * 100)
