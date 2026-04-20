@@ -330,7 +330,7 @@ def create_synthesis_node(llm):
         betfair_link = ""
         url_match = re.search(r"\[Ver en Betfair\]\((https://www\.betfair\.es/sport/tennis\?eventId=\d+)\)", odds_report)
         if url_match:
-            betfair_link = f"\n**Enlace al partido en Betfair:** {url_match.group(1)}\n"
+            betfair_link = f'\n\n<a href="{url_match.group(1)}" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: linear-gradient(135deg, #ffb84d 0%, #ff8c5a 100%); color: #0a0a0a; font-weight: 700; text-decoration: none; border-radius: 8px; font-size: 14px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(255, 184, 77, 0.3); transition: all 0.2s ease;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg> Ver partido en Betfair</a>\n'
         
         if not individual_decisions:
             return {STATE.final_response: "No hay decisiones de risk managers para sintetizar."}
@@ -360,8 +360,8 @@ Para cada modelo, debes extraer EXCLUSIVAMENTE las siguientes secciones, manteni
 
 ### FORMATO DE SALIDA DESEADO:
 
-# SÍNTESIS FINAL DE APUESTAS{betfair_link}
-
+# SÍNTESIS FINAL DE APUESTAS
+{betfair_link}
 ## Modelo: [Nombre del Modelo 1]
 **DISTRIBUCIÓN DEL DINERO:**
 ...
