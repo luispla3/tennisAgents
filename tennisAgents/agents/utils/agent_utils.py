@@ -44,10 +44,10 @@ class Toolkit:
 
     @tool
     def get_news(
-        query: Annotated[str, "Consulta para buscar en Google News noticias relevantes de tenis"],
+        query: Annotated[str, "Consulta para buscar noticias relevantes de tenis"],
         curr_date: Annotated[str, "Fecha en formato yyyy-mm-dd"],
     ) -> str:
-        """Obtiene noticias de Google News sobre tenis."""
+        """Obtiene noticias de tenis mediante búsqueda web."""
         return interface.get_news(query, curr_date)
 
 
@@ -159,12 +159,12 @@ class Toolkit:
         tournament: Annotated[str, "Nombre del torneo (opcional, ej: 'Australian Open' o 'US Open')"]
     ) -> str:
         """
-        Obtiene datos en tiempo real del partido usando Sportradar API.
-        
-        Sistema Automático con Sportradar Live Summaries:
-        Esta herramienta obtiene y formatea datos en vivo directamente desde Sportradar:
-        
-        1. Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
+        Obtiene datos en tiempo real del partido usando el scraper de Flashscore.
+
+        Sistema automático con Flashscore:
+        Esta herramienta obtiene y formatea datos en vivo directamente desde Flashscore:
+
+        1. Obtiene partidos en vivo y del día desde Flashscore
         2. Busca el partido específico entre los dos jugadores (búsqueda flexible)
         3. Extrae y formatea la información del partido en texto estructurado:
            - Información básica (jugadores, torneo, fecha, estado)
@@ -192,7 +192,7 @@ class Toolkit:
               * Puntos y juegos: totales, ganados, rachas máximas
             
         Note:
-            - La API de Sportradar actualiza los datos cada 1 segundo durante partidos en vivo
+            - Los datos provienen del scraper de Flashscore
             - Los nombres de jugadores en la API vienen en formato "Apellido, Nombre"
             - Los datos vienen formateados y listos para que el agente los analice
         """

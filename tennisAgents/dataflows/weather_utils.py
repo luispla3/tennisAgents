@@ -1,9 +1,10 @@
 import os
-from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, HumanMessage
 from tennisAgents.dataflows.config import get_config
+from tennisAgents.dataflows.llm_utils import get_llm_client
+from tennisAgents.dataflows.web_search_utils import perform_web_search
 
 def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> dict:
     """
@@ -82,14 +83,15 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
                     "location": location
                 }
 
-        # Original implementation with OpenAI Web Search
-        client = OpenAI(base_url=config["backend_url"])
+        # Búsqueda web con WebSearcher + síntesis LLM
+        client = get_llm_client()
+        search_query = f"weather forecast {location} {fecha_hora} {tournament}"
+        search_context = perform_web_search(search_query)
 
-        # Crear el prompt para OpenAI
         prompt_text = f"""
-        Busca información meteorológica detallada para la ubicación {location} 
+        Busca información meteorológica detallada para la ubicación {location}
         para la fecha {fecha_hora} donde se jugará el torneo {tournament}.
-        
+
         Necesito información específica sobre:
         - Temperatura máxima y mínima (en Celsius)
         - Velocidad del viento (en km/h)
@@ -99,39 +101,24 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
         - Cantidad de precipitación esperada (mm)
         - Presión atmosférica (hPa)
         - Condiciones generales del cielo (despejado, nublado, lluvia, etc.)
-        
+
         Devuelve un análisis detallado y específico con datos cuantitativos precisos.
         """
 
-        response = client.responses.create(
+        response = client.chat.completions.create(
             model=config["quick_think_llm"],
-            input=[
+            messages=[
+                {"role": "system", "content": prompt_text},
                 {
-                    "role": "system",
-                    "content": [
-                        {
-                            "type": "input_text",
-                            "text": prompt_text,
-                        }
-                    ],
-                }
-            ],
-            text={"format": {"type": "text"}},
-            reasoning={},
-            tools=[
-                {
-                    "type": "web_search_preview",
-                    "user_location": {"type": "approximate"},
-                    "search_context_size": "medium",
-                }
+                    "role": "user",
+                    "content": f"Resultados de búsqueda web:\n\n{search_context}",
+                },
             ],
             temperature=1,
-            max_output_tokens=4096,
-            top_p=1,
-            store=True,
+            max_tokens=4096,
         )
 
-        weather_info = response.output[1].content[0].text
+        weather_info = response.choices[0].message.content or ""
 
         # Crear un diccionario estructurado con la información obtenida
         weather_data = {
@@ -139,7 +126,7 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
             "fecha_hora": fecha_hora,
             "location": location,
             "weather_info": weather_info,
-            "source": "OpenAI Web Search",
+            "source": "WebSearcher",
             "timestamp": "2025-01-01 00:00:00"  # Placeholder timestamp
         }
 

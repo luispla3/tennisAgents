@@ -1,0 +1,5 @@
+# WebSearcher: >=0.9 requiere Python 3.12+; en entornos anteriores usar 0.7.0
+WebSearcher>=0.7.0,<0.7.1; python_version < "3.12"
+WebSearcher>=0.9.0; python_version >= "3.12"
+# distutils (eliminado en 3.12+) lo aporta setuptools para dependencias de WebSearcher
+setuptools>=70.0.0; python_version >= "3.12"

@@ -13,6 +13,68 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store original matches data
     let allMatchesData = null;
 
+    function parseSetScores(scoreStr) {
+        if (!scoreStr) return [];
+        return scoreStr.trim().split(/\s+/).map((set, index) => {
+            const parts = set.split('-');
+            return {
+                number: index + 1,
+                home_score: parseInt(parts[0], 10) || 0,
+                away_score: parseInt(parts[1], 10) || 0,
+            };
+        });
+    }
+
+    function normalizeFlashscoreMatch(match) {
+        const setsWon = match.sets_won || {};
+        let startTime = match.start_time || '';
+        if (!startTime && match.start_timestamp) {
+            startTime = new Date(match.start_timestamp * 1000).toISOString();
+        } else if (startTime && !startTime.includes('T')) {
+            startTime = new Date(startTime.replace(' ', 'T')).toISOString();
+        }
+
+        const tournamentName = match.tournament || match.category || 'Torneo';
+        return {
+            sport_event: {
+                id: match.id,
+                start_time: startTime,
+                competitors: [
+                    { qualifier: 'home', name: match.player1 || 'N/A', id: match.player1_id || '' },
+                    { qualifier: 'away', name: match.player2 || 'N/A', id: match.player2_id || '' },
+                ],
+                sport_event_context: {
+                    season: { name: tournamentName },
+                    competition: { name: tournamentName, gender: '' },
+                    round: {},
+                },
+                venue: { name: tournamentName },
+            },
+            sport_event_status: {
+                status: match.is_live ? 'live' : 'unknown',
+                match_status: match.status || '',
+                home_score: setsWon.player1 ?? 0,
+                away_score: setsWon.player2 ?? 0,
+                period_scores: parseSetScores(match.score),
+                game_state: {},
+            },
+            statistics: {},
+            _flashscore: match,
+        };
+    }
+
+    function getNormalizedMatches(matchesData) {
+        if (!matchesData) return [];
+        if (Array.isArray(matchesData.matches) && matchesData.matches.length > 0) {
+            return matchesData.matches.map(normalizeFlashscoreMatch);
+        }
+        return matchesData.summaries || [];
+    }
+
+    function getFlashscoreId(summary) {
+        return summary._flashscore?.id || summary.sport_event?.id || '';
+    }
+
     // Fetch and render matches on page load
     async function fetchAndRenderMatches() {
         try {
@@ -42,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 total_matches: data.total_matches,
                 has_matches_data: !!data.matches_data,
                 matches_data_keys: data.matches_data ? Object.keys(data.matches_data) : null,
-                summaries_count: data.matches_data?.summaries?.length || 0
+                matches_count: data.matches_data?.matches?.length || data.matches_data?.summaries?.length || 0
             });
 
             if (data.success && data.matches_data) {
@@ -52,15 +114,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (filtersSection) {
                     filtersSection.style.display = 'block';
                 }
-                const summaries = data.matches_data.summaries || [];
-                console.log('Summaries received:', summaries.length);
-                if (summaries.length > 0) {
-                    console.log('First summary:', {
-                        has_sport_event_status: !!summaries[0].sport_event_status,
-                        status: summaries[0].sport_event_status?.status,
-                        has_sport_event: !!summaries[0].sport_event
-                    });
-                }
+                const matches = getNormalizedMatches(data.matches_data);
+                console.log('Matches received:', matches.length);
                 renderMatches(data.matches_data);
             } else {
                 console.error('No matches data or error:', data.error || 'Unknown error');
@@ -76,14 +131,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function renderMatches(matchesData) {
         console.log('renderMatches called with:', matchesData);
-        let summaries = matchesData.summaries || [];
-        console.log('Summaries in renderMatches:', summaries.length);
+        let summaries = getNormalizedMatches(matchesData);
+        console.log('Normalized matches in renderMatches:', summaries.length);
         
-        // El backend ya filtra los partidos en vivo (include_all_statuses=False)
-        // Así que usamos todos los summaries que vienen del backend
-        // Solo verificamos que haya summaries
         if (summaries.length === 0) {
-            console.warn('No summaries found in matchesData');
+            console.warn('No matches found in matchesData');
             showEmptyState();
             return;
         }
@@ -225,6 +277,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const matchId = `match-${uniqueMatchId}`;
         const statsId = `stats-${uniqueMatchId}`;
         const modalId = `modal-${uniqueMatchId}`;
+        const flashscoreId = getFlashscoreId(summary);
+        const statsBodyId = `stats-body-${uniqueMatchId}`;
+        const statsContent = flashscoreId
+            ? '<div class="stats-loading"><div class="loading-spinner"></div><p>Cargando estadísticas...</p></div>'
+            : renderStatistics(statistics, homePlayer, awayPlayer);
 
         return `
             <div class="match-card" data-match-id="${matchId}">
@@ -316,7 +373,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         </svg>
                         Predecir
                     </button>
-                    <button class="btn-action btn-stats" data-modal-id="${modalId}" data-match-id="${uniqueMatchId}">
+                    <button class="btn-action btn-stats" data-modal-id="${modalId}" data-match-id="${uniqueMatchId}" data-flashscore-id="${escapeHtml(flashscoreId)}">
                         <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
                             <path d="M2 12L6 8L9 11L14 6"/>
                             <path d="M14 6H10V10"/>
@@ -363,8 +420,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             </svg>
                         </button>
                     </div>
-                    <div class="stats-modal-body">
-                        ${renderStatistics(statistics, homePlayer, awayPlayer)}
+                    <div class="stats-modal-body" id="${statsBodyId}">
+                        ${statsContent}
                     </div>
                 </div>
             </div>
@@ -686,6 +743,53 @@ document.addEventListener('DOMContentLoaded', function() {
         return html;
     }
 
+    function renderFlashscoreStatistics(statsData, homePlayer, awayPlayer) {
+        const overall = statsData?.overall || {};
+        const entries = Object.entries(overall);
+        if (!entries.length) {
+            return '<div class="stats-empty"><p>No hay estadísticas disponibles para este partido</p></div>';
+        }
+
+        let html = `
+            <div class="stats-content-flip">
+                <div class="stats-players-header" style="display:flex;justify-content:space-between;margin-bottom:16px;">
+                    <strong>${escapeHtml(homePlayer.name || 'Jugador 1')}</strong>
+                    <strong>${escapeHtml(awayPlayer.name || 'Jugador 2')}</strong>
+                </div>
+                <div class="stats-grid-flip">
+        `;
+
+        entries.forEach(([name, values]) => {
+            html += `
+                <div class="stat-item-flip" style="grid-column: 1 / -1;">
+                    <span class="stat-label-flip">${escapeHtml(name)}</span>
+                    <span class="stat-value-flip">${escapeHtml(values.home || '-')} / ${escapeHtml(values.away || '-')}</span>
+                </div>
+            `;
+        });
+
+        html += '</div></div>';
+        return html;
+    }
+
+    async function loadFlashscoreStats(flashscoreId, statsBodyId, homePlayer, awayPlayer) {
+        const body = document.getElementById(statsBodyId);
+        if (!body || !flashscoreId) return;
+
+        try {
+            const response = await fetch(`/api/match-stats/${encodeURIComponent(flashscoreId)}`);
+            const data = await response.json();
+            if (data.success && data.stats) {
+                body.innerHTML = renderFlashscoreStatistics(data.stats, homePlayer, awayPlayer);
+            } else {
+                body.innerHTML = '<div class="stats-empty"><p>No hay estadísticas disponibles</p></div>';
+            }
+        } catch (error) {
+            console.error('Error loading Flashscore stats:', error);
+            body.innerHTML = '<div class="stats-empty"><p>Error al cargar estadísticas</p></div>';
+        }
+    }
+
     function attachStatsListeners() {
         // Handle Stats button click (open modal)
         document.querySelectorAll('.btn-stats').forEach(button => {
@@ -693,10 +797,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.stopPropagation();
                 const modalId = this.getAttribute('data-modal-id');
                 const modal = document.getElementById(modalId);
+                const flashscoreId = this.getAttribute('data-flashscore-id');
+                const uniqueMatchId = this.getAttribute('data-match-id');
                 
                 if (modal) {
                     modal.classList.add('active');
-                    document.body.style.overflow = 'hidden'; // Prevent body scroll
+                    document.body.style.overflow = 'hidden';
+
+                    if (flashscoreId && uniqueMatchId) {
+                        const matchCard = this.closest('.match-card');
+                        const homeName = matchCard?.querySelector('.player-home .player-name')?.textContent || '';
+                        const awayName = matchCard?.querySelector('.player-away .player-name')?.textContent || '';
+                        const statsBodyId = `stats-body-${uniqueMatchId}`;
+                        loadFlashscoreStats(
+                            flashscoreId,
+                            statsBodyId,
+                            { name: homeName },
+                            { name: awayName }
+                        );
+                    }
                 }
             });
         });

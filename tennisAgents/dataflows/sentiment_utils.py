@@ -1,9 +1,10 @@
 import os
-from openai import OpenAI
 from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_core.messages import SystemMessage, HumanMessage
 from tennisAgents.dataflows.config import get_config
+from tennisAgents.dataflows.llm_utils import get_llm_client
+from tennisAgents.dataflows.web_search_utils import perform_web_search
 
 def get_sentiment_openai(player_name: str) -> str:
     config = get_config()
@@ -55,34 +56,26 @@ def get_sentiment_openai(player_name: str) -> str:
             return f"Error usando modelo para sentimiento: {str(e)}"
 
     # Fallback to original online implementation
-    client = OpenAI(base_url=config["backend_url"])
+    client = get_llm_client()
 
-    response = client.responses.create(
-        model=config["quick_think_llm"],
-        input=[
-            {
-                "role": "system",
-                "content": [
-                    {
-                        "type": "input_text",
-                        "text": f"Puedes buscar en Redes Sociales y Foros sobre {player_name} y resumir el sentimiento de las publicaciones?",
-                    }
-                ],
-            }
-        ],
-        text={"format": {"type": "text"}},
-        reasoning={},
-        tools=[
-            {
-                "type": "web_search_preview",
-                "user_location": {"type": "approximate"},
-                "search_context_size": "low",
-            }
-        ],
-        temperature=1,
-        max_output_tokens=4096,
-        top_p=1,
-        store=True,
+    search_context = perform_web_search(
+        f"{player_name} tennis social media sentiment news fan reaction"
     )
 
-    return response.output[1].content[0].text
+    response = client.chat.completions.create(
+        model=config["quick_think_llm"],
+        messages=[
+            {
+                "role": "system",
+                "content": (
+                    f"Resume el sentimiento en redes sociales y foros sobre "
+                    f"el jugador de tenis {player_name}."
+                ),
+            },
+            {"role": "user", "content": f"Resultados de búsqueda web:\n\n{search_context}"},
+        ],
+        temperature=1,
+        max_tokens=4096,
+    )
+
+    return response.choices[0].message.content or ""

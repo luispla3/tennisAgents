@@ -44,8 +44,16 @@ class TennisAgentsGraph:
         )
 
         if self.config["llm_provider"].lower() in ["openai", "ollama", "openrouter"]:
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
+            llm_kwargs = {"base_url": self.config["backend_url"]}
+            if self.config["llm_provider"].lower() == "openrouter":
+                openrouter_api_key = self.config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
+                llm_kwargs["api_key"] = openrouter_api_key
+                llm_kwargs["default_headers"] = {
+                    "HTTP-Referer": "https://github.com/tennisAgents",
+                    "X-Title": "Tennis Agents",
+                }
+            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], **llm_kwargs)
+            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], **llm_kwargs)
         elif self.config["llm_provider"].lower() == "anthropic":
             self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
             self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])

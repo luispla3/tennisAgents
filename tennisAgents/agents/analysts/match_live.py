@@ -4,12 +4,12 @@ from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalys
 def create_match_live_analyst(llm, toolkit):
     def match_live_analyst_node(state):
         """
-        Analista de Partidos en Vivo - Obtiene información en tiempo real usando Sportradar API con OpenAI.
+        Analista de Partidos en Vivo - Obtiene información en tiempo real usando Flashscore scraper con OpenAI.
         
         Flujo de trabajo automático:
         1. Recibe los nombres de los jugadores y torneo del estado
         2. Usa la herramienta get_match_live_data que internamente:
-           a) Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
+           a) Obtiene partidos en vivo desde Flashscore
            b) Busca el partido específico entre los dos jugadores (con búsqueda flexible)
            c) Extrae la información relevante del partido (marcador, estadísticas, etc.)
         3. Retorna el reporte con marcador, estadísticas y análisis del momentum.
@@ -20,7 +20,7 @@ def create_match_live_analyst(llm, toolkit):
         player_b = state[STATE.opponent]
         tournament = state[STATE.tournament]
         
-        # Herramienta para obtener datos reales del partido en vivo desde Sportradar API
+        # Herramienta para obtener datos reales del partido en vivo desde Flashscore
         tools = [toolkit.get_match_live_data]
 
         # Obtener la anatomía del prompt para analista de partidos en vivo
@@ -28,20 +28,20 @@ def create_match_live_analyst(llm, toolkit):
 
         # Información de herramientas
         tools_info = (
-            "• get_match_live_data(player_a, player_b, tournament) - Obtiene información en tiempo real del partido desde Sportradar API, "
+            "• get_match_live_data(player_a, player_b, tournament) - Obtiene información en tiempo real del partido desde Flashscore, "
             "incluyendo marcador actual, estadísticas detalladas y análisis del partido"
         )
 
         # Contexto adicional específico para la obtención de datos en vivo
         additional_context = (
-            "OBTENCIÓN Y ANÁLISIS DE DATOS EN TIEMPO REAL CON SPORTRADAR API:\n\n"
+            "OBTENCIÓN Y ANÁLISIS DE DATOS EN TIEMPO REAL CON FLASHSCORE:\n\n"
             f"1. PRIMER PASO - OBTENER DATOS:\n"
             f"   DEBES usar UNA ÚNICA VEZ la herramienta 'get_match_live_data' con estos parámetros:\n"
             f"   - player_a: '{player_a}'\n"
             f"   - player_b: '{player_b}'\n"
             f"   - tournament: '{tournament}'\n\n"
             "2. QUÉ HACE LA HERRAMIENTA:\n"
-            "   a) Obtiene todos los partidos en vivo desde Sportradar Live Summaries API\n"
+            "   a) Obtiene partidos en vivo desde Flashscore\n"
             "   b) Busca el partido específico entre los dos jugadores (búsqueda flexible)\n"
             "   c) Extrae y formatea la información del partido en formato estructurado:\n"
             "      • Información básica (jugadores, torneo, fecha, estado)\n"
@@ -144,7 +144,7 @@ def create_match_live_analyst(llm, toolkit):
             "de apuestas deportivas. Debes ser preciso con los números, analizar las tendencias y proporcionar insights "
             "valiosos basados en las estadísticas reales del partido. Finalmente rebate la estimacion y prediccion que ha hecho el agente de players en base a estos datos en directo, y sabiendo quien esta sacando, ya que por ejemplo si jugador A gana el set 6-4 sacando jugador A, ese mismo set podia haber acabado 6-4 si hubiese empezando sacando jugador B\n\n"
             "IMPORTANTE:\n"
-            "- Los datos vienen formateados de Sportradar API (actualización cada 1 segundo)\n"
+            "- Los datos vienen formateados del scraper de Flashscore\n"
             "- Los nombres de jugadores vienen en formato 'Apellido, Nombre'\n"
             "- Sé preciso con todos los números y cálculos\n"
             "- Usa tablas markdown para comparar estadísticas cuando sea apropiado\n"
@@ -170,7 +170,7 @@ def create_match_live_analyst(llm, toolkit):
         # Crear el input correcto como diccionario
         input_data = {
             "messages": state[STATE.messages],
-            "user_message": f"Obtén información en tiempo real del partido {player_a} vs {player_b} del torneo {tournament} usando Sportradar API."
+            "user_message": f"Obtén información en tiempo real del partido {player_a} vs {player_b} del torneo {tournament} usando Flashscore."
         }
 
         result = chain.invoke(input_data)

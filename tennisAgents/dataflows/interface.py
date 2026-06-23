@@ -13,7 +13,7 @@ from .tournament_utils import get_tournament_info_openai
 
 def get_news(query: str, curr_date: str) -> str:
     """
-    Interfaz que prepara y formatea las noticias obtenidas desde Google News.
+    Interfaz que prepara y formatea noticias obtenidas mediante búsqueda web.
     """
     noticias = fetch_news(query, curr_date)
 
@@ -214,12 +214,12 @@ def get_weather_forecast(tournament: str, fecha_hora: str, location: str) -> str
 
 def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
     """
-    Obtiene datos en tiempo real del partido actual usando Sportradar API.
+    Obtiene datos en tiempo real del partido actual usando el scraper de Flashscore.
     
-    Este sistema obtiene y formatea datos directamente de Sportradar:
-    1. Obtiene todos los partidos en vivo desde Sportradar Live Summaries API
+    Este sistema obtiene y formatea datos directamente de Flashscore:
+    1. Obtiene partidos en vivo y del día desde Flashscore
     2. Busca el partido específico entre los dos jugadores (con búsqueda flexible)
-    3. Extrae y formatea la información del partido en texto estructurado
+    3. Extrae estadísticas y formatea la información en texto estructurado
     
     Los datos formateados son luego analizados por el agente de LLM.
     
@@ -238,14 +238,14 @@ def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
                * Puntos y juegos: totales, ganados, rachas máximas
     
     Note:
-        - La API de Sportradar actualiza los datos cada 1 segundo (TTL) durante partidos en vivo
+        - Los datos provienen del scraper de Flashscore en tiempo casi real
         - Los nombres de jugadores pueden venir en formato "Apellido, Nombre" en la API
         - La búsqueda es flexible y maneja variaciones de nombres y acentos
         - Los datos vienen formateados y listos para que el agente los analice
     """
     
     try:
-        # Obtener datos del partido usando la nueva implementación con Sportradar API
+        # Obtener datos del partido usando Flashscore scraper
         match_data = fetch_match_live_data(player_a, player_b, tournament)
         
         if not match_data or match_data.get("success") == False:
@@ -277,4 +277,4 @@ def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
         
     except Exception as e:
         return f"Error al obtener datos del partido en vivo: {str(e)}\n\n" \
-               f"Verifica que la API key de Sportradar (SPORTRADAR_API_KEY) esté configurada correctamente en el archivo .env"
+               f"Verifica la conexión a Flashscore y que los nombres de los jugadores sean correctos."

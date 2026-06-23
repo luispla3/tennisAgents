@@ -49,25 +49,27 @@ def create_odds_analyst(llm, toolkit):
 **Recomendación:** Verificar que el partido esté activo en Betfair España (www.betfair.es)
 """
         else:
-            # Filtrar mercados relevantes
+            # Filtrar mercados relevantes (nombres en español e inglés de Betfair)
+            relevant_keywords = (
+                "cuotas de partido", "match odds", "match betting", "apuestas a sets",
+                "set betting", "set -", "ganador", "winner", "total de juegos",
+                "total games", "hándicap", "handicap", "resultado correcto",
+                "correct score", "ambos jugadores",
+            )
             filtered_markets = []
             for market in odds_data.get('markets', []):
                 market_name = market.get('market_name', '')
-                
-                # Incluir "Cuotas de partido" y "Apuestas a sets" siempre
-                if market_name in ["Cuotas de partido", "Apuestas a sets"]:
+                market_lower = market_name.lower()
+
+                if any(keyword in market_lower for keyword in relevant_keywords):
                     filtered_markets.append(market)
                     continue
-                
-                # Incluir mercados de "Set X - Ganador"
-                if "Set" in market_name and "Ganador" in market_name and "Juego" not in market_name:
+
+                if market_name in ["Cuotas de partido", "Apuestas a sets", "Apuestas de set", "Match Odds"]:
                     filtered_markets.append(market)
-                    continue
-                
-                # Incluir mercados de "Resultado correcto del X set"
-                if "Resultado correcto" in market_name:
-                    filtered_markets.append(market)
-                    continue
+
+            if not filtered_markets and odds_data.get('markets'):
+                filtered_markets = odds_data['markets'][:8]
             
             # Formatear el reporte con los datos filtrados
             report = f"""## 💰 Cuotas de Apuestas - Betfair

@@ -12,11 +12,12 @@ from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 
 from tennisAgents.default_config import DEFAULT_CONFIG
+from tennisAgents.dataflows.web_search_utils import perform_web_search
 
 class EarningsManager:
     """
     Manages the calculation and storage of betting earnings.
-    Uses a direct linear approach: Web Search (via Google requests) -> LLM Verification.
+    Uses a direct linear approach: WebSearcher -> LLM Verification.
     """
 
     def __init__(self, config=None):
@@ -57,44 +58,9 @@ class EarningsManager:
             return None
 
     def _perform_web_search(self, query: str) -> str:
-        """
-        Robust web search using Google fallback directly.
-        Returns text content of results.
-        """
-        import requests
         print(f"DEBUG: Searching for: {query}")
-        
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9"
-        }
-
         try:
-            # Google Search
-            cookies = {"CONSENT": "YES+cb.20210720-07-p0.en+FX+410"}
-            resp = requests.get(
-                f"https://www.google.com/search?q={query}&hl=en&num=10", 
-                headers=headers, 
-                cookies=cookies, 
-                timeout=15
-            )
-            
-            if resp.status_code == 200:
-                text = resp.text
-                # Basic cleanup to reduce token usage and noise
-                clean_text = re.sub(r'<script.*?>.*?</script>', '', text, flags=re.DOTALL)
-                clean_text = re.sub(r'<style.*?>.*?</style>', '', clean_text, flags=re.DOTALL)
-                clean_text = re.sub(r'<[^>]+>', ' ', clean_text)
-                clean_text = re.sub(r'\s+', ' ', clean_text).strip()
-                
-                # If too short, might be blocked or empty
-                if len(clean_text) < 200:
-                    return f"Search returned too little data ({len(clean_text)} chars)."
-                    
-                return clean_text[:12000] # Increased context for LLM
-            else:
-                return f"Google search failed: {resp.status_code}"
-                
+            return perform_web_search(query, num_results=10, lang="en")
         except Exception as e:
             return f"Search exception: {str(e)}"
 

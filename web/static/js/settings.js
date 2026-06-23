@@ -61,6 +61,8 @@ document.addEventListener('DOMContentLoaded', function() {
             { display: "Gemini 2.5 Flash - Adaptive thinking, cost efficiency", value: "gemini-2.5-flash-preview-05-20" }
         ],
         openrouter: [
+            { display: "Nex AGI: Nex N2 Pro (free)", value: "nex-agi/nex-n2-pro:free" },
+            { display: "Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", value: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" },
             { display: "Meta: Llama 4 Scout", value: "meta-llama/llama-4-scout:free" },
             { display: "Meta: Llama 3.3 8B Instruct - A lightweight and ultra-fast variant of Llama 3.3 70B", value: "meta-llama/llama-3.3-8b-instruct:free" },
             { display: "google/gemini-2.0-flash-exp:free - Gemini Flash 2.0 offers a significantly faster time to first token", value: "google/gemini-2.0-flash-exp:free" }
@@ -97,6 +99,8 @@ document.addEventListener('DOMContentLoaded', function() {
             { display: "Gemini 2.5 Pro", value: "gemini-2.5-pro-preview-06-05" }
         ],
         openrouter: [
+            { display: "Nex AGI: Nex N2 Pro (free)", value: "nex-agi/nex-n2-pro:free" },
+            { display: "Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", value: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" },
             { display: "DeepSeek V3 - a 685B-parameter, mixture-of-experts model", value: "deepseek/deepseek-chat-v3-0324:free" },
             { display: "Deepseek - latest iteration of the flagship chat model family from the DeepSeek team.", value: "deepseek/deepseek-chat-v3-0324:free" }
         ],
@@ -443,10 +447,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Filter allAgents to show relevant ones (selected + risk managers)
                 // First, determine which analysts are selected
-                const selectedAnalysts = settings.analysts.map(a => {
-                    // Convert "news" to "News Analyst"
-                    return a.charAt(0).toUpperCase() + a.slice(1).replace('_', ' ') + " Analyst";
-                });
+                // Helper: nombre de badge coherente con el backend
+                const analystBadgeNames = {
+                    news: "News Analyst",
+                    odds: "Odds Analyst",
+                    players: "Players Analyst",
+                    social: "Social Analyst",
+                    tournament: "Tournament Analyst",
+                    weather: "Weather Analyst",
+                    match_live: "Match Live Analyst",
+                };
+
+                const selectedAnalysts = settings.analysts.map(
+                    (a) => analystBadgeNames[a] || (a.charAt(0).toUpperCase() + a.slice(1) + " Analyst")
+                );
                 
                 const agentsToShow = allAgents.filter(a => {
                     if (a.includes("Risk") || ["Aggressive Analyst", "Safe Analyst", "Neutral Analyst", "Expected Analyst"].includes(a)) return true;
@@ -749,10 +763,31 @@ document.addEventListener('DOMContentLoaded', function() {
             analysisLogs.appendChild(logEntry);
             analysisLogs.scrollTop = analysisLogs.scrollHeight;
         }
+        else if (event.type === 'agents_parallel') {
+            const { agents, status } = event.data;
+            agents.forEach((agent) => {
+                const badgeId = `badge-${agent.replace(/\s+/g, '-')}`;
+                const badge = document.getElementById(badgeId);
+                if (badge && (status === 'in_progress' || status === 'running')) {
+                    badge.style.opacity = '1';
+                    badge.style.background = 'rgba(59, 130, 246, 0.2)';
+                    badge.style.borderColor = '#3b82f6';
+                    badge.style.color = '#3b82f6';
+                    badge.style.animation = 'pulse 2s infinite';
+                }
+            });
+
+            const logEntry = document.createElement('div');
+            logEntry.style.color = '#60a5fa';
+            logEntry.textContent = `[${timestamp}] ${agents.length} analistas ejecutándose en paralelo: ${agents.join(', ')}`;
+            analysisLogs.appendChild(logEntry);
+            analysisLogs.scrollTop = analysisLogs.scrollHeight;
+        }
         else if (event.type === 'agent_status') {
             const { agent, status } = event.data;
             const badgeId = `badge-${agent.replace(/\s+/g, '-')}`;
             const badge = document.getElementById(badgeId);
+            const isActive = status === 'in_progress' || status === 'running';
             
             if (badge) {
                 if (status === 'completed') {
@@ -760,12 +795,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     badge.style.background = 'rgba(34, 197, 94, 0.2)';
                     badge.style.borderColor = '#22c55e';
                     badge.style.color = '#22c55e';
-                } else if (status === 'in_progress') {
+                    badge.style.animation = 'none';
+                } else if (isActive) {
                     badge.style.opacity = '1';
                     badge.style.background = 'rgba(59, 130, 246, 0.2)';
                     badge.style.borderColor = '#3b82f6';
                     badge.style.color = '#3b82f6';
-                    badge.classList.add('pulse-animation'); // Assuming CSS class exists or add inline
                     badge.style.animation = 'pulse 2s infinite';
                 }
             }

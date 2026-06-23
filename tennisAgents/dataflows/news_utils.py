@@ -1,78 +1,41 @@
-import random
-import requests
-import time
-from datetime import datetime
-from bs4 import BeautifulSoup
-from matplotlib.dates import relativedelta
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from tennisAgents.dataflows.web_search_utils import perform_web_search
+
+SEARCH_TIMEOUT_SECONDS = 30
+NUM_RESULTS = 8
 
 
 def fetch_news(query: str, curr_date: str) -> str:
-    """
-    Consulta el feed RSS de Google News para obtener noticias sobre un tema específico.
-    """
-    query_encoded = query.replace(" ", "+")
+    """Busca noticias recientes sobre un tema usando WebSearcher."""
+    search_query = f"{query} tennis news {curr_date}"
+    results = perform_web_search(search_query, num_results=NUM_RESULTS, lang="en")
 
-    start_date = datetime.strptime(curr_date, "%Y-%m-%d")
-    before = start_date - relativedelta(days=7)
-    before_str = before.strftime("%Y-%m-%d")
-
-    # Obtener resultados del feed RSS
-    news_results = getNewsData(query_encoded)
-
-    if not news_results:
-        return ""
-
-    # Construir texto de salida
-    news_str = ""
-    for news in news_results:
-        news_str += (
-            f"### {news['title']} (source: {news['source']})\n\n"
-            f"{news['snippet']}\n\n"
-            f"Link: {news['link']}\n\n"
-        )
-
-    result = f"## {query} Google News RSS, desde {before_str} hasta {curr_date}:\n\n{news_str}"
-    return result
+    header = f"## Noticias sobre '{query}' (búsqueda web, {curr_date}):\n\n"
+    if results:
+        return header + results
+    return header + "Sin resultados en búsqueda web."
 
 
-def getNewsData(query: str) -> list:
-    """
-    Obtiene noticias desde el feed RSS de Google News para una query dada.
-    """
-    
-    rss_url = f"https://news.google.com/rss/search?q={query}&hl=es&gl=ES&ceid=ES:es"
-    
-    try:
-        time.sleep(random.uniform(1, 3))  # retraso aleatorio para evitar bloqueos
-        response = requests.get(rss_url, headers={"User-Agent": "Mozilla/5.0"})
+def fetch_news_for_match(player: str, opponent: str, tournament: str, curr_date: str) -> str:
+    """Recopila noticias de ambos jugadores y del torneo en paralelo vía WebSearcher."""
+    queries = [
+        (player, player),
+        (opponent, opponent),
+        (tournament, tournament),
+    ]
 
-        if response.status_code != 200:
-            return []
-        
-        soup = BeautifulSoup(response.content, "xml")
-        items = soup.find_all("item")
-
-        
-        news_results = []
-        for i, item in enumerate(items):
+    parts: list[str] = []
+    with ThreadPoolExecutor(max_workers=3) as executor:
+        futures = {
+            executor.submit(fetch_news, query, curr_date): label
+            for query, label in queries
+        }
+        for future in as_completed(futures):
+            label = futures[future]
             try:
-                title = item.title.text
-                link = item.link.text
-                snippet = item.description.text
-                source = item.source.text if item.source else "Desconocido"
-                pub_date = item.pubDate.text if item.pubDate else "Sin fecha"
+                parts.append(future.result(timeout=SEARCH_TIMEOUT_SECONDS))
+            except Exception as exc:
+                parts.append(f"## {label}\n\nNo se pudieron obtener noticias: {exc}")
 
-                news_results.append({
-                    "title": title,
-                    "link": link,
-                    "snippet": snippet,
-                    "date": pub_date,
-                    "source": source
-                })
-            except Exception as e:
-                continue
-
-        return news_results
-    
-    except Exception as e:
-        return []
+    return "\n\n---\n\n".join(parts)

@@ -188,6 +188,8 @@ def select_shallow_thinking_agent(provider) -> str:
             ("Gemini 2.5 Flash - Adaptive thinking, cost efficiency", "gemini-2.5-flash-preview-05-20"),
         ],
         "openrouter": [
+            ("Nex AGI: Nex N2 Pro (free)", "nex-agi/nex-n2-pro:free"),
+            ("Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
             ("Meta: Llama 4 Scout", "meta-llama/llama-4-scout:free"),
             ("Meta: Llama 3.3 8B Instruct - A lightweight and ultra-fast variant of Llama 3.3 70B", "meta-llama/llama-3.3-8b-instruct:free"),
             ("google/gemini-2.0-flash-exp:free - Gemini Flash 2.0 offers a significantly faster time to first token", "google/gemini-2.0-flash-exp:free"),
@@ -253,6 +255,8 @@ def select_deep_thinking_agent(provider) -> str:
             ("Gemini 2.5 Pro", "gemini-2.5-pro-preview-06-05"),
         ],
         "openrouter": [
+            ("Nex AGI: Nex N2 Pro (free)", "nex-agi/nex-n2-pro:free"),
+            ("Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
             ("DeepSeek V3 - a 685B-parameter, mixture-of-experts model", "deepseek/deepseek-chat-v3-0324:free"),
             ("Deepseek - latest iteration of the flagship chat model family from the DeepSeek team.", "deepseek/deepseek-chat-v3-0324:free"),
         ],
