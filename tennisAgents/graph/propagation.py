@@ -1,8 +1,6 @@
 from typing import Dict, Any
-from tennisAgents.agents.utils.agent_states import (
-    RiskDebateState,
-)
-from tennisAgents.utils.enumerations import *
+
+from tennisAgents.utils.enumerations import REPORTS, STATE
 
 
 class Propagator:
@@ -28,20 +26,6 @@ class Propagator:
             STATE.match_date: str(match_date),
             STATE.tournament: tournament,
             STATE.wallet_balance: wallet_balance,
-            STATE.risk_debate_state: RiskDebateState({
-                HISTORYS.history: "",
-                HISTORYS.aggressive_history: "",
-                HISTORYS.safe_history: "",
-                HISTORYS.neutral_history: "",
-                HISTORYS.expected_history: "",
-                STATE.latest_speaker: "",
-                RESPONSES.aggressive: "",
-                RESPONSES.safe: "",
-                RESPONSES.neutral: "",
-                RESPONSES.expected: "",
-                STATE.judge_decision: "",
-                STATE.count: 0
-            }),
             REPORTS.players_report: "",
             REPORTS.news_report: "",
             REPORTS.odds_report: "",
@@ -49,10 +33,7 @@ class Propagator:
             REPORTS.weather_report: "",
             REPORTS.tournament_report: "",
             REPORTS.match_live_report: "",
-            REPORTS.risk_analysis_report: "",
             STATE.final_bet_decision: "",
-            STATE.individual_risk_manager_decisions: {},
-            STATE.final_response: "",
         }
 
     def get_graph_args(self) -> Dict[str, Any]:

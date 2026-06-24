@@ -79,7 +79,6 @@ class AnalysisRequest(BaseModel):
     analysis_date: str
     wallet_balance: float
     analysts: List[str]
-    research_depth: int
     llm_provider: str
     shallow_thinker: str
     deep_thinker: str
@@ -100,16 +99,11 @@ async def run_analysis(
         try:
             # Setup configuration
             config = DEFAULT_CONFIG.copy()
-            config["max_debate_rounds"] = analysis_request.research_depth
-            config["max_risk_discuss_rounds"] = analysis_request.research_depth
             config["quick_think_llm"] = analysis_request.shallow_thinker
             config["deep_think_llm"] = analysis_request.deep_thinker
             if analysis_request.backend_url:
                 config["backend_url"] = analysis_request.backend_url
             config["llm_provider"] = analysis_request.llm_provider.lower()
-
-            # Ejecución web: usar únicamente la config del usuario (sin risk managers extra ni Ollama local)
-            config["additional_risk_managers"] = []
             config["use_local_analysts"] = False
 
             stream_events: queue.Queue = queue.Queue()
@@ -334,6 +328,39 @@ async def run_analysis(
                     }) + "\n")
                     return lines
 
+                if event_type == "generalist_start":
+                    lines.append(json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Generalist LLM", "status": "in_progress"},
+                    }) + "\n")
+                    lines.append(json.dumps({
+                        "type": "log",
+                        "data": {
+                            "timestamp": datetime.now().strftime("%H:%M:%S"),
+                            "type": "System",
+                            "content": "Generalist LLM: generando decisión final...",
+                        },
+                    }) + "\n")
+                    return lines
+
+                if event_type == "generalist_complete":
+                    decision = event.get("decision", "")
+                    if decision:
+                        try:
+                            with open(report_dir / "final_bet_decision.md", "w", encoding="utf-8") as f:
+                                f.write(decision)
+                        except Exception:
+                            pass
+                        lines.append(json.dumps({
+                            "type": "report",
+                            "data": {"section": "final_bet_decision", "content": decision},
+                        }) + "\n")
+                    lines.append(json.dumps({
+                        "type": "agent_status",
+                        "data": {"agent": "Generalist LLM", "status": "completed"},
+                    }) + "\n")
+                    return lines
+
                 return lines
             
             def process_chunk(chunk):
@@ -416,17 +443,6 @@ async def run_analysis(
                     save_report("match_live_report", content)
                     yield json.dumps({"type": "report", "data": {"section": "match_live_report", "content": content}}) + "\n"
 
-                if "risk_debate_state" in chunk and chunk["risk_debate_state"]:
-                    risk_state = chunk["risk_debate_state"]
-                    if "aggressive_history" in risk_state:
-                        yield json.dumps({"type": "risk_update", "data": {"analyst": "Aggressive Analyst", "content": risk_state["aggressive_history"]}}) + "\n"
-                    if "safe_history" in risk_state:
-                        yield json.dumps({"type": "risk_update", "data": {"analyst": "Safe Analyst", "content": risk_state["safe_history"]}}) + "\n"
-                    if "neutral_history" in risk_state:
-                        yield json.dumps({"type": "risk_update", "data": {"analyst": "Neutral Analyst", "content": risk_state["neutral_history"]}}) + "\n"
-                    if "expected_history" in risk_state:
-                        yield json.dumps({"type": "risk_update", "data": {"analyst": "Expected Analyst", "content": risk_state["expected_history"]}}) + "\n"
-
                 if "final_bet_decision" in chunk and chunk["final_bet_decision"]:
                     content = chunk["final_bet_decision"]
                     try:
@@ -435,28 +451,7 @@ async def run_analysis(
                     except Exception:
                         pass
                     yield json.dumps({"type": "report", "data": {"section": "final_bet_decision", "content": content}}) + "\n"
-
-                if "individual_risk_manager_decisions" in chunk and chunk["individual_risk_manager_decisions"]:
-                    individual_decisions = chunk["individual_risk_manager_decisions"]
-                    if isinstance(individual_decisions, dict):
-                        for model_name, decision in individual_decisions.items():
-                            safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
-                            file_name = f"final_bet_decision_{safe_model_name}.md"
-                            try:
-                                with open(report_dir / file_name, "w", encoding="utf-8") as f:
-                                    f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
-                            except Exception:
-                                pass
-                    yield json.dumps({"type": "individual_decisions", "data": individual_decisions}) + "\n"
-
-                if "final_response" in chunk and chunk["final_response"]:
-                    content = chunk["final_response"]
-                    try:
-                        with open(report_dir / "final_response.md", "w", encoding="utf-8") as f:
-                            f.write(content)
-                    except Exception:
-                        pass
-                    yield json.dumps({"type": "report", "data": {"section": "final_response", "content": content}}) + "\n"
+                    yield json.dumps({"type": "agent_status", "data": {"agent": "Generalist LLM", "status": "completed"}}) + "\n"
 
             yield json.dumps({
                 "type": "status",
@@ -1025,17 +1020,16 @@ async def get_predicted_match_details(
                 detail="No se encontró el directorio de reports para este partido",
             )
 
-        # Try to read final_response.md
-        final_response_content = ""
+        # Resumen principal desde final_bet_decision.md
+        final_bet_decision_content = ""
         try:
-            final_response_file = target_dir / "final_response.md"
-            if final_response_file.exists():
-                with open(final_response_file, "r", encoding="utf-8") as f:
-                    final_response_content = f.read()
+            final_decision_file = target_dir / "final_bet_decision.md"
+            if final_decision_file.exists():
+                with open(final_decision_file, "r", encoding="utf-8") as f:
+                    final_bet_decision_content = f.read()
         except Exception:
             pass
 
-        # Collect up to 5 final_bet_decision*.md files
         final_files = sorted(target_dir.glob("final_bet_decision*.md"))
         
         # Check status
@@ -1116,7 +1110,7 @@ async def get_predicted_match_details(
                     "status": status,
                 },
                 "predictions": predictions,
-                "final_response": final_response_content,
+                "final_bet_decision": final_bet_decision_content,
             }
         )
     except HTTPException:

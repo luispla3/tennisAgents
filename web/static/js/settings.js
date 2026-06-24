@@ -159,13 +159,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     });
                 }
                 
-                // Load research depth
-                if (settings.researchDepth) {
-                    const researchDepthEl = document.getElementById('researchDepth');
-                    if (researchDepthEl) {
-                        researchDepthEl.value = settings.researchDepth;
-                    }
-                }
+                // Load research depth - removed (debate de riesgo eliminado)
                 
                 // Load LLM provider
                 if (settings.llmProvider && llmProviderSelect) {
@@ -224,7 +218,6 @@ document.addEventListener('DOMContentLoaded', function() {
             betAmount: betAmount, // Cantidad a apostar - independiente del saldo
             // Ensure analysts are in the correct execution order
             analysts: orderAnalysts(Array.from(document.querySelectorAll('input[name="analysts"]:checked')).map(cb => cb.value)),
-            researchDepth: parseInt(document.getElementById('researchDepth').value),
             llmProvider: llmProviderSelect.value,
             backendUrl: backendUrl, // Automatically set based on provider
             shallowThinker: shallowThinkerSelect.value,
@@ -440,9 +433,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Initialize agents badges
                 const allAgents = [
-                    "News Analyst", "Odds Analyst", "Players Analyst", "Social Analyst", 
+                    "News Analyst", "Odds Analyst", "Players Analyst", "Social Analyst",
                     "Tournament Analyst", "Weather Analyst", "Match Live Analyst",
-                    "Aggressive Analyst", "Safe Analyst", "Neutral Analyst", "Expected Analyst"
+                    "Generalist LLM",
                 ];
                 
                 // Filter allAgents to show relevant ones (selected + risk managers)
@@ -463,7 +456,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 );
                 
                 const agentsToShow = allAgents.filter(a => {
-                    if (a.includes("Risk") || ["Aggressive Analyst", "Safe Analyst", "Neutral Analyst", "Expected Analyst"].includes(a)) return true;
+                    if (a === "Generalist LLM") return true;
                     return selectedAnalysts.includes(a);
                 });
 
@@ -508,7 +501,6 @@ document.addEventListener('DOMContentLoaded', function() {
                             analysis_date: settings.analysisDate,
                             wallet_balance: settings.betAmount, // Enviar cantidad a apostar, no el saldo
                             analysts: settings.analysts,
-                            research_depth: settings.researchDepth,
                             llm_provider: settings.llmProvider,
                             shallow_thinker: settings.shallowThinker,
                             deep_thinker: settings.deepThinker,
@@ -863,129 +855,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Scroll to bottom of reports to show latest
-            analysisReports.scrollTop = analysisReports.scrollHeight;
-        }
-        else if (event.type === 'risk_update') {
-            const { analyst, content } = event.data;
-             // Log risk update
-            const logEntry = document.createElement('div');
-            logEntry.style.color = '#f87171'; // Reddish
-            logEntry.textContent = `[${timestamp}] Risk Debate: ${analyst} spoke.`;
-            analysisLogs.appendChild(logEntry);
-            analysisLogs.scrollTop = analysisLogs.scrollHeight;
-            
-            // Also update risk report section if needed, but 'report' event handles the full section update usually.
-            // However, for incremental updates we might want to show it.
-            // For now, let's rely on the 'report' event for the full text, 
-            // or maybe create a 'Risk Debate' live feed?
-            // The backend sends 'risk_analysis_report' updates too via 'report' event?
-            // No, the backend logic in web/app.py sends 'risk_update' for each analyst message
-            // AND I need to verify if it sends the full report.
-            // In web/app.py, I didn't implement 'risk_analysis_report' stream explicitly in the loop?
-            // Let's check web/app.py logic.
-            // It streams 'risk_update' for each analyst.
-            // It does NOT stream 'risk_analysis_report' explicitly unless I added it.
-            // Wait, I added logic for 'risk_update'.
-            
-            // So I should append these to a Risk Analysis section.
-            let reportContainer = document.getElementById(`report-risk_analysis`);
-            if (!reportContainer) {
-                 if (analysisReports.querySelector('svg')) {
-                    analysisReports.innerHTML = '';
-                }
-                reportContainer = document.createElement('div');
-                reportContainer.id = `report-risk_analysis`;
-                reportContainer.className = 'report-card';
-                reportContainer.style.cssText = `
-                    background: var(--bg-secondary);
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    padding: 15px;
-                    margin-bottom: 20px;
-                    border-left: 3px solid #ef4444;
-                `;
-                 const titleEl = document.createElement('h3');
-                titleEl.textContent = "RISK MANAGEMENT DEBATE";
-                titleEl.style.cssText = `
-                    color: #ef4444;
-                    border-bottom: 1px solid var(--border-color);
-                    padding-bottom: 10px;
-                    margin-bottom: 10px;
-                    font-size: 16px;
-                `;
-                 const contentEl = document.createElement('div');
-                contentEl.className = 'risk-content';
-                contentEl.style.cssText = 'display: flex; flex-direction: column; gap: 10px;';
-                
-                reportContainer.appendChild(titleEl);
-                reportContainer.appendChild(contentEl);
-                analysisReports.appendChild(reportContainer);
-            }
-            
-            const contentEl = reportContainer.querySelector('.risk-content');
-            const entry = document.createElement('div');
-            entry.style.cssText = `
-                padding: 10px;
-                background: var(--bg-tertiary);
-                border-radius: 6px;
-            `;
-            entry.innerHTML = `
-                <strong style="color: #f87171;">${analyst}:</strong>
-                <div class="markdown-content" style="margin-top: 5px; color: var(--text-secondary); font-size: 14px;">
-                    ${window.marked ? window.marked.parse(content) : content}
-                </div>
-            `;
-            contentEl.appendChild(entry);
-             analysisReports.scrollTop = analysisReports.scrollHeight;
-        }
-        else if (event.type === 'individual_decisions') {
-            const decisions = event.data;
-            
-            let reportContainer = document.getElementById(`report-individual_decisions`);
-            if (!reportContainer) {
-                reportContainer = document.createElement('div');
-                reportContainer.id = `report-individual_decisions`;
-                reportContainer.className = 'report-card';
-                reportContainer.style.cssText = `
-                    background: var(--bg-secondary);
-                    border: 1px solid var(--border-color);
-                    border-radius: 8px;
-                    padding: 15px;
-                    margin-bottom: 20px;
-                    border-left: 3px solid #8b5cf6;
-                `;
-                
-                const titleEl = document.createElement('h3');
-                titleEl.textContent = "INDIVIDUAL RISK MANAGER DECISIONS";
-                titleEl.style.cssText = `
-                    color: #8b5cf6;
-                    border-bottom: 1px solid var(--border-color);
-                    padding-bottom: 10px;
-                    margin-bottom: 10px;
-                    font-size: 16px;
-                `;
-                
-                reportContainer.appendChild(titleEl);
-                analysisReports.appendChild(reportContainer);
-            }
-            
-            for (const [model, decision] of Object.entries(decisions)) {
-                const decisionEl = document.createElement('div');
-                decisionEl.style.cssText = `
-                    margin-bottom: 15px;
-                    padding: 10px;
-                    background: var(--bg-tertiary);
-                    border-radius: 6px;
-                `;
-                
-                decisionEl.innerHTML = `
-                    <strong style="color: #a78bfa;">${model}:</strong>
-                    <div class="markdown-content" style="margin-top: 5px; color: var(--text-secondary); font-size: 14px;">
-                        ${window.marked ? window.marked.parse(decision) : decision}
-                    </div>
-                `;
-                reportContainer.appendChild(decisionEl);
-            }
             analysisReports.scrollTop = analysisReports.scrollHeight;
         }
     }

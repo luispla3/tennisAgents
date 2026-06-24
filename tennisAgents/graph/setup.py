@@ -14,12 +14,7 @@ from tennisAgents.agents.analysts.social_media import create_social_media_analys
 from tennisAgents.agents.analysts.tournament import create_tournament_analyst
 from tennisAgents.agents.analysts.weather import create_weather_analyst
 from tennisAgents.agents.analysts.match_live import create_match_live_analyst
-
-from tennisAgents.agents.risk_mgmt.aggressive_debator import create_aggressive_debator
-from tennisAgents.agents.risk_mgmt.conservative_debator import create_conservative_debator
-from tennisAgents.agents.risk_mgmt.expected_debator import create_expected_debator
-from tennisAgents.agents.risk_mgmt.neutral_debator import create_neutral_debator
-from tennisAgents.agents.managers.manager import create_risk_manager, create_synthesis_node
+from tennisAgents.agents.generalist import GENERALIST_NODE, create_generalist_llm
 
 from tennisAgents.agents.utils.agent_states import AgentState
 from tennisAgents.agents.utils.agent_utils import Toolkit, create_msg_delete
@@ -40,6 +35,7 @@ REPORT_KEYS = [
 
 
 def _emit_progress(event: dict) -> None:
+    """Emite eventos de progreso al callback configurado."""
     callback = get_config().get("progress_callback")
     if callback:
         try:
@@ -57,21 +53,18 @@ class GraphSetup:
         deep_thinking_llm: ChatOpenAI,
         toolkit: Toolkit,
         tool_nodes: Dict[str, ToolNode],
-        risk_manager_memory,
         conditional_logic: ConditionalLogic,
-        additional_risk_manager_llms: list = None,
         local_llm: ChatOpenAI = None,
     ):
         self.quick_thinking_llm = quick_thinking_llm
         self.deep_thinking_llm = deep_thinking_llm
         self.toolkit = toolkit
         self.tool_nodes = tool_nodes
-        self.risk_manager_memory = risk_manager_memory
         self.conditional_logic = conditional_logic
-        self.additional_risk_manager_llms = additional_risk_manager_llms or []
         self.local_llm = local_llm or quick_thinking_llm
 
     def _build_analyst_subgraph(self, analyst_type, analyst_node, delete_node, tool_node, conditional_fn):
+        """Construye el subgrafo de un analista individual con sus tools y limpieza de mensajes."""
         workflow = StateGraph(AgentState)
         analyst_name = f"{analyst_type.capitalize()} Analyst"
         clear_name = f"Msg Clear {analyst_type.capitalize()}"
@@ -96,9 +89,11 @@ class GraphSetup:
         return workflow.compile()
 
     def _create_parallel_analysts_node(self, analyst_subgraphs, selected_analysts):
+        """Crea el nodo que ejecuta todos los analistas seleccionados en paralelo."""
         analyst_recursion_limit = 24
 
         def parallel_analysts_node(state):
+            """Ejecuta los subgrafos de analistas en paralelo y fusiona sus informes."""
             print(f"\n{'=' * 80}", flush=True)
             print(f"EJECUTANDO {len(selected_analysts)} ANALISTAS EN PARALELO", flush=True)
             print(f"Analistas: {', '.join(selected_analysts)}", flush=True)
@@ -203,6 +198,7 @@ class GraphSetup:
     def setup_graph(
         self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live, ANALYST_NODES.odds]
     ):
+        """Configura y compila el grafo: analistas en paralelo seguidos del generalista."""
         if len(selected_analysts) == 0:
             raise ValueError("Tennis Agents Graph Setup Error: no analysts selected!")
 
@@ -256,72 +252,15 @@ class GraphSetup:
                 conditional_fn,
             )
 
-        aggressive_debator = create_aggressive_debator(self.quick_thinking_llm)
-        safe_debator = create_conservative_debator(self.quick_thinking_llm)
-        expected_debator = create_expected_debator(self.quick_thinking_llm)
-        neutral_debator = create_neutral_debator(self.quick_thinking_llm)
-        risk_manager_node = create_risk_manager(
-            self.deep_thinking_llm,
-            self.risk_manager_memory,
-            additional_risk_managers=self.additional_risk_manager_llms,
-        )
-        synthesis_node = create_synthesis_node(self.deep_thinking_llm)
+        generalist_node = create_generalist_llm(self.deep_thinking_llm)
         parallel_analysts_node = self._create_parallel_analysts_node(analyst_subgraphs, selected_analysts)
 
         workflow = StateGraph(AgentState)
         workflow.add_node("Parallel Analysts", parallel_analysts_node)
-        workflow.add_node(ANALYSTS.aggressive, aggressive_debator)
-        workflow.add_node(ANALYSTS.safe, safe_debator)
-        workflow.add_node(ANALYSTS.expected, expected_debator)
-        workflow.add_node(ANALYSTS.neutral, neutral_debator)
-        workflow.add_node(ANALYSTS.judge, risk_manager_node)
-        workflow.add_node("synthesis", synthesis_node)
+        workflow.add_node(GENERALIST_NODE, generalist_node)
 
         workflow.add_edge(START, "Parallel Analysts")
-        workflow.add_edge("Parallel Analysts", ANALYSTS.aggressive)
-
-        workflow.add_conditional_edges(
-            ANALYSTS.aggressive,
-            self.conditional_logic.should_continue_risk_analysis,
-            {
-                ANALYSTS.safe: ANALYSTS.safe,
-                ANALYSTS.expected: ANALYSTS.expected,
-                ANALYSTS.neutral: ANALYSTS.neutral,
-                ANALYSTS.judge: ANALYSTS.judge,
-            },
-        )
-        workflow.add_conditional_edges(
-            ANALYSTS.safe,
-            self.conditional_logic.should_continue_risk_analysis,
-            {
-                ANALYSTS.aggressive: ANALYSTS.aggressive,
-                ANALYSTS.expected: ANALYSTS.expected,
-                ANALYSTS.neutral: ANALYSTS.neutral,
-                ANALYSTS.judge: ANALYSTS.judge,
-            },
-        )
-        workflow.add_conditional_edges(
-            ANALYSTS.expected,
-            self.conditional_logic.should_continue_risk_analysis,
-            {
-                ANALYSTS.aggressive: ANALYSTS.aggressive,
-                ANALYSTS.safe: ANALYSTS.safe,
-                ANALYSTS.neutral: ANALYSTS.neutral,
-                ANALYSTS.judge: ANALYSTS.judge,
-            },
-        )
-        workflow.add_conditional_edges(
-            ANALYSTS.neutral,
-            self.conditional_logic.should_continue_risk_analysis,
-            {
-                ANALYSTS.aggressive: ANALYSTS.aggressive,
-                ANALYSTS.safe: ANALYSTS.safe,
-                ANALYSTS.neutral: ANALYSTS.neutral,
-                ANALYSTS.judge: ANALYSTS.judge,
-            },
-        )
-
-        workflow.add_edge(ANALYSTS.judge, "synthesis")
-        workflow.add_edge("synthesis", END)
+        workflow.add_edge("Parallel Analysts", GENERALIST_NODE)
+        workflow.add_edge(GENERALIST_NODE, END)
 
         return workflow.compile()

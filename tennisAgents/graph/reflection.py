@@ -1,11 +1,12 @@
 from typing import Dict, Any
+
 from langchain_openai import ChatOpenAI
 
-from tennisAgents.utils.enumerations import ANALYSTS, REPORTS, STATE
+from tennisAgents.utils.enumerations import REPORTS, STATE
 
 
 class Reflector:
-    """Encargado de reflexionar sobre decisiones y actualizar la memoria."""
+    """Encargado de reflexionar sobre decisiones."""
 
     def __init__(self, quick_thinking_llm: ChatOpenAI):
         """Inicializa el reflector con un modelo LLM."""
@@ -46,12 +47,12 @@ Recibirás también información objetiva del contexto del partido (noticias, es
     def _extract_current_situation(self, current_state: Dict[str, Any]) -> str:
         """Extrae la situación actual del contexto del partido."""
         return (
-            f"{current_state[REPORTS.players_report]}\n\n"
-            f"{current_state[REPORTS.news_report]}\n\n"
-            f"{current_state[REPORTS.sentiment_report]}\n\n"
-            f"{current_state[REPORTS.tournament_report]}\n\n"
-            f"{current_state[REPORTS.odds_report]}\n\n"
-            f"{current_state[REPORTS.weather_report]}\n\n"
+            f"{current_state.get(REPORTS.players_report, '')}\n\n"
+            f"{current_state.get(REPORTS.news_report, '')}\n\n"
+            f"{current_state.get(REPORTS.sentiment_report, '')}\n\n"
+            f"{current_state.get(REPORTS.tournament_report, '')}\n\n"
+            f"{current_state.get(REPORTS.odds_report, '')}\n\n"
+            f"{current_state.get(REPORTS.weather_report, '')}\n\n"
         )
 
     def _reflect_on_component(
@@ -62,18 +63,13 @@ Recibirás también información objetiva del contexto del partido (noticias, es
             ("system", self.reflection_system_prompt),
             (
                 "human",
-                f"Resultado: {returns_losses}\n\nPredicci\u00f3n / Decisi\u00f3n: {decision_info}\n\nContexto objetivo del partido: {situation}",
+                f"Resultado: {returns_losses}\n\nPredicción / Decisión: {decision_info}\n\nContexto objetivo del partido: {situation}",
             ),
         ]
-        result = self.quick_thinking_llm.invoke(messages).content
-        return result
+        return self.quick_thinking_llm.invoke(messages).content
 
-    def reflect_risk_manager(self, current_state, returns_losses, risk_memory):
-        """Reflexiona sobre la decisión del juez de riesgo y actualiza su memoria."""
+    def reflect_decision(self, current_state, returns_losses):
+        """Reflexiona sobre la decisión final del generalista."""
         situation = self._extract_current_situation(current_state)
-        judge_decision = current_state[STATE.risk_debate_state][STATE.judge_decision]
-
-        result = self._reflect_on_component(
-            ANALYSTS.judge, judge_decision, situation, returns_losses
-        )
-        risk_memory.add_situations([(situation, result)])
+        decision = current_state.get(STATE.final_bet_decision, "")
+        return self._reflect_on_component("Generalist LLM", decision, situation, returns_losses)

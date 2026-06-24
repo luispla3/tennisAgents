@@ -13,7 +13,6 @@ from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents import *
 from tennisAgents.default_config import DEFAULT_CONFIG
-from tennisAgents.agents.utils.memory import TennisSituationMemory
 from tennisAgents.dataflows.config import set_config
 from tennisAgents.utils.enumerations import *
 
@@ -115,89 +114,15 @@ class TennisAgentsGraph:
 
         self.toolkit = Toolkit(config=self.config)
 
-        self.risk_analyst_memory = TennisSituationMemory("risk_analyst_memory", self.config)
-
         self.tool_nodes = self._create_tool_nodes()
 
-        # Crear LLMs adicionales para risk managers desde OpenRouter o local (Ollama)
-        self.additional_risk_manager_llms = []
-        openrouter_api_key = self.config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
-        openrouter_base_url = self.config.get("openrouter_base_url", "https://openrouter.ai/api/v1")
-        additional_managers_config = self.config.get("additional_risk_managers", [
-            {"name": "GPT-5.1", "model": "openai/gpt-5.1"},
-            {"name": "Gemini-3-Pro", "model": "google/gemini-3-pro-preview"},
-            {"name": "Grok-4", "model": "x-ai/grok-4"},
-        ])
-        
-        if additional_managers_config:
-            for manager_config in additional_managers_config:
-                manager_name = manager_config.get("name")
-                model_name = manager_config.get("model")
-                is_local = manager_config.get("is_local", False)
-                
-                try:
-                    if is_local:
-                        # Crear LLM local con Ollama
-                        local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
-                        local_api_key = self.config.get("local_api_key", "ollama")
-                        
-                        if self.debug:
-                            print(f"DEBUG: Creando Risk Manager local - URL: {local_base_url}, Model: {model_name}, is_local: {is_local}")
-                        
-                        base_url_cleaned = local_base_url.replace("/v1", "") if local_base_url.endswith("/v1") else local_base_url
-                        additional_llm = ChatOllama(
-                            model=model_name,
-                            base_url=base_url_cleaned,
-                            temperature=0.1,
-                            num_ctx=16384,
-                            num_predict=4096
-                        )
-                        # Verificar que el LLM tiene la base_url correcta
-                        if self.debug:
-                            actual_base_url = getattr(additional_llm, 'openai_api_base', None) or getattr(additional_llm, 'base_url', None)
-                            print(f"DEBUG: LLM creado - base_url configurada: {actual_base_url}")
-                        
-                        self.additional_risk_manager_llms.append((manager_name, additional_llm))
-                        if self.debug:
-                            print(f"✓ Risk Manager local creado: {manager_name} ({model_name}) en {local_base_url}")
-                            
-                    elif openrouter_api_key:
-                        # Crear LLM con OpenRouter
-                        additional_llm = ChatOpenAI(
-                            model=model_name,
-                            base_url=openrouter_base_url,
-                            api_key=openrouter_api_key,
-                            default_headers={
-                                "HTTP-Referer": "https://github.com/tennisAgents",
-                                "X-Title": "Tennis Agents"
-                            }
-                        )
-                        self.additional_risk_manager_llms.append((manager_name, additional_llm))
-                        if self.debug:
-                            print(f"✓ Risk Manager OpenRouter creado: {manager_name} ({model_name})")
-                    else:
-                        if self.debug:
-                            print(f"⚠ Warning: No se pudo crear risk manager {manager_name} - OPENROUTER_API_KEY no configurada y no es local.")
-                            
-                except Exception as e:
-                    # Si falla crear un LLM adicional, continuar sin él
-                    if self.debug:
-                        print(f"⚠ Warning: No se pudo crear risk manager adicional {manager_name}: {e}")
-        elif self.debug and additional_managers_config:
-            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los risk managers de OpenRouter no se crearán.")
-
-        self.conditional_logic = ConditionalLogic(
-            max_debate_rounds=self.config.get("max_debate_rounds", 1),
-            max_risk_discuss_rounds=self.config.get("max_risk_discuss_rounds", 1)
-        )
+        self.conditional_logic = ConditionalLogic()
         self.graph_setup = GraphSetup(
             self.quick_thinking_llm,
             self.deep_thinking_llm,
             self.toolkit,
             self.tool_nodes,
-            self.risk_analyst_memory,
             self.conditional_logic,
-            additional_risk_manager_llms=self.additional_risk_manager_llms,
             local_llm=self.local_llm,
         )
 
@@ -297,18 +222,6 @@ class TennisAgentsGraph:
         STATE.tournament: final_state[STATE.tournament],
         STATE.wallet_balance: final_state[STATE.wallet_balance],
         STATE.messages: final_state[STATE.messages],
-        STATE.risk_debate_state: {
-            HISTORYS.aggressive_history: final_state[STATE.risk_debate_state].get(HISTORYS.aggressive_history, ""),
-            HISTORYS.safe_history: final_state[STATE.risk_debate_state].get(HISTORYS.safe_history, ""),
-            HISTORYS.neutral_history: final_state[STATE.risk_debate_state].get(HISTORYS.neutral_history, ""),
-            HISTORYS.history: final_state[STATE.risk_debate_state].get(HISTORYS.history, ""),
-            STATE.latest_speaker: final_state[STATE.risk_debate_state].get(STATE.latest_speaker, ""),
-            RESPONSES.aggressive: final_state[STATE.risk_debate_state].get(RESPONSES.aggressive, ""),
-            RESPONSES.safe: final_state[STATE.risk_debate_state].get(RESPONSES.safe, ""),
-            RESPONSES.neutral: final_state[STATE.risk_debate_state].get(RESPONSES.neutral, ""),
-            STATE.judge_decision: final_state[STATE.risk_debate_state].get(STATE.judge_decision, ""),
-            STATE.count: final_state[STATE.risk_debate_state].get(STATE.count, 0),
-        },
         "reports": {
             REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
             REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
@@ -319,7 +232,6 @@ class TennisAgentsGraph:
             REPORTS.match_live_report: final_state.get(REPORTS.match_live_report, ""),
         },
         STATE.final_bet_decision: final_state.get(STATE.final_bet_decision, ""),
-        STATE.individual_risk_manager_decisions: final_state.get(STATE.individual_risk_manager_decisions, {}),
     }
 
         # Use configuration for results directory, fallback to 'results' in current working directory
@@ -377,9 +289,8 @@ class TennisAgentsGraph:
             json.dump(self.log_states_dict, f, indent=4)
 
     def reflect_and_remember(self, returns):
-        self.reflector.reflect_risk_manager(
-            self.curr_state, returns, self.risk_analyst_memory
-        )
+        """Reflexiona sobre la decisión final y registra las lecciones aprendidas."""
+        self.reflector.reflect_decision(self.curr_state, returns)
 
     def process_signal(self, full_signal):
         return self.signal_processor.process_signal(full_signal)

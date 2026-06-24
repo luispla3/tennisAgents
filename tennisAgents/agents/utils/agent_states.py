@@ -1,136 +1,21 @@
-from typing import Annotated, Dict
-from typing_extensions import TypedDict
+from typing import Annotated, Optional
+
 from langgraph.graph import MessagesState
-from typing import Optional
-
-
-# Estado del debate de gestión de riesgo
-class RiskDebateState(TypedDict):
-    aggressive_history: Annotated[
-        str, "Aggressive Agent's Conversation history"
-    ]  # Conversation history
-
-    safe_history: Annotated[
-        str, "Safe Agent's Conversation history"
-    ]  # Conversation history
-
-    neutral_history: Annotated[
-        str, "Neutral Agent's Conversation history"
-    ]  # Conversation history
-
-    expected_history: Annotated[
-        str, "Expected Value Agent's Conversation history"
-    ]  # Conversation history
-
-    history: Annotated[
-        str, "Conversation history"
-    ]  # Conversation history
-
-    latest_speaker: Annotated[
-        str, "Analyst that spoke last"
-    ]
-
-    current_aggressive_response: Annotated[
-        str, "Latest response by the aggressive analyst"
-    ]  # Last response
-
-    current_safe_response: Annotated[
-        str, "Latest response by the safe analyst"
-    ]  # Last response
-
-    current_neutral_response: Annotated[
-        str, "Latest response by the neutral analyst"
-    ]  # Last response
-
-    current_expected_response: Annotated[
-        str, "Latest response by the expected value analyst"
-    ]  # Last response
-
-    judge_decision: Annotated[
-        str, "Judge's decision"
-    ]
-
-    count: Annotated[
-        int, "Length of the current conversation"
-    ]  # Conversation length
-
 
 
 class AgentState(MessagesState):
-    match_date: Annotated[
-        str, "Fecha del partido"
-    ]
+    match_date: Annotated[str, "Fecha del partido"]
+    player_of_interest: Annotated[str, "Nombre del jugador principal"]
+    opponent: Annotated[str, "Nombre del oponente"]
+    tournament: Annotated[str, "Nombre del torneo"]
+    wallet_balance: Annotated[float, "Saldo disponible de la cartera para apostar"]
 
-    player_of_interest: Annotated[
-        str, "Nombre del jugador principal"
-    ]
+    news_report: Annotated[Optional[str], "Informe de noticias"]
+    odds_report: Annotated[Optional[str], "Informe de cuotas"]
+    players_report: Annotated[Optional[str], "Informe de jugadores"]
+    sentiment_report: Annotated[Optional[str], "Informe de redes sociales"]
+    weather_report: Annotated[Optional[str], "Informe de clima"]
+    tournament_report: Annotated[Optional[str], "Informe de torneo"]
+    match_live_report: Annotated[Optional[str], "Informe de partido en vivo"]
 
-    opponent: Annotated[
-        str, "Nombre del oponente"
-    ]
-
-    tournament: Annotated[
-        str, "Nombre del torneo"
-    ]
-
-    wallet_balance: Annotated[
-        float, "Saldo disponible de la cartera para apostar"
-    ]
-
-    # Todos los REPORTS
-    news_report: Annotated[
-        Optional[str], "Informe de noticias"
-    ]
-
-    odds_report: Annotated[
-        Optional[str], "Informe de cuotas"
-    ]
-
-    players_report: Annotated[
-        Optional[str], "Informe de jugadores"
-    ]
-
-    sentiment_report: Annotated[
-        Optional[str], "Informe de redes sociales"
-    ]
-
-    weather_report: Annotated[
-        Optional[str], "Informe de clima"
-    ]
-
-    tournament_report: Annotated[
-        Optional[str], "Informe de torneo"
-    ]
-
-    match_live_report: Annotated[
-        Optional[str], "Informe de partido en vivo"
-    ]
-
-
-    #creo que no se usa
-    risk_analysis_report: Annotated[
-        Optional[str], "Informe de análisis de riesgo"
-    ]
-
-    # Estado del debate de riesgo
-    risk_debate_state: Annotated[
-        RiskDebateState, "Estado del debate de gestión de riesgo"
-    ]
-
-
-    # Decisiones individuales de cada MANAGER
-    individual_risk_manager_decisions: Annotated[
-        Optional[Dict[str, str]], "Decisiones individuales de cada manager por modelo"
-    ]
-
-
-    # Decisión final
-    final_bet_decision: Annotated[
-        Optional[str], "Decisión final de apuesta"
-    ]
-    
-
-    # Informe final sintetizado
-    final_response: Annotated[
-        Optional[str], "Informe final sintetizado para el usuario"
-    ]
+    final_bet_decision: Annotated[Optional[str], "Decisión final de apuesta"]

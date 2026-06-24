@@ -59,10 +59,7 @@ class MessageBuffer:
             "Weather Analyst": "pending",
             "Match Live Analyst": "pending",
             "Odds Analyst": "pending",
-            "Aggressive Analyst": "pending",
-            "Safe Analyst": "pending",
-            "Neutral Analyst": "pending",
-            "Expected Analyst": "pending",
+            "Generalist LLM": "pending",
         }
         self.current_agent = None
         self.report_sections = {
@@ -73,7 +70,6 @@ class MessageBuffer:
             "tournament_report": None,
             "weather_report": None,
             "match_live_report": None,
-            "risk_analysis_report": None,
             "final_bet_decision": None,
         }
 
@@ -116,7 +112,6 @@ class MessageBuffer:
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
                 "match_live_report": "Match Live Analysis",
-                "risk_analysis_report": "Risk Analysis",
                 "final_bet_decision": "Final Bet Decision",
             }
             self.current_report = (
@@ -171,11 +166,6 @@ class MessageBuffer:
                 report_parts.append(
                     f"### Match Live Analysis\n{self.report_sections['match_live_report']}"
                 )
-
-        # Risk Management Team Report
-        if self.report_sections["risk_analysis_report"]:
-            report_parts.append("## Risk Management Analysis")
-            report_parts.append(f"{self.report_sections['risk_analysis_report']}")
 
         # Final Bet Decision
         if self.report_sections["final_bet_decision"]:
@@ -245,11 +235,8 @@ def update_display(layout, spinner_text=None):
             "Weather Analyst",
             "Match Live Analyst",
         ],
-        "Risk Management": [
-            "Aggressive Analyst",
-            "Safe Analyst",
-            "Neutral Analyst",
-            "Expected Analyst",
+        "Decision Team": [
+            "Generalist LLM",
         ],
     }
 
@@ -429,7 +416,7 @@ def get_user_selections():
     """
     welcome_content += "[bold green]            TennisAgents: Multi-Agents LLM Tennis Betting Framework - CLI[/bold green]\n\n"
     welcome_content += "[bold]Workflow Steps:[/bold]\n"
-    welcome_content += "I. Analyst Team → II. Risk Management → III. Final Bet Decision\n\n"
+    welcome_content += "I. Analyst Team → II. Generalist LLM → Final Bet Decision\n\n"
     welcome_content += (
         "[dim]Built by [Luis Planella Hernandez](https://github.com/luispla3) &\n[Eduard Gil Magraner](https://github.com/EduardGilM)[/dim]"
     )
@@ -499,26 +486,18 @@ def get_user_selections():
         f"[green]Selected analysts:[/green] {', '.join(analyst.value for analyst in selected_analysts)}"
     )
 
-    # Step 6: Research depth
+    # Step 6: OpenAI backend
     console.print(
         create_question_box(
-            "Step 6: Research Depth", "Select your research depth level"
-        )
-    )
-    selected_research_depth = select_research_depth()
-
-    # Step 7: OpenAI backend
-    console.print(
-        create_question_box(
-            "Step 7: OpenAI backend", "Select which service to talk to"
+            "Step 6: LLM backend", "Select which service to talk to"
         )
     )
     selected_llm_provider, backend_url = select_llm_provider()
     
-    # Step 8: Thinking agents
+    # Step 7: Thinking agents
     console.print(
         create_question_box(
-            "Step 8: Thinking Agents", "Select your thinking agents for analysis"
+            "Step 7: Thinking Agents", "Select your thinking agents for analysis"
         )
     )
     selected_shallow_thinker = select_shallow_thinking_agent(selected_llm_provider)
@@ -531,7 +510,6 @@ def get_user_selections():
         "analysis_date": analysis_date,
         "wallet_balance": wallet_balance,
         "analysts": selected_analysts,
-        "research_depth": selected_research_depth,
         "llm_provider": selected_llm_provider.lower(),
         "backend_url": backend_url,
         "shallow_thinker": selected_shallow_thinker,
@@ -632,65 +610,6 @@ def display_complete_report(final_state):
                 padding=(1, 2),
             )
         )
-
-    # II. Risk Management Team Reports
-    if final_state.get("risk_debate_state"):
-        risk_reports = []
-        risk_state = final_state["risk_debate_state"]
-
-        # Aggressive Analyst Analysis
-        if risk_state.get("aggressive_history"):
-            risk_reports.append(
-                Panel(
-                    Markdown(risk_state["aggressive_history"]),
-                    title="Aggressive Analyst",
-                    border_style="blue",
-                    padding=(1, 2),
-                )
-            )
-
-        # Safe Analyst Analysis
-        if risk_state.get("safe_history"):
-            risk_reports.append(
-                Panel(
-                    Markdown(risk_state["safe_history"]),
-                    title="Safe Analyst",
-                    border_style="blue",
-                    padding=(1, 2),
-                )
-            )
-
-        # Neutral Analyst Analysis
-        if risk_state.get("neutral_history"):
-            risk_reports.append(
-                Panel(
-                    Markdown(risk_state["neutral_history"]),
-                    title="Neutral Analyst",
-                    border_style="blue",
-                    padding=(1, 2),
-                )
-            )
-
-        # Expected Analyst Analysis
-        if risk_state.get("expected_history"):
-            risk_reports.append(
-                Panel(
-                    Markdown(risk_state["expected_history"]),
-                    title="Expected Analyst",
-                    border_style="blue",
-                    padding=(1, 2),
-                )
-            )
-
-        if risk_reports:
-            console.print(
-                Panel(
-                    Columns(risk_reports, equal=True, expand=True),
-                    title="II. Risk Management Team Analysis",
-                    border_style="red",
-                    padding=(1, 2),
-                )
-            )
 
     # III. Final Bet Decision
     if final_state.get("final_bet_decision"):
@@ -794,8 +713,6 @@ def run_analysis():
 
     # Create config with selected research depth
     config = DEFAULT_CONFIG.copy()
-    config["max_debate_rounds"] = selections["research_depth"]
-    config["max_risk_discuss_rounds"] = selections["research_depth"]
     config["quick_think_llm"] = selections["shallow_thinker"]
     config["deep_think_llm"] = selections["deep_thinker"]
     config["backend_url"] = selections["backend_url"]
@@ -1016,86 +933,13 @@ def run_analysis():
                         "match_live_report", chunk["match_live_report"]
                     )
                     message_buffer.update_agent_status("Match Live Analyst", "completed")
-                    # Set first risk management analyst to in_progress
-                    message_buffer.update_agent_status("Aggressive Analyst", "in_progress")
+                    message_buffer.update_agent_status("Generalist LLM", "in_progress")
 
-                # Risk Management Team - Handle Risk Debate State
-                if "risk_debate_state" in chunk and chunk["risk_debate_state"]:
-                    risk_state = chunk["risk_debate_state"]
-
-                    # Update Aggressive Analyst status and report
-                    if "aggressive_history" in risk_state and risk_state["aggressive_history"]:
-                        message_buffer.update_agent_status("Aggressive Analyst", "in_progress")
-                        # Extract latest aggressive response
-                        aggressive_responses = risk_state["aggressive_history"].split("\n")
-                        latest_aggressive = aggressive_responses[-1] if aggressive_responses else ""
-                        if latest_aggressive:
-                            message_buffer.add_message("Reasoning", f"Aggressive Analyst: {latest_aggressive}")
-
-                    # Update Safe Analyst status and report
-                    if "safe_history" in risk_state and risk_state["safe_history"]:
-                        message_buffer.update_agent_status("Safe Analyst", "in_progress")
-                        # Extract latest safe response
-                        safe_responses = risk_state["safe_history"].split("\n")
-                        latest_safe = safe_responses[-1] if safe_responses else ""
-                        if latest_safe:
-                            message_buffer.add_message("Reasoning", f"Safe Analyst: {latest_safe}")
-
-                    # Update Neutral Analyst status and report
-                    if "neutral_history" in risk_state and risk_state["neutral_history"]:
-                        message_buffer.update_agent_status("Neutral Analyst", "in_progress")
-                        # Extract latest neutral response
-                        neutral_responses = risk_state["neutral_history"].split("\n")
-                        latest_neutral = neutral_responses[-1] if neutral_responses else ""
-                        if latest_neutral:
-                            message_buffer.add_message("Reasoning", f"Neutral Analyst: {latest_neutral}")
-
-                    # Update Expected Analyst status and report
-                    if "expected_history" in risk_state and risk_state["expected_history"]:
-                        message_buffer.update_agent_status("Expected Analyst", "in_progress")
-                        # Extract latest expected response
-                        expected_responses = risk_state["expected_history"].split("\n")
-                        latest_expected = expected_responses[-1] if expected_responses else ""
-                        if latest_expected:
-                            message_buffer.add_message("Reasoning", f"Expected Analyst: {latest_expected}")
-
-                    # Update risk analysis report with all analysts' input
-                    risk_report_parts = []
-                    if risk_state.get("aggressive_history"):
-                        risk_report_parts.append(f"### Aggressive Analyst Analysis\n{risk_state['aggressive_history']}")
-                    if risk_state.get("safe_history"):
-                        risk_report_parts.append(f"### Safe Analyst Analysis\n{risk_state['safe_history']}")
-                    if risk_state.get("neutral_history"):
-                        risk_report_parts.append(f"### Neutral Analyst Analysis\n{risk_state['neutral_history']}")
-                    if risk_state.get("expected_history"):
-                        risk_report_parts.append(f"### Expected Analyst Analysis\n{risk_state['expected_history']}")
-                    
-                    if risk_report_parts:
-                        message_buffer.update_report_section("risk_analysis_report", "\n\n".join(risk_report_parts))
-
-                    # If all risk analysts have provided input, mark them as completed
-                    if all(key in risk_state for key in ["aggressive_history", "safe_history", "neutral_history", "expected_history"]):
-                        message_buffer.update_agent_status("Aggressive Analyst", "completed")
-                        message_buffer.update_agent_status("Safe Analyst", "completed")
-                        message_buffer.update_agent_status("Neutral Analyst", "completed")
-                        message_buffer.update_agent_status("Expected Analyst", "completed")
-
-                # Final Bet Decision
                 if "final_bet_decision" in chunk and chunk["final_bet_decision"]:
                     message_buffer.update_report_section(
                         "final_bet_decision", chunk["final_bet_decision"]
                     )
-
-                # Individual Risk Manager Decisions
-                if "individual_risk_manager_decisions" in chunk and chunk["individual_risk_manager_decisions"]:
-                    individual_decisions = chunk["individual_risk_manager_decisions"]
-                    if isinstance(individual_decisions, dict):
-                        for model_name, decision in individual_decisions.items():
-                            # Sanitize model name for filename
-                            safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
-                            file_name = f"final_bet_decision_{safe_model_name}.md"
-                            with open(report_dir / file_name, "w", encoding="utf-8") as f:
-                                f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
+                    message_buffer.update_agent_status("Generalist LLM", "completed")
 
                 # Update the display
                 update_display(layout)
@@ -1117,17 +961,6 @@ def run_analysis():
         for section in message_buffer.report_sections.keys():
             if section in final_state:
                 message_buffer.update_report_section(section, final_state[section])
-
-        # Save individual risk manager decisions if they exist
-        if "individual_risk_manager_decisions" in final_state and final_state["individual_risk_manager_decisions"]:
-            individual_decisions = final_state["individual_risk_manager_decisions"]
-            if isinstance(individual_decisions, dict):
-                for model_name, decision in individual_decisions.items():
-                    # Sanitize model name for filename
-                    safe_model_name = model_name.replace("/", "_").replace("\\", "_").replace(":", "_")
-                    file_name = f"final_bet_decision_{safe_model_name}.md"
-                    with open(report_dir / file_name, "w", encoding="utf-8") as f:
-                        f.write(f"# Final Bet Decision - {model_name}\n\n{decision}")
 
         # Display the complete final report
         display_complete_report(final_state)

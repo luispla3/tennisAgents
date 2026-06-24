@@ -131,37 +131,6 @@ def select_analysts() -> List[AnalystType]:
     return choices
 
 
-def select_research_depth() -> int:
-    """Select research depth using an interactive selection."""
-
-    # Define research depth options with their corresponding values
-    DEPTH_OPTIONS = [
-        ("Shallow - Quick research, few debate and strategy discussion rounds", 1),
-        ("Medium - Middle ground, moderate debate rounds and strategy discussion", 3),
-        ("Deep - Comprehensive research, in depth debate and strategy discussion", 5),
-    ]
-
-    choice = questionary.select(
-        "Select Your [Research Depth]:",
-        choices=[
-            questionary.Choice(display, value=value) for display, value in DEPTH_OPTIONS
-        ],
-        instruction="\n- Use arrow keys to navigate\n- Press Enter to select",
-        style=questionary.Style(
-            [
-                ("selected", "fg:yellow noinherit"),
-                ("highlighted", "fg:yellow noinherit"),
-                ("pointer", "fg:yellow noinherit"),
-            ]
-        ),
-    ).ask()
-
-    if choice is None:
-        console.print("\n[red]No research depth selected. Exiting...[/red]")
-        exit(1)
-
-    return choice
-
 
 def select_shallow_thinking_agent(provider) -> str:
     """Select shallow thinking llm engine using an interactive selection."""

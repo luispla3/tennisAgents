@@ -217,9 +217,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         return;
                     }
 
-                    const finalResponse = data.final_response;
+                    const finalDecision = data.final_bet_decision;
                     
-                    if (!finalResponse) {
+                    if (!finalDecision) {
                         summaryContainer.innerHTML = `
                             <div class="empty-state" style="padding: 1rem;">
                                 <p>No hay resumen disponible para este partido.</p>
@@ -231,14 +231,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Render markdown using marked if available, otherwise plain text
                     let contentHtml = '';
                     if (typeof marked !== 'undefined') {
-                        contentHtml = marked.parse(finalResponse);
+                        contentHtml = marked.parse(finalDecision);
                     } else {
-                        contentHtml = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(finalResponse)}</pre>`;
+                        contentHtml = `<pre style="white-space: pre-wrap; font-family: inherit;">${escapeHtml(finalDecision)}</pre>`;
                     }
 
                     summaryContainer.innerHTML = `
                         <div class="prediction-item summary-content" style="background: linear-gradient(135deg, rgba(255, 107, 53, 0.08) 0%, rgba(255, 184, 77, 0.05) 100%); border: 1px solid rgba(255, 107, 53, 0.2); border-radius: 12px; padding: 1.5rem; margin-top: 1rem; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);">
-                            <h4 class="prediction-title" style="color: var(--accent-primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(255, 107, 53, 0.3); padding-bottom: 0.75rem;">Síntesis Final de Apuestas</h4>
+                            <h4 class="prediction-title" style="color: var(--accent-primary); margin-bottom: 1rem; font-size: 1.1rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 2px solid rgba(255, 107, 53, 0.3); padding-bottom: 0.75rem;">Decisión Final de Apuestas</h4>
                             <div class="markdown-body" style="font-size: 0.9rem; line-height: 1.7; color: var(--text-primary);">${contentHtml}</div>
                         </div>
                     `;
