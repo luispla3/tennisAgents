@@ -31,6 +31,7 @@ except ImportError:
 
 from tennisAgents.graph.trading_graph import TennisAgentsGraph
 from tennisAgents.default_config import DEFAULT_CONFIG
+from tennisAgents.dataflows.config import set_config
 from cli.models import AnalystType
 from cli.utils import *
 from tennisAgents.utils.rag_manager import initialize_rag, RAGManager
@@ -733,6 +734,8 @@ def run_analysis():
     report_dir.mkdir(parents=True, exist_ok=True)
     log_file = results_dir / "message_tool.log"
     log_file.touch(exist_ok=True)
+    config["generalist_turns_log"] = str(results_dir / "generalist_turns.jsonl")
+    set_config(config)
 
     def save_message_decorator(obj, func_name):
         func = getattr(obj, func_name)

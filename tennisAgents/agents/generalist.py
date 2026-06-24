@@ -1,4 +1,7 @@
 import json
+import re
+from datetime import datetime
+from pathlib import Path
 from typing import Annotated
 
 from langchain_core.messages import AIMessage
@@ -51,6 +54,8 @@ def Close(
 
 GENERALIST_TOOLS = [Bet, Wait, Close]
 GENERALIST_TOOL_MAP = {t.name: t for t in GENERALIST_TOOLS}
+GENERALIST_TOOL_MAP.update({t.name.lower(): t for t in GENERALIST_TOOLS})
+REPORT_ORDER = (REPORTS.players_report, REPORTS.odds_report, REPORTS.match_live_report, REPORTS.news_report, REPORTS.sentiment_report, REPORTS.tournament_report, REPORTS.weather_report)
 
 
 def _emit_progress(event: dict) -> None:
@@ -90,11 +95,106 @@ def _fallback_wait(match_id: str) -> AIMessage:
     return AIMessage(content="", tool_calls=[{"name": "Wait", "args": {"match_id": match_id, "rationale": "El modelo no ejecutó una tool call válida; se espera por seguridad.", "confidence": 0, "next_trigger": "Nueva señal clara de valor."}, "id": "fallback_wait"}])
 
 
-def _execute_tool_call(tool_call) -> str:
+def _execute_tool_call(tool_call) -> dict:
     call = _call_data(tool_call)
     name, args = call["name"], call.get("args", {})
     result = GENERALIST_TOOL_MAP[name].invoke(args)
-    return json.dumps({"tool": name, "args": args, "result": json.loads(result)}, ensure_ascii=False, indent=2)
+    return json.loads(result)
+
+
+def _slug(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-") or "unknown"
+
+
+def _num(value, default=None):
+    try:
+        return float(str(value).replace(",", "."))
+    except (TypeError, ValueError):
+        return default
+
+
+def _market_snapshot(state: dict, captured_at: str) -> dict:
+    markets, name, options = [], "", []
+    for line in (state.get(REPORTS.odds_report) or "").splitlines():
+        heading = re.match(r"####\s+(.+)", line)
+        odd = re.match(r".*\*\*(.+?)\*\*:\s*([0-9]+(?:[.,][0-9]+)?)", line)
+        if heading:
+            if name:
+                markets.append({"market": name, "options": options})
+            name, options = heading.group(1).strip(), []
+        elif name and odd:
+            options.append({"option": odd.group(1).strip(), "odds": _num(odd.group(2), 0.0)})
+    if name:
+        markets.append({"market": name, "options": options})
+    return {"source": "betfair", "captured_at": captured_at, "markets": markets}
+
+
+def _find_odds(snapshot: dict, market: str, option: str):
+    market_slug, option_slug = _slug(market), _slug(option)
+    matches = lambda value: (s := _slug(value)) == option_slug or s in option_slug or option_slug in s
+    for m in snapshot["markets"]:
+        if not market or _slug(m["market"]) == market_slug:
+            for o in m["options"]:
+                if matches(o["option"]):
+                    return o["odds"]
+    for m in snapshot["markets"]:
+        for o in m["options"]:
+            if matches(o["option"]):
+                return o["odds"]
+    return None
+
+
+def _target_call(tool_call, snapshot: dict) -> dict:
+    call = _call_data(tool_call)
+    args = call.get("args", {})
+    name = call["name"].lower()
+    reason = args.get("reason") or args.get("rationale") or ""
+    if name == "bet":
+        option, market = args.get("option") or args.get("selection", ""), args.get("market", "")
+        return {"name": "bet", "arguments": {"market": market, "option": option, "stake": _num(args.get("stake"), 0.0), "odds": _num(args.get("odds"), _find_odds(snapshot, market, option)), "reason": reason}}
+    if name == "close":
+        return {"name": "close", "arguments": {"position_id": args.get("position_id", ""), "close_percentage": _num(args.get("close_percentage"), 1.0), "reason": reason}}
+    return {"name": "wait", "arguments": {"reason": reason}}
+
+
+def _match_live_state(state: dict) -> dict:
+    report = state.get(REPORTS.match_live_report) or ""
+    score_match = re.search(r"\*\*Marcador por sets:\*\*\s*(.+)", report)
+    score = (state.get("score") or (score_match.group(1).strip() if score_match else ""))
+    return {"phase": state.get("phase") or ("live" if report else "pre_match"), "score": score, "current_set": state.get("current_set") or (len(score.split()) if score else None), "server": state.get("server", ""), "game_score": state.get("game_score", ""), "elapsed_minutes": state.get("elapsed_minutes")}
+
+
+def _turn_log(state: dict, tool_call) -> dict:
+    ts = datetime.now().astimezone().isoformat(timespec="seconds")
+    player, opponent, date = state.get(STATE.player_of_interest, ""), state.get(STATE.opponent, ""), state.get(STATE.match_date, "")
+    previous, positions = state.get("previous_actions") or [], state.get("open_positions") or []
+    step = int(state.get("step_index", len(previous)))
+    trajectory_id = f"match_{date}_{_slug(player)}_vs_{_slug(opponent)}"
+    wallet = _num(state.get(STATE.wallet_balance), 0.0)
+    snapshot = _market_snapshot(state, ts)
+    return {
+        "schema_version": "tennis_generalist_turn_v1",
+        "trajectory_id": trajectory_id,
+        "turn_id": f"{trajectory_id}_tick_{step:04d}",
+        "step_index": step,
+        "timestamp": ts,
+        "match": {"player_a": player, "player_b": opponent, "tournament": state.get(STATE.tournament, ""), "match_date": date},
+        "state": {**_match_live_state(state), "wallet_balance": wallet, "available_balance": _num(state.get("available_balance"), wallet), "previous_actions": previous, "open_positions": positions},
+        "input": {"reports": {key: state.get(key, "") for key in REPORT_ORDER}, "market_snapshot": snapshot},
+        "target": {"tool_call": _target_call(tool_call, snapshot)},
+        "outcome": {"accepted_for_training": True, "label_source": "teacher_model", "eventual_match_winner": state.get("eventual_match_winner"), "pnl_after_match": state.get("pnl_after_match")},
+    }
+
+
+def _save_turn_log(record: dict) -> None:
+    path = get_config().get("generalist_turns_log")
+    if path:
+        try:
+            Path(path).parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "a", encoding="utf-8") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
 
 
 def create_generalist_llm(deep_thinking_llm):
@@ -126,6 +226,7 @@ def create_generalist_llm(deep_thinking_llm):
             f"Torneo: {tournament}\n"
             f"Fecha: {match_date}\n"
             f"Saldo disponible: {wallet_balance}\n\n"
+            f"Informes de analistas:\n{analyst_reports}\n"
         )
 
         try:
@@ -137,14 +238,17 @@ def create_generalist_llm(deep_thinking_llm):
                 response = _fallback_wait(match_id)
             tool_call = response.tool_calls[0]
             response = AIMessage(content="", tool_calls=[tool_call])
-            decision = _execute_tool_call(tool_call)
+            _execute_tool_call(tool_call)
         except Exception as exc:
             response = _fallback_wait(match_id)
-            decision = _execute_tool_call(response.tool_calls[0])
-            decision = json.dumps({"tool": "Wait", "args": response.tool_calls[0]["args"], "error": str(exc), "result": json.loads(decision)["result"]}, ensure_ascii=False, indent=2)
-            print(f"✗ Error en generalist_llm: {exc}", flush=True)
+            tool_call = response.tool_calls[0]
+            _execute_tool_call(tool_call)
+            print(f"ERROR en generalist_llm: {exc}", flush=True)
 
-        print("✅ Decisión final generada por generalist_llm", flush=True)
+        print("Decision final generada por generalist_llm", flush=True)
+        record = _turn_log(state, tool_call)
+        _save_turn_log(record)
+        decision = json.dumps(record, ensure_ascii=False, indent=2)
         _emit_progress({"type": "generalist_complete", "decision": decision})
 
         return {

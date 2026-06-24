@@ -1,5 +1,7 @@
 # tennis_agents/graphs/signal_processing.py
 
+import json
+
 from langchain_openai import ChatOpenAI
 
 
@@ -20,6 +22,24 @@ class SignalProcessor:
         Returns:
             Decisión extraída: APOSTAR_JUGADOR_A, APOSTAR_JUGADOR_B, o NO_APOSTAR
         """
+        try:
+            data = json.loads(full_signal)
+            call = data.get("target", {}).get("tool_call", {})
+            name = call.get("name")
+            if name in {"wait", "close"}:
+                return "NO_APOSTAR"
+            if name == "bet":
+                option = str(call.get("arguments", {}).get("option", "")).lower()
+                match = data.get("match", {})
+                player_a = str(match.get("player_a", "")).lower()
+                player_b = str(match.get("player_b", "")).lower()
+                if player_a and (player_a in option or player_a.split()[-1] in option):
+                    return "APOSTAR_JUGADOR_A"
+                if player_b and (player_b in option or player_b.split()[-1] in option):
+                    return "APOSTAR_JUGADOR_B"
+        except Exception:
+            pass
+
         messages = [
             (
                 "system",

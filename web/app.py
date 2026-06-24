@@ -129,6 +129,7 @@ async def run_analysis(
             report_dir.mkdir(parents=True, exist_ok=True)
             log_file = results_dir / "message_tool.log"
             log_file.touch(exist_ok=True)
+            config["generalist_turns_log"] = str(results_dir / "generalist_turns.jsonl")
             
             # Initial status: In Progress
             status_file = results_dir / "status.json"
