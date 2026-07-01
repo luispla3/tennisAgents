@@ -11,11 +11,9 @@ class AgentState(MessagesState):
     wallet_balance: Annotated[float, "Saldo disponible de la cartera para apostar"]
 
     news_report: Annotated[Optional[str], "Informe de noticias"]
-    odds_report: Annotated[Optional[str], "Informe de cuotas"]
     players_report: Annotated[Optional[str], "Informe de jugadores"]
     sentiment_report: Annotated[Optional[str], "Informe de redes sociales"]
     weather_report: Annotated[Optional[str], "Informe de clima"]
     tournament_report: Annotated[Optional[str], "Informe de torneo"]
-    match_live_report: Annotated[Optional[str], "Informe de partido en vivo"]
 
     final_bet_decision: Annotated[Optional[str], "Decisión final de apuesta"]

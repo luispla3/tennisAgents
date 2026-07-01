@@ -152,7 +152,7 @@ async def run_analysis(
             else:
                 analyst_model_name = config.get("deep_think_llm", "unknown_model")
 
-            # Modelo principal usado por el resto de analistas (Players, Match Live, etc.)
+            # Modelo principal usado por el resto de analistas (Players, etc.)
             main_model_name = config.get("deep_think_llm", "unknown_model")
 
             def _sanitize_model_name(name: str) -> str:
@@ -196,23 +196,19 @@ async def run_analysis(
 
             analyst_display_names = {
                 "news": "News Analyst",
-                "odds": "Odds Analyst",
                 "players": "Players Analyst",
                 "social": "Social Analyst",
                 "tournament": "Tournament Analyst",
                 "weather": "Weather Analyst",
-                "match_live": "Match Live Analyst",
             }
 
             def save_report(section: str, content: str) -> None:
                 file_map = {
                     "news_report": f"news_report_{safe_analyst_model_name}.md",
-                    "odds_report": "odds_report.md",
                     "players_report": f"players_report_{safe_main_model_name}.md",
                     "sentiment_report": f"sentiment_report_{safe_analyst_model_name}.md",
                     "tournament_report": f"tournament_report_{safe_analyst_model_name}.md",
                     "weather_report": f"weather_report_{safe_analyst_model_name}.md",
-                    "match_live_report": f"match_live_report_{safe_main_model_name}.md",
                 }
                 file_name = file_map.get(section)
                 if not file_name:
@@ -414,11 +410,6 @@ async def run_analysis(
                     save_report("news_report", content)
                     yield json.dumps({"type": "report", "data": {"section": "news_report", "content": content}}) + "\n"
 
-                if "odds_report" in chunk and chunk["odds_report"]:
-                    content = chunk["odds_report"]
-                    save_report("odds_report", content)
-                    yield json.dumps({"type": "report", "data": {"section": "odds_report", "content": content}}) + "\n"
-
                 if "players_report" in chunk and chunk["players_report"]:
                     content = chunk["players_report"]
                     save_report("players_report", content)
@@ -438,11 +429,6 @@ async def run_analysis(
                     content = chunk["weather_report"]
                     save_report("weather_report", content)
                     yield json.dumps({"type": "report", "data": {"section": "weather_report", "content": content}}) + "\n"
-
-                if "match_live_report" in chunk and chunk["match_live_report"]:
-                    content = chunk["match_live_report"]
-                    save_report("match_live_report", content)
-                    yield json.dumps({"type": "report", "data": {"section": "match_live_report", "content": content}}) + "\n"
 
                 if "final_bet_decision" in chunk and chunk["final_bet_decision"]:
                     content = chunk["final_bet_decision"]

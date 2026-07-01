@@ -51,25 +51,6 @@ class Toolkit:
         return interface.get_news(query, curr_date)
 
 
-    # ODDS ANALYST TOOLS
-
-    
-    @tool
-    def get_betfair_odds_scraper(
-        player_name: Annotated[str, "Nombre del jugador a buscar (puede ser parcial)"]
-    ) -> str:
-        """
-        Obtiene cuotas reales de Betfair mediante web scraping directo.
-        
-        Busca un partido en vivo que incluya al jugador especificado
-        y extrae todas las cuotas disponibles de Betfair España en tiempo real.
-        
-        IMPORTANTE: Esta herramienta solo funciona para partidos que están actualmente
-        'En Juego' en Betfair. No requiere especificar el oponente o torneo.
-        """
-        return interface.get_betfair_odds_scraper(player_name)
-
-
     # PLAYERS ANALYST TOOLS
 
 
@@ -147,53 +128,3 @@ class Toolkit:
     ) -> str:
         """Obtiene la previsión meteorológica para el partido usando búsqueda web + LLM."""
         return interface.get_weather_forecast(tournament, fecha_hora, location)
-
-
-    # MATCH LIVE ANALYST TOOLS
-
-    
-    @tool
-    def get_match_live_data(
-        player_a: Annotated[str, "Nombre del primer jugador (puede ser parcial, ej: 'Alcaraz' o 'Djokovic')"],
-        player_b: Annotated[str, "Nombre del segundo jugador (puede ser parcial, ej: 'Sinner' o 'Medvedev')"],
-        tournament: Annotated[str, "Nombre del torneo (opcional, ej: 'Australian Open' o 'US Open')"]
-    ) -> str:
-        """
-        Obtiene datos en tiempo real del partido usando el scraper de Flashscore.
-
-        Sistema automático con Flashscore:
-        Esta herramienta obtiene y formatea datos en vivo directamente desde Flashscore:
-
-        1. Obtiene partidos en vivo y del día desde Flashscore
-        2. Busca el partido específico entre los dos jugadores (búsqueda flexible)
-        3. Extrae y formatea la información del partido en texto estructurado:
-           - Información básica (jugadores, torneo, fecha, estado)
-           - Marcador actual (sets ganados, desglose por sets, tie-breaks)
-           - Estadísticas detalladas por jugador (servicio, break points, puntos, rachas)
-        
-        Características:
-        - ✅ Datos en tiempo real: Actualización cada 1 segundo (TTL)
-        - ✅ Búsqueda flexible: Maneja variaciones de nombres y acentos
-        - ✅ Completo: Marcador actual y estadísticas detalladas
-        - ✅ Estructurado: Datos formateados listos para análisis
-        
-        Args:
-            player_a: Nombre del jugador (ej: "Carlos Alcaraz", "Alcaraz", o "Carlos")
-            player_b: Nombre del oponente (ej: "Jannik Sinner", "Sinner", o "Jannik")
-            tournament: Nombre del torneo (opcional, para filtrar si hay múltiples partidos)
-        
-        Returns:
-            Datos estructurados del partido con:
-            - Información básica del partido (torneo, jugadores, fecha, estado)
-            - Marcador actual y desglose por sets (con tie-breaks si aplica)
-            - Estadísticas detalladas de ambos jugadores:
-              * Servicio: aces, dobles faltas, primer servicio, segundo servicio
-              * Break points: ganados, total, efectividad
-              * Puntos y juegos: totales, ganados, rachas máximas
-            
-        Note:
-            - Los datos provienen del scraper de Flashscore
-            - Los nombres de jugadores en la API vienen en formato "Apellido, Nombre"
-            - Los datos vienen formateados y listos para que el agente los analice
-        """
-        return interface.get_match_live_data(player_a, player_b, tournament)

@@ -55,7 +55,7 @@ def Close(
 GENERALIST_TOOLS = [Bet, Wait, Close]
 GENERALIST_TOOL_MAP = {t.name: t for t in GENERALIST_TOOLS}
 GENERALIST_TOOL_MAP.update({t.name.lower(): t for t in GENERALIST_TOOLS})
-REPORT_ORDER = (REPORTS.players_report, REPORTS.odds_report, REPORTS.match_live_report, REPORTS.news_report, REPORTS.sentiment_report, REPORTS.tournament_report, REPORTS.weather_report)
+REPORT_ORDER = (REPORTS.players_report, REPORTS.news_report, REPORTS.sentiment_report, REPORTS.tournament_report, REPORTS.weather_report)
 
 
 def _emit_progress(event: dict) -> None:
@@ -73,12 +73,10 @@ def _collect_analyst_reports(state: dict) -> str:
     sections = []
     for key in (
         REPORTS.news_report,
-        REPORTS.odds_report,
         REPORTS.players_report,
         REPORTS.sentiment_report,
         REPORTS.tournament_report,
         REPORTS.weather_report,
-        REPORTS.match_live_report,
     ):
         content = state.get(key)
         if content:
@@ -114,34 +112,20 @@ def _num(value, default=None):
 
 
 def _market_snapshot(state: dict, captured_at: str) -> dict:
-    markets, name, options = [], "", []
-    for line in (state.get(REPORTS.odds_report) or "").splitlines():
-        heading = re.match(r"####\s+(.+)", line)
-        odd = re.match(r".*\*\*(.+?)\*\*:\s*([0-9]+(?:[.,][0-9]+)?)", line)
-        if heading:
-            if name:
-                markets.append({"market": name, "options": options})
-            name, options = heading.group(1).strip(), []
-        elif name and odd:
-            options.append({"option": odd.group(1).strip(), "odds": _num(odd.group(2), 0.0)})
-    if name:
-        markets.append({"market": name, "options": options})
-    return {"source": "betfair", "captured_at": captured_at, "markets": markets}
+    """Construye snapshot de mercado vacío; las cuotas ya no vienen de un analista dedicado."""
+    return {"source": "none", "captured_at": captured_at, "markets": []}
 
 
-def _find_odds(snapshot: dict, market: str, option: str):
-    market_slug, option_slug = _slug(market), _slug(option)
-    matches = lambda value: (s := _slug(value)) == option_slug or s in option_slug or option_slug in s
-    for m in snapshot["markets"]:
-        if not market or _slug(m["market"]) == market_slug:
-            for o in m["options"]:
-                if matches(o["option"]):
-                    return o["odds"]
-    for m in snapshot["markets"]:
-        for o in m["options"]:
-            if matches(o["option"]):
-                return o["odds"]
-    return None
+def _match_live_state(state: dict) -> dict:
+    """Extrae el estado en vivo disponible directamente en el state del grafo."""
+    return {
+        "phase": state.get("phase") or "pre_match",
+        "score": state.get("score") or "",
+        "current_set": state.get("current_set"),
+        "server": state.get("server", ""),
+        "game_score": state.get("game_score", ""),
+        "elapsed_minutes": state.get("elapsed_minutes"),
+    }
 
 
 def _target_call(tool_call, snapshot: dict) -> dict:
@@ -151,17 +135,10 @@ def _target_call(tool_call, snapshot: dict) -> dict:
     reason = args.get("reason") or args.get("rationale") or ""
     if name == "bet":
         option, market = args.get("option") or args.get("selection", ""), args.get("market", "")
-        return {"name": "bet", "arguments": {"market": market, "option": option, "stake": _num(args.get("stake"), 0.0), "odds": _num(args.get("odds"), _find_odds(snapshot, market, option)), "reason": reason}}
+        return {"name": "bet", "arguments": {"market": market, "option": option, "stake": _num(args.get("stake"), 0.0), "odds": _num(args.get("odds")), "reason": reason}}
     if name == "close":
         return {"name": "close", "arguments": {"position_id": args.get("position_id", ""), "close_percentage": _num(args.get("close_percentage"), 1.0), "reason": reason}}
     return {"name": "wait", "arguments": {"reason": reason}}
-
-
-def _match_live_state(state: dict) -> dict:
-    report = state.get(REPORTS.match_live_report) or ""
-    score_match = re.search(r"\*\*Marcador por sets:\*\*\s*(.+)", report)
-    score = (state.get("score") or (score_match.group(1).strip() if score_match else ""))
-    return {"phase": state.get("phase") or ("live" if report else "pre_match"), "score": score, "current_set": state.get("current_set") or (len(score.split()) if score else None), "server": state.get("server", ""), "game_score": state.get("game_score", ""), "elapsed_minutes": state.get("elapsed_minutes")}
 
 
 def _turn_log(state: dict, tool_call) -> dict:

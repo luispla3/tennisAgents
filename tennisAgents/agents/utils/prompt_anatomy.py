@@ -224,56 +224,6 @@ class TennisAnalystAnatomies:
         )
     
     @staticmethod
-    def odds_analyst() -> PromptAnatomy:
-        """Anatomía para el analista de cuotas"""
-        return PromptAnatomy(
-            role="Analista experto en cuotas y probabilidades de tenis con enfoque en análisis de mercado y valor",
-            
-            task="Analizar cuotas de apuestas para partidos de tenis específicos, identificando valor y tendencias del mercado",
-            
-            task_steps=[
-                "Obtener cuotas actuales de múltiples casas de apuestas",
-                "Analizar movimientos de línea y tendencias del mercado",
-                "Evaluar valor relativo entre diferentes opciones",
-                "Identificar factores que pueden influir en las cuotas",
-                "Sintetizar recomendaciones basadas en análisis cuantitativo"
-            ],
-            
-            context="Análisis de mercado de apuestas deportivas para tenis, considerando factores que influyen en las cuotas y probabilidades",
-            
-            exclusions=[
-                "Recomendaciones de apuestas sin análisis fundamentado",
-                "Información de cuotas desactualizada",
-                "Análisis basado únicamente en intuición o preferencias personales"
-            ],
-            
-            reasoning_priorities=[
-                "Priorizar análisis cuantitativo y estadístico",
-                "Enfocarse en identificación de valor en el mercado",
-                "Considerar múltiples fuentes de cuotas",
-                "Evaluar tendencias y movimientos del mercado"
-            ],
-            
-            verification_requirements=[
-                "Verificar que las cuotas provengan de fuentes confiables",
-                "Confirmar timestamps de las cuotas obtenidas",
-                "Validar cálculos de valor y probabilidades",
-                "Contrastar información entre diferentes casas de apuestas"
-            ],
-            
-            output_format="Informe estructurado con análisis de cuotas, identificación de valor, tendencias del mercado y recomendaciones fundamentadas",
-            
-            output_structure="1. Resumen de cuotas actuales\n2. Análisis de valor\n3. Tendencias del mercado\n4. Factores influyentes\n5. Recomendaciones",
-            
-            completion_criteria=[
-                "Análisis completo de cuotas de múltiples fuentes",
-                "Identificación clara de valor en el mercado",
-                "Evaluación de tendencias y movimientos",
-                "Recomendaciones fundamentadas en datos"
-            ]
-        )
-    
-    @staticmethod
     def tournament_analyst() -> PromptAnatomy:
         """Anatomía para el analista de torneos"""
         return PromptAnatomy(
@@ -419,57 +369,5 @@ class TennisAnalystAnatomies:
                 "Evaluación del sentimiento público",
                 "Identificación de impacto en motivación",
                 "Informe estructurado respetando privacidad"
-            ]
-        )
-
-    @staticmethod
-    def match_live_analyst() -> PromptAnatomy:
-        """Anatomía para el analista de partidos en vivo"""
-        return PromptAnatomy(
-            role="Analista especializado en análisis en tiempo real de partidos de tenis con enfoque en trading y ajustes de estrategia",
-            
-            task="Analizar el desarrollo del partido en tiempo real para identificar oportunidades de trading y ajustes de estrategia",
-            
-            task_steps=[
-                "Obtener datos en tiempo real del partido actual (score, estadísticas, momentum)",
-                "Analizar cambios en el ritmo y momentum del partido",
-                "Evaluar adaptaciones tácticas de ambos jugadores",
-                "Identificar patrones de juego emergentes durante el partido",
-                "Analizar estadísticas en tiempo real (aces, dobles faltas, puntos ganados)",
-                "Evaluar impacto de condiciones externas en el desarrollo del juego",
-                "Predicción de posibles cambios en el desarrollo del partido"
-            ],
-            
-            context="Análisis en tiempo real de partidos de tenis para identificar oportunidades de trading y ajustes de estrategia basados en el desarrollo actual del juego",
-            
-            exclusions=[
-                "Análisis histórico o retrospectivo del partido",
-                "Información no relacionada con el desarrollo actual del juego",
-                "Predicciones basadas únicamente en datos históricos"
-            ],
-            
-            reasoning_priorities=[
-                "Priorizar información en tiempo real y actualizada",
-                "Enfocarse en cambios significativos que afecten las cuotas",
-                "Considerar el momentum y ritmo actual del partido",
-                "Identificar patrones emergentes durante el juego"
-            ],
-            
-            verification_requirements=[
-                "Verificar que los datos provengan de fuentes en tiempo real",
-                "Confirmar timestamps de la información obtenida",
-                "Validar estadísticas actuales del partido",
-                "Contrastar información con múltiples fuentes cuando sea posible"
-            ],
-            
-            output_format="Informe estructurado con análisis en tiempo real del partido, estadísticas actuales, momentum y predicciones basadas en el desarrollo del juego",
-            
-            output_structure="1. Estado actual del partido\n2. Análisis de momentum\n3. Estadísticas en tiempo real\n4. Adaptaciones tácticas\n5. Predicciones y oportunidades",
-            
-            completion_criteria=[
-                "Análisis completo del estado actual del partido",
-                "Identificación de cambios significativos en momentum",
-                "Evaluación de estadísticas en tiempo real",
-                "Predicciones fundamentadas en el desarrollo actual del juego"
             ]
         )

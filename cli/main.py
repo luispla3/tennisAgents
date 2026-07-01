@@ -58,19 +58,15 @@ class MessageBuffer:
             "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
-            "Match Live Analyst": "pending",
-            "Odds Analyst": "pending",
             "Generalist LLM": "pending",
         }
         self.current_agent = None
         self.report_sections = {
             "news_report": None,
-            "odds_report": None,
             "players_report": None,
             "sentiment_report": None,
             "tournament_report": None,
             "weather_report": None,
-            "match_live_report": None,
             "final_bet_decision": None,
         }
 
@@ -107,12 +103,10 @@ class MessageBuffer:
             # Format the current section for display
             section_titles = {
                 "news_report": "News Analysis",
-                "odds_report": "Odds Analysis",
                 "players_report": "Players Analysis",
                 "sentiment_report": "Social Sentiment",
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
-                "match_live_report": "Match Live Analysis",
                 "final_bet_decision": "Final Bet Decision",
             }
             self.current_report = (
@@ -130,22 +124,16 @@ class MessageBuffer:
             self.report_sections[section]
             for section in [
                 "news_report",
-                "odds_report",
                 "players_report",
                 "sentiment_report",
                 "tournament_report",
                 "weather_report",
-                "match_live_report",
             ]
         ):
             report_parts.append("## Analyst Team Reports")
             if self.report_sections["news_report"]:
                 report_parts.append(
                     f"### News Analysis\n{self.report_sections['news_report']}"
-                )
-            if self.report_sections["odds_report"]:
-                report_parts.append(
-                    f"### Odds Analysis\n{self.report_sections['odds_report']}"
                 )
             if self.report_sections["players_report"]:
                 report_parts.append(
@@ -162,10 +150,6 @@ class MessageBuffer:
             if self.report_sections["weather_report"]:
                 report_parts.append(
                     f"### Weather Analysis\n{self.report_sections['weather_report']}"
-                )
-            if self.report_sections["match_live_report"]:
-                report_parts.append(
-                    f"### Match Live Analysis\n{self.report_sections['match_live_report']}"
                 )
 
         # Final Bet Decision
@@ -229,12 +213,10 @@ def update_display(layout, spinner_text=None):
     teams = {
         "Analyst Team": [
             "News Analyst",
-            "Odds Analyst",
             "Players Analyst",
             "Social Analyst",
             "Tournament Analyst",
             "Weather Analyst",
-            "Match Live Analyst",
         ],
         "Decision Team": [
             "Generalist LLM",
@@ -536,17 +518,6 @@ def display_complete_report(final_state):
             )
         )
 
-    # Odds Analyst Report
-    if final_state.get("odds_report"):
-        analyst_reports.append(
-            Panel(
-                Markdown(final_state["odds_report"]),
-                title="Odds Analyst",
-                border_style="blue",
-                padding=(1, 2),
-            )
-        )
-
     # Players Analyst Report
     if final_state.get("players_report"):
         analyst_reports.append(
@@ -586,17 +557,6 @@ def display_complete_report(final_state):
             Panel(
                 Markdown(final_state["weather_report"]),
                 title="Weather Analyst",
-                border_style="blue",
-                padding=(1, 2),
-            )
-        )
-
-    # Match Live Analyst Report
-    if final_state.get("match_live_report"):
-        analyst_reports.append(
-            Panel(
-                Markdown(final_state["match_live_report"]),
-                title="Match Live Analyst",
                 border_style="blue",
                 padding=(1, 2),
             )
@@ -870,18 +830,6 @@ def run_analysis():
                         "news_report", chunk["news_report"]
                     )
                     message_buffer.update_agent_status("News Analyst", "completed")
-                    # Set next analyst to in_progress
-                    if "odds" in selections["analysts"]:
-                        message_buffer.update_agent_status(
-                            "Odds Analyst", "in_progress"
-                        )
-
-                if "odds_report" in chunk and chunk["odds_report"]:
-                    message_buffer.update_report_section(
-                        "odds_report", chunk["odds_report"]
-                    )
-                    message_buffer.update_agent_status("Odds Analyst", "completed")
-                    # Set next analyst to in_progress
                     if "players" in selections["analysts"]:
                         message_buffer.update_agent_status(
                             "Players Analyst", "in_progress"
@@ -925,17 +873,6 @@ def run_analysis():
                         "weather_report", chunk["weather_report"]
                     )
                     message_buffer.update_agent_status("Weather Analyst", "completed")
-                    # Set next analyst to in_progress
-                    if "match_live" in selections["analysts"]:
-                        message_buffer.update_agent_status(
-                            "Match Live Analyst", "in_progress"
-                        )
-
-                if "match_live_report" in chunk and chunk["match_live_report"]:
-                    message_buffer.update_report_section(
-                        "match_live_report", chunk["match_live_report"]
-                    )
-                    message_buffer.update_agent_status("Match Live Analyst", "completed")
                     message_buffer.update_agent_status("Generalist LLM", "in_progress")
 
                 if "final_bet_decision" in chunk and chunk["final_bet_decision"]:

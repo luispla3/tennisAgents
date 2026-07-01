@@ -28,11 +28,9 @@ class Propagator:
             STATE.wallet_balance: wallet_balance,
             REPORTS.players_report: "",
             REPORTS.news_report: "",
-            REPORTS.odds_report: "",
             REPORTS.sentiment_report: "",
             REPORTS.weather_report: "",
             REPORTS.tournament_report: "",
-            REPORTS.match_live_report: "",
             STATE.final_bet_decision: "",
         }
 

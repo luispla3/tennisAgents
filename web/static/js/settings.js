@@ -188,7 +188,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper function to order analysts correctly
     function orderAnalysts(selectedAnalysts) {
-        const correctOrder = ['news', 'players', 'social', 'tournament', 'weather', 'match_live', 'odds'];
+        const correctOrder = ['news', 'players', 'social', 'tournament', 'weather'];
         return correctOrder.filter(analyst => selectedAnalysts.includes(analyst));
     }
 
@@ -433,8 +433,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Initialize agents badges
                 const allAgents = [
-                    "News Analyst", "Odds Analyst", "Players Analyst", "Social Analyst",
-                    "Tournament Analyst", "Weather Analyst", "Match Live Analyst",
+                    "News Analyst", "Players Analyst", "Social Analyst",
+                    "Tournament Analyst", "Weather Analyst",
                     "Generalist LLM",
                 ];
                 
@@ -443,12 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Helper: nombre de badge coherente con el backend
                 const analystBadgeNames = {
                     news: "News Analyst",
-                    odds: "Odds Analyst",
                     players: "Players Analyst",
                     social: "Social Analyst",
                     tournament: "Tournament Analyst",
                     weather: "Weather Analyst",
-                    match_live: "Match Live Analyst",
                 };
 
                 const selectedAnalysts = settings.analysts.map(

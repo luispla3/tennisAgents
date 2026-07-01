@@ -13,14 +13,6 @@ class ConditionalLogic:
             return "tools_news"
         return "Msg Clear News"
 
-    def should_continue_odds(self, state: AgentState):
-        """Determina si el análisis de cuotas debe continuar."""
-        messages = state[STATE.messages]
-        last_message = messages[-1]
-        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-            return "tools_odds"
-        return "Msg Clear Odds"
-
     def should_continue_players(self, state: AgentState):
         """Determina si el análisis de jugadores debe continuar."""
         messages = state[STATE.messages]
@@ -52,11 +44,3 @@ class ConditionalLogic:
         if hasattr(last_message, "tool_calls") and last_message.tool_calls:
             return "tools_weather"
         return "Msg Clear Weather"
-
-    def should_continue_match_live(self, state: AgentState):
-        """Determina si el análisis de partido en vivo debe continuar."""
-        messages = state[STATE.messages]
-        last_message = messages[-1]
-        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-            return "tools_match_live"
-        return "Msg Clear Match_live"

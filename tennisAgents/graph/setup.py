@@ -8,12 +8,10 @@ from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents.analysts.news import create_news_analyst
-from tennisAgents.agents.analysts.odds import create_odds_analyst
 from tennisAgents.agents.analysts.players import create_player_analyst
 from tennisAgents.agents.analysts.social_media import create_social_media_analyst
 from tennisAgents.agents.analysts.tournament import create_tournament_analyst
 from tennisAgents.agents.analysts.weather import create_weather_analyst
-from tennisAgents.agents.analysts.match_live import create_match_live_analyst
 from tennisAgents.agents.generalist import GENERALIST_NODE, create_generalist_llm
 
 from tennisAgents.agents.utils.agent_states import AgentState
@@ -25,12 +23,10 @@ from .conditional_logic import ConditionalLogic
 
 REPORT_KEYS = [
     REPORTS.news_report,
-    REPORTS.odds_report,
     REPORTS.players_report,
     REPORTS.sentiment_report,
     REPORTS.tournament_report,
     REPORTS.weather_report,
-    REPORTS.match_live_report,
 ]
 
 
@@ -196,7 +192,7 @@ class GraphSetup:
         return parallel_analysts_node
 
     def setup_graph(
-        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather, ANALYST_NODES.match_live, ANALYST_NODES.odds]
+        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather]
     ):
         """Configura y compila el grafo: analistas en paralelo seguidos del generalista."""
         if len(selected_analysts) == 0:
@@ -210,11 +206,6 @@ class GraphSetup:
             analyst_nodes["news"] = create_news_analyst(self.quick_thinking_llm, self.toolkit)
             delete_nodes["news"] = create_msg_delete()
             tool_nodes_map["news"] = None
-
-        if "odds" in selected_analysts:
-            analyst_nodes["odds"] = create_odds_analyst(self.quick_thinking_llm, self.toolkit)
-            delete_nodes["odds"] = create_msg_delete()
-            tool_nodes_map["odds"] = self.tool_nodes.get("odds")
 
         if "players" in selected_analysts:
             analyst_nodes["players"] = create_player_analyst(self.quick_thinking_llm, self.toolkit)
@@ -235,11 +226,6 @@ class GraphSetup:
             analyst_nodes["weather"] = create_weather_analyst(self.local_llm, self.toolkit)
             delete_nodes["weather"] = create_msg_delete()
             tool_nodes_map["weather"] = self.tool_nodes.get("weather")
-
-        if "match_live" in selected_analysts:
-            analyst_nodes["match_live"] = create_match_live_analyst(self.quick_thinking_llm, self.toolkit)
-            delete_nodes["match_live"] = create_msg_delete()
-            tool_nodes_map["match_live"] = self.tool_nodes.get("match_live")
 
         analyst_subgraphs = {}
         for analyst_type in selected_analysts:

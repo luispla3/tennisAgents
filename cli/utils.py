@@ -9,8 +9,6 @@ ANALYST_ORDER = [
     ("Social Analyst", AnalystType.social),
     ("Tournament Analyst", AnalystType.tournament),
     ("Weather Analyst", AnalystType.weather),
-    ("Match Live Analyst", AnalystType.match_live),
-    ("Odds Analyst", AnalystType.odds),
 ]
 
 

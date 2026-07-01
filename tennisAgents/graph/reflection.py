@@ -51,7 +51,6 @@ Recibirás también información objetiva del contexto del partido (noticias, es
             f"{current_state.get(REPORTS.news_report, '')}\n\n"
             f"{current_state.get(REPORTS.sentiment_report, '')}\n\n"
             f"{current_state.get(REPORTS.tournament_report, '')}\n\n"
-            f"{current_state.get(REPORTS.odds_report, '')}\n\n"
             f"{current_state.get(REPORTS.weather_report, '')}\n\n"
         )
 

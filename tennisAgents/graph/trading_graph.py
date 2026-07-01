@@ -24,7 +24,7 @@ class TennisAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["news", "players", "social", "tournament", "weather", "match_live", "odds"],
+        selected_analysts=["news", "players", "social", "tournament", "weather"],
         debug=False,
         config: Dict[str, Any] = None,
     ):
@@ -89,11 +89,6 @@ class TennisAgentsGraph:
                     self.toolkit.get_news,
                 ]
             ),
-            "odds": ToolNode(
-                [
-                    self.toolkit.get_betfair_odds_scraper,
-                ]
-            ),
             "players": ToolNode(
                 [
                     self.toolkit.get_atp_rankings,
@@ -121,11 +116,6 @@ class TennisAgentsGraph:
             "weather": ToolNode(
                 [
                     self.toolkit.get_weather_forecast,
-                ]
-            ),
-            "match_live": ToolNode(
-                [
-                    self.toolkit.get_match_live_data,
                 ]
             ),
         }
@@ -170,11 +160,9 @@ class TennisAgentsGraph:
         "reports": {
             REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
             REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
-            REPORTS.odds_report: final_state.get(REPORTS.odds_report, ""),
             REPORTS.sentiment_report: final_state.get(REPORTS.sentiment_report, ""),
             REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
             REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
-            REPORTS.match_live_report: final_state.get(REPORTS.match_live_report, ""),
         },
         STATE.final_bet_decision: final_state.get(STATE.final_bet_decision, ""),
     }
