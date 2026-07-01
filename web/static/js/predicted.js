@@ -14,6 +14,67 @@ document.addEventListener('DOMContentLoaded', function() {
     // Store original matches data
     let allMatches = [];
 
+    function normalizeFinalDecision(content) {
+        if (!content || typeof content !== 'string') return content;
+        const trimmed = content.trim();
+        if (!trimmed.startsWith('{')) return content;
+
+        try {
+            const data = JSON.parse(trimmed);
+            const match = data.match || {};
+            const state = data.state || {};
+            const target = data.target?.tool_call || {};
+            const name = (target.name || 'wait').toLowerCase();
+            const args = target.arguments || {};
+            const labels = { wait: 'Esperar', bet: 'Apostar', close: 'Cerrar posición' };
+            const lines = [
+                `# Decisión Final — ${match.player_a || ''} vs ${match.player_b || ''}`,
+                '',
+                `**Torneo:** ${match.tournament || 'N/A'}`,
+                `**Fecha:** ${match.match_date || 'N/A'}`,
+                `**Fase:** ${state.phase || 'N/A'}`,
+            ];
+
+            if (state.score) lines.push(`**Marcador:** ${state.score}`);
+            const balance = state.available_balance ?? state.wallet_balance;
+            if (balance !== undefined && balance !== null) {
+                lines.push(`**Saldo disponible:** ${balance}`);
+            }
+
+            lines.push('', `## Acción: ${labels[name] || name}`, '');
+
+            if (name === 'bet') {
+                lines.push(
+                    `- **Mercado:** ${args.market || 'N/A'}`,
+                    `- **Selección:** ${args.option || 'N/A'}`,
+                    `- **Stake:** ${args.stake ?? 'N/A'}`,
+                    `- **Cuota:** ${args.odds ?? 'N/A'}`,
+                    `- **Motivo:** ${args.reason || 'N/A'}`
+                );
+            } else if (name === 'close') {
+                const closePct = args.close_percentage;
+                const closeLabel = closePct !== undefined && closePct !== null
+                    ? `${Math.round(Number(closePct) * 100)}%`
+                    : 'N/A';
+                lines.push(
+                    `- **Posición:** ${args.position_id || 'N/A'}`,
+                    `- **Cierre:** ${closeLabel}`,
+                    `- **Motivo:** ${args.reason || 'N/A'}`
+                );
+            } else {
+                lines.push(`- **Motivo:** ${args.reason || 'N/A'}`);
+            }
+
+            if (data.timestamp) {
+                lines.push('', '---', `*Generado: ${data.timestamp}*`);
+            }
+
+            return lines.join('\n');
+        } catch (error) {
+            return content;
+        }
+    }
+
     // Initial load
     loadPredictedMatches();
 
@@ -217,7 +278,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         return;
                     }
 
-                    const finalDecision = data.final_bet_decision;
+                    const finalDecision = normalizeFinalDecision(data.final_bet_decision);
                     
                     if (!finalDecision) {
                         summaryContainer.innerHTML = `

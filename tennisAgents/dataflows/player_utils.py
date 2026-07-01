@@ -1,34 +1,19 @@
 from dotenv import load_dotenv
 
-from tennisAgents.dataflows.config import get_config
-from tennisAgents.dataflows.llm_utils import get_llm_client
+from tennisAgents.dataflows.llm_utils import invoke_chat_llm
 from tennisAgents.dataflows.web_search_utils import perform_web_search
 
 load_dotenv()
 
 
 def _llm_with_web_search(system_prompt: str, search_query: str) -> str:
-    client = get_llm_client()
-    config = get_config()
     search_context = perform_web_search(search_query)
-
-    response = client.chat.completions.create(
-        model=config["quick_think_llm"],
-        messages=[
-            {"role": "system", "content": system_prompt},
-            {
-                "role": "user",
-                "content": (
-                    "Usa los siguientes resultados de búsqueda web para elaborar tu respuesta. "
-                    "Cita fuentes cuando sea posible.\n\n"
-                    f"{search_context}"
-                ),
-            },
-        ],
-        temperature=1,
-        max_tokens=4096,
+    user_content = (
+        "Usa los siguientes resultados de búsqueda web para elaborar tu respuesta. "
+        "Cita fuentes cuando sea posible.\n\n"
+        f"{search_context}"
     )
-    return response.choices[0].message.content or ""
+    return invoke_chat_llm(system_prompt, user_content)
 
 
 def fetch_injury_reports() -> str:
@@ -83,3 +68,4 @@ def fetch_head_to_head(player1_name: str, player2_name: str) -> str:
         )
     except Exception as e:
         return f"Error al obtener head-to-head: {str(e)}"
+

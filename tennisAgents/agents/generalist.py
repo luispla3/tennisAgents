@@ -197,6 +197,72 @@ def _save_turn_log(record: dict) -> None:
             pass
 
 
+_ACTION_LABELS = {
+    "wait": "Esperar",
+    "bet": "Apostar",
+    "close": "Cerrar posición",
+}
+
+
+def format_decision_display(record: dict) -> str:
+    """Convierte el registro interno del turno en un resumen legible para la UI."""
+    match = record.get("match", {})
+    state = record.get("state", {})
+    target = record.get("target", {}).get("tool_call", {})
+    name = (target.get("name") or "wait").lower()
+    args = target.get("arguments", {})
+    action_label = _ACTION_LABELS.get(name, name.capitalize())
+
+    player_a = match.get("player_a", "")
+    player_b = match.get("player_b", "")
+    lines = [
+        f"# Decisión Final — {player_a} vs {player_b}",
+        "",
+        f"**Torneo:** {match.get('tournament', 'N/A')}",
+        f"**Fecha:** {match.get('match_date', 'N/A')}",
+        f"**Fase:** {state.get('phase', 'N/A')}",
+    ]
+
+    score = state.get("score")
+    if score:
+        lines.append(f"**Marcador:** {score}")
+
+    balance = state.get("available_balance", state.get("wallet_balance"))
+    if balance is not None:
+        lines.append(f"**Saldo disponible:** {balance}")
+
+    lines.extend(["", f"## Acción: {action_label}", ""])
+
+    if name == "bet":
+        lines.extend(
+            [
+                f"- **Mercado:** {args.get('market') or 'N/A'}",
+                f"- **Selección:** {args.get('option') or 'N/A'}",
+                f"- **Stake:** {args.get('stake') if args.get('stake') is not None else 'N/A'}",
+                f"- **Cuota:** {args.get('odds') if args.get('odds') is not None else 'N/A'}",
+                f"- **Motivo:** {args.get('reason') or 'N/A'}",
+            ]
+        )
+    elif name == "close":
+        close_pct = args.get("close_percentage")
+        close_label = f"{float(close_pct) * 100:.0f}%" if close_pct is not None else "N/A"
+        lines.extend(
+            [
+                f"- **Posición:** {args.get('position_id') or 'N/A'}",
+                f"- **Cierre:** {close_label}",
+                f"- **Motivo:** {args.get('reason') or 'N/A'}",
+            ]
+        )
+    else:
+        lines.append(f"- **Motivo:** {args.get('reason') or 'N/A'}")
+
+    timestamp = record.get("timestamp")
+    if timestamp:
+        lines.extend(["", "---", f"*Generado: {timestamp}*"])
+
+    return "\n".join(lines)
+
+
 def create_generalist_llm(deep_thinking_llm):
     """Nodo generalista: genera final_bet_decision a partir de los informes de analistas."""
 
@@ -248,7 +314,7 @@ def create_generalist_llm(deep_thinking_llm):
         print("Decision final generada por generalist_llm", flush=True)
         record = _turn_log(state, tool_call)
         _save_turn_log(record)
-        decision = json.dumps(record, ensure_ascii=False, indent=2)
+        decision = format_decision_display(record)
         _emit_progress({"type": "generalist_complete", "decision": decision})
 
         return {

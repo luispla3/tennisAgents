@@ -4,16 +4,12 @@ import json
 from datetime import datetime
 from typing import Dict, Any
 
-from langchain_openai import ChatOpenAI
-from langchain_ollama import ChatOllama
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
-
 from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents import *
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.dataflows.config import set_config
+from tennisAgents.dataflows.llm_utils import get_chat_llm, get_local_analyst_llm
 from tennisAgents.utils.enumerations import *
 
 from .conditional_logic import ConditionalLogic
@@ -42,72 +38,21 @@ class TennisAgentsGraph:
             exist_ok=True,
         )
 
-        if self.config["llm_provider"].lower() in ["openai", "ollama", "openrouter"]:
-            llm_kwargs = {"base_url": self.config["backend_url"]}
-            if self.config["llm_provider"].lower() == "openrouter":
-                openrouter_api_key = self.config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
-                llm_kwargs["api_key"] = openrouter_api_key
-                llm_kwargs["default_headers"] = {
-                    "HTTP-Referer": "https://github.com/tennisAgents",
-                    "X-Title": "Tennis Agents",
-                }
-            self.deep_thinking_llm = ChatOpenAI(model=self.config["deep_think_llm"], **llm_kwargs)
-            self.quick_thinking_llm = ChatOpenAI(model=self.config["quick_think_llm"], **llm_kwargs)
-        elif self.config["llm_provider"].lower() == "anthropic":
-            self.deep_thinking_llm = ChatAnthropic(model=self.config["deep_think_llm"], base_url=self.config["backend_url"])
-            self.quick_thinking_llm = ChatAnthropic(model=self.config["quick_think_llm"], base_url=self.config["backend_url"])
-        elif self.config["llm_provider"].lower() == "google":
-            self.deep_thinking_llm = ChatGoogleGenerativeAI(model=self.config["deep_think_llm"])
-            self.quick_thinking_llm = ChatGoogleGenerativeAI(model=self.config["quick_think_llm"])
+        if self.config["llm_provider"].lower() in ["openai", "ollama", "openrouter", "anthropic", "google"]:
+            self.deep_thinking_llm = get_chat_llm("deep_think_llm")
+            self.quick_thinking_llm = get_chat_llm("quick_think_llm")
         else:
             raise ValueError(f"Proveedor LLM no soportado: {self.config['llm_provider']}")
 
-        # Inicializar LLM local (Ollama) o OpenRouter para analistas específicos (News, Social, Tournament, Weather)
+        # Inicializar LLM local (Ollama) o OpenRouter para analistas específicos
         self.local_llm = None
         if self.config.get("use_local_analysts", False):
             try:
-                local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
-                local_model = self.config.get("local_model_name", "qwen2.5:3b")
-                
-                # Detectar si es local (Ollama) o OpenRouter basado en la URL
-                is_local = "localhost" in local_base_url or "127.0.0.1" in local_base_url
-                
+                self.local_llm, _ = get_local_analyst_llm()
                 if self.debug:
-                    print(f"DEBUG: Analistas locales - URL: {local_base_url}, is_local: {is_local}")
-
-                if is_local:
-                    # Configuración para Ollama local (no requiere API key real)
-                    base_url_cleaned = local_base_url.replace("/v1", "") if local_base_url.endswith("/v1") else local_base_url
-                    self.local_llm = ChatOllama(
-                        model=local_model,
-                        base_url=base_url_cleaned,
-                        temperature=0.1,
-                        num_ctx=16384,
-                        num_predict=4096,
-                        reasoning=False
-                    )
-                    if self.debug:
-                        print(f"✓ Ollama LLM local inicializado para analistas: {local_model}")
-                        print(f"  Asegúrate de tener Ollama corriendo en {local_base_url}")
-                else:
-                    # Configuración para OpenRouter (requiere API key)
-                    local_api_key = self.config.get("local_api_key") or os.getenv("OPENROUTER_API_KEY")
-                    if local_api_key:
-                        self.local_llm = ChatOpenAI(
-                            model=local_model,
-                            base_url=local_base_url,
-                            api_key=local_api_key,
-                            default_headers={
-                                "HTTP-Referer": "https://github.com/tennisAgents",
-                                "X-Title": "Tennis Agents"
-                            },
-                            temperature=0.7
-                        )
-                        if self.debug:
-                            print(f"✓ OpenRouter LLM inicializado para analistas: {local_model}")
-                    else:
-                        if self.debug:
-                            print(f"⚠ Warning: OPENROUTER_API_KEY no configurada. Los analistas usarán gpt-4o-mini.")
+                    local_model = self.config.get("local_model_name", "qwen2.5:3b")
+                    local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
+                    print(f"✓ LLM local inicializado para analistas: {local_model} ({local_base_url})")
             except Exception as e:
                 if self.debug:
                     print(f"⚠ Warning: No se pudo inicializar LLM para analistas: {e}")

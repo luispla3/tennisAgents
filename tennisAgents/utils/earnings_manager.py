@@ -7,11 +7,10 @@ from typing import Dict, Any, List, Optional, Tuple
 from datetime import datetime
 
 from langchain_core.messages import HumanMessage
-from langchain_openai import ChatOpenAI
-from langchain_anthropic import ChatAnthropic
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from tennisAgents.default_config import DEFAULT_CONFIG
+from tennisAgents.dataflows.config import set_config
+from tennisAgents.dataflows.llm_utils import get_chat_llm
 from tennisAgents.dataflows.web_search_utils import perform_web_search
 
 class EarningsManager:
@@ -23,6 +22,7 @@ class EarningsManager:
     def __init__(self, config=None):
         print("Initializing EarningsManager (Linear Mode)...")
         self.config = config or DEFAULT_CONFIG.copy()
+        set_config(self.config)
         
         current_file = Path(__file__).resolve()
         self.project_root = current_file.parent.parent.parent
@@ -41,18 +41,7 @@ class EarningsManager:
 
     def _init_llm(self):
         try:
-            provider = self.config.get("llm_provider", "openai").lower()
-            model = self.config.get("deep_think_llm", "gpt-4o")
-            base_url = self.config.get("backend_url")
-            
-            if provider in ["openai", "ollama", "openrouter"]:
-                return ChatOpenAI(model=model, base_url=base_url)
-            elif provider == "anthropic":
-                return ChatAnthropic(model=model, base_url=base_url)
-            elif provider == "google":
-                return ChatGoogleGenerativeAI(model=model)
-            else:
-                return ChatOpenAI(model=model)
+            return get_chat_llm("deep_think_llm")
         except Exception as e:
             print(f"Error initializing LLM: {e}")
             return None

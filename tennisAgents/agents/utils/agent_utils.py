@@ -145,7 +145,7 @@ class Toolkit:
         fecha_hora: Annotated[str, "Fecha y hora del partido yyyy-mm-dd hh:mm"],
         location: Annotated[str, "Ubicación del torneo (ciudad, país, etc.)"],
     ) -> str:
-        """Obtiene la previsión meteorológica para el partido usando OpenAI con búsqueda web."""
+        """Obtiene la previsión meteorológica para el partido usando búsqueda web + LLM."""
         return interface.get_weather_forecast(tournament, fecha_hora, location)
 
 

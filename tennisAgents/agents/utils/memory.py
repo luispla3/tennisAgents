@@ -1,8 +1,9 @@
 import chromadb
 from chromadb.config import Settings
-from openai import OpenAI
 import os
 import numpy as np
+
+from tennisAgents.dataflows.llm_utils import get_llm_client
 
 
 def chunk_text(text, max_chars=24000):
@@ -27,7 +28,7 @@ class TennisSituationMemory:
     def __init__(self, name, config):
 
         self.embedding = "text-embedding-3-small"
-        self.client = OpenAI(base_url=config["backend_url"])
+        self.client = get_llm_client()
         self.use_openai = True
     
         self.chroma_client = chromadb.Client(Settings(allow_reset=True))
