@@ -1,0 +1,19 @@
+"""Configuración del colector BetfairEnv."""
+
+from __future__ import annotations
+
+INTERVAL_BASE_SEC = 120
+INTERVAL_JITTER_SEC = 30
+
+REQUEST_DELAY_MIN_SEC = 1.5
+REQUEST_DELAY_MAX_SEC = 4.0
+
+SOURCE_GAP_MIN_SEC = 2.0
+SOURCE_GAP_MAX_SEC = 5.0
+
+DEFAULT_SPORT = "tennis"
+DEFAULT_LOCALE = "es"
+
+TRACK_GRACE_MINUTES = 45
+
+API_PORT = 8770

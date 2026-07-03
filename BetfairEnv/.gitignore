@@ -1,0 +1,6 @@
+.run/
+data/
+!data/.gitkeep
+_decompile_*.txt
+frontend/node_modules/
+frontend/dist/
