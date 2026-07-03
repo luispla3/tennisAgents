@@ -23,6 +23,10 @@ export async function stopCollector(): Promise<CollectorStatus> {
   return postJson<CollectorStatus>("/api/collector/stop")
 }
 
+export async function clearCollectorData(): Promise<CollectorStatus> {
+  return postJson<CollectorStatus>("/api/collector/clear")
+}
+
 export async function fetchMatches(): Promise<MatchSummary[]> {
   const data = await getJson<{ matches: MatchSummary[] }>("/api/matches")
   return data.matches ?? []

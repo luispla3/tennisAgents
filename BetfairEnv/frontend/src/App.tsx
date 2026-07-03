@@ -22,8 +22,12 @@ export function App() {
     try {
       const data = await fetchMatches()
       setMatches(data)
-      if (!selectedId && data.length) {
-        setSelectedId(String(data[0].event_id))
+      if (data.length) {
+        if (!selectedId || !data.some((m) => String(m.event_id) === selectedId)) {
+          setSelectedId(String(data[0].event_id))
+        }
+      } else {
+        setSelectedId(null)
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error desconocido")

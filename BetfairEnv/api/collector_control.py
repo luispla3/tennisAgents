@@ -12,7 +12,7 @@ from pathlib import Path
 from collector.anti_block import cycle_interval
 from collector.config import INTERVAL_BASE_SEC, INTERVAL_JITTER_SEC
 from collector.paths import ROOT, RUN_DIR
-from collector.storage import load_index
+from collector.storage import clear_dataset, load_index
 
 PID_FILE = RUN_DIR / "collector.pid"
 LOG_FILE = RUN_DIR / "collector.log"
@@ -187,4 +187,20 @@ def stop_collector() -> dict:
         "message": "Colector detenido",
         "was_running": True,
         "stopped_pid": pid,
+    }
+
+
+def clear_collector_data() -> dict:
+    """Detiene el colector si hace falta y borra todo el dataset recolectado."""
+    was_running = False
+    status = collector_status()
+    if status.get("running"):
+        stop_collector()
+        was_running = True
+
+    cleared = clear_dataset()
+    return {
+        **collector_status(),
+        **cleared,
+        "collector_was_running": was_running,
     }

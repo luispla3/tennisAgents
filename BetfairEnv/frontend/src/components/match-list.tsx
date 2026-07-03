@@ -87,7 +87,7 @@ export function MatchList({ matches, selectedId, collectorRunning = false, onSel
     return (
       <Card>
         <CardContent className="p-6 text-sm text-muted-foreground">
-          Sin partidos registrados. Arranca el colector con <code>start.bat</code>.
+          Sin partidos registrados. Pulsa <strong>Iniciar</strong> arriba para arrancar el colector.
         </CardContent>
       </Card>
     )

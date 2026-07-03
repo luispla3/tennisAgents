@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { fetchMatchDetail, fetchSnapshot, fetchTimeline, formatDateTime } from "@/lib/api"
+import { isMatchLive } from "@/lib/match-status"
 import type { FullSnapshot, MatchSummary, TimelinePoint } from "@/types"
 
 type Props = {
@@ -65,10 +66,13 @@ export function MatchDetailPanel({ match }: Props) {
       }
     }
     void load()
+    if (!isMatchLive(match)) return () => { cancelled = true }
+    const timer = setInterval(() => void load(), 8000)
     return () => {
       cancelled = true
+      clearInterval(timer)
     }
-  }, [eventId])
+  }, [eventId, match])
 
   useEffect(() => {
     const file = files[snapIndex]

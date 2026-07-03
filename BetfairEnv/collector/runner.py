@@ -27,7 +27,8 @@ def setup_logging() -> None:
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
-        format="%(H:%M:%S [%(levelname)s] %(message)s",
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%H:%M:%S",
         handlers=[
             logging.FileHandler(LOG_FILE, encoding="utf-8"),
             logging.StreamHandler(sys.stdout),

@@ -1,4 +1,4 @@
-import { Play, Square } from "lucide-react"
+import { Play, Square, Trash2 } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 import { Badge } from "@/components/ui/badge"
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import {
   fetchCollectorStatus,
   formatDateTime,
+  clearCollectorData,
   startCollector,
   stopCollector,
 } from "@/lib/api"
@@ -71,6 +72,33 @@ export function CollectorControls({ onChange, onStatusChange }: Props) {
     }
   }
 
+  async function handleClear() {
+    const ok = window.confirm(
+      "¿Borrar todo el dataset recolectado?\n\nSe eliminarán partidos, snapshots e índice. El colector se detendrá si está activo."
+    )
+    if (!ok) return
+
+    setBusy(true)
+    setMessage(null)
+    try {
+      const data = await clearCollectorData()
+      setStatus(data)
+      onStatusChange?.(data)
+      const dirs = data.removed_match_dirs ?? 0
+      setMessage(data.message ?? `Dataset borrado (${dirs} partidos)`)
+      onChange?.()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "No se pudo borrar el dataset"
+      setMessage(
+        msg.includes("no válida") || msg.includes("404")
+          ? "La API está desactualizada. Reinicia: python -m api.server"
+          : msg
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
   return (
     <div className="flex w-full flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
@@ -90,6 +118,16 @@ export function CollectorControls({ onChange, onStatusChange }: Props) {
         >
           <Square className="mr-1 size-4" />
           Detener
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => void handleClear()}
+          disabled={busy || running}
+          title={running ? "Detén el colector antes de limpiar" : "Borrar dataset recolectado"}
+        >
+          <Trash2 className="mr-1 size-4" />
+          Limpiar
         </Button>
         {status?.last_index_update && (
           <span className="text-xs text-muted-foreground">

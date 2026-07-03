@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -137,7 +138,7 @@ def _latest_snapshot_timestamp(event_id: str | int) -> str | None:
 
 
 def effective_is_live(entry: dict[str, Any]) -> bool:
-    if entry.get("finished_at"):
+    if entry.get("finished_at") or entry.get("is_finished"):
         return False
     status = (entry.get("status") or "").lower()
     if any(token in status for token in FINISHED_STATUS):
@@ -227,6 +228,8 @@ def list_all_matches() -> list[dict[str, Any]]:
                 "competition": merged.get("competition"),
                 "status": merged.get("status"),
                 "is_live": effective_is_live(merged),
+                "is_finished": bool(merged.get("is_finished") or merged.get("finished_at")),
+                "winner": merged.get("winner"),
                 "snapshots_count": len(snaps),
                 "first_seen": merged.get("first_seen"),
                 "last_seen": merged.get("last_seen"),
@@ -259,3 +262,31 @@ def schedule_next_snapshot(entry: dict[str, Any]) -> dict[str, Any]:
     ).isoformat())
     entry.pop("queued_for_snapshot", None)
     return entry
+
+
+def clear_dataset() -> dict[str, Any]:
+    """Borra snapshots, metadatos e índice de partidos recolectados."""
+    ensure_data_dirs()
+    removed_match_dirs = 0
+    removed_files = 0
+
+    for path in list(DATA_DIR.iterdir()):
+        if path.name == ".gitkeep":
+            continue
+        if path.is_dir():
+            shutil.rmtree(path)
+            removed_match_dirs += 1
+        elif path.is_file():
+            path.unlink()
+            removed_files += 1
+
+    index_path().write_text(
+        json.dumps({"updated_at": None, "matches": {}}, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    return {
+        "removed_match_dirs": removed_match_dirs,
+        "removed_files": removed_files,
+        "message": "Dataset de recolecta borrado",
+    }

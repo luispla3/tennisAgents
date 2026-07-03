@@ -9,7 +9,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
 
-from api.collector_control import collector_status, start_collector, stop_collector
+from api.collector_control import clear_collector_data, collector_status, start_collector, stop_collector
 from collector.config import API_PORT
 from collector.paths import ROOT
 from collector.storage import (
@@ -94,7 +94,10 @@ class Handler(SimpleHTTPRequestHandler):
         if action == "stop":
             _json(self, stop_collector())
             return
-        _error(self, "Acción no válida", HTTPStatus.BAD_REQUEST)
+        if action in ("clear", "clear-data", "reset"):
+            _json(self, clear_collector_data())
+            return
+        _error(self, f"Acción no válida: {action}", HTTPStatus.BAD_REQUEST)
 
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
@@ -162,7 +165,7 @@ class Handler(SimpleHTTPRequestHandler):
                             "sets_won": fs.get("sets_won"),
                             "sets_detail": fs.get("sets_detail"),
                             "current_game": fs.get("current_game"),
-                            "current_points": fs.get("current_points"),
+                            "current_points": fs.get("current_points") or fs.get("current_game"),
                             "serving": fs.get("serving"),
                             "leading": fs.get("leading"),
                             "winner": fs.get("winner"),

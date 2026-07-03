@@ -402,6 +402,41 @@ def iter_nodes_by_type(node: Any, typename: str) -> list[dict[str, Any]]:
     return found
 
 
+def extract_tennis_live_score(fixture: dict[str, Any] | None) -> dict[str, Any] | None:
+    """Marcador en vivo desde el fixture GraphQL de Betfair (tenis)."""
+    if not fixture or fixture.get("__typename") != "TennisMatch":
+        return None
+
+    current_set = fixture.get("currentSet") or {}
+    current_game = current_set.get("currentGame") or {}
+
+    serving = None
+    team_serving = current_game.get("teamServing")
+    if team_serving == "HOME":
+        serving = "player1"
+    elif team_serving == "AWAY":
+        serving = "player2"
+
+    team_a_sets = fixture.get("teamAScore")
+    team_b_sets = fixture.get("teamBScore")
+    set_a = current_set.get("teamAScore")
+    set_b = current_set.get("teamBScore")
+
+    live: dict[str, Any] = {}
+    if team_a_sets is not None and team_b_sets is not None:
+        live["sets_won"] = {"player1": int(team_a_sets), "player2": int(team_b_sets)}
+    if set_a is not None and set_b is not None:
+        live["current_set"] = {"player1": int(set_a), "player2": int(set_b)}
+    if current_game:
+        live["current_game"] = {
+            "player1": str(current_game.get("teamAScore", "")),
+            "player2": str(current_game.get("teamBScore", "")),
+        }
+    if serving:
+        live["serving"] = serving
+    return live or None
+
+
 def build_match_from_event_market_card(card: dict[str, Any]) -> dict[str, Any]:
     event = card.get("sportevent") or {}
     fixture = card.get("fixture") or {}
@@ -437,6 +472,7 @@ def build_match_from_event_market_card(card: dict[str, Any]) -> dict[str, Any]:
         "competition": competition,
         "surface": fixture.get("surface"),
         "primary_market": market_summary,
+        "live_score": extract_tennis_live_score(fixture),
         "url": f"https://www.betfair.es/apuestas/{event_url}" if event_url else None,
     }
 

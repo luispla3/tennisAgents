@@ -13,6 +13,9 @@ export type CollectorStatus = {
   message?: string
   already_running?: boolean
   was_running?: boolean
+  removed_match_dirs?: number
+  removed_files?: number
+  collector_was_running?: boolean
 }
 
 export type MatchSummary = {
@@ -24,6 +27,8 @@ export type MatchSummary = {
   competition?: string
   status?: string
   is_live?: boolean
+  is_finished?: boolean
+  winner?: "player1" | "player2"
   snapshots_count?: number
   first_seen?: string
   last_seen?: string
