@@ -7,6 +7,7 @@ from typing import Annotated
 from langchain_core.messages import AIMessage
 from langchain_core.tools import tool
 
+from tennisAgents.dataflows import interface
 from tennisAgents.dataflows.config import get_config
 from tennisAgents.utils.enumerations import REPORTS, STATE
 
@@ -258,7 +259,12 @@ def create_generalist_llm(deep_thinking_llm):
         wallet_balance = state.get(STATE.wallet_balance, 0)
         analyst_reports = _collect_analyst_reports(state)
         match_id = f"{player} vs {opponent} | {tournament} | {match_date}"
-        
+
+        try:
+            odds_report = interface.get_betfair_odds_scraper(player)
+        except Exception as exc:
+            odds_report = f"Cuotas de Betfair no disponibles: {exc}"
+
         # TODO: definir prompt final, tools y formato estructurado de la decisión.
         prompt = (
             "Eres el agente generalista del sistema de apuestas de tenis.\n"
@@ -269,6 +275,7 @@ def create_generalist_llm(deep_thinking_llm):
             f"Torneo: {tournament}\n"
             f"Fecha: {match_date}\n"
             f"Saldo disponible: {wallet_balance}\n\n"
+            f"Cuotas Betfair:\n{odds_report}\n\n"
             f"Informes de analistas:\n{analyst_reports}\n"
         )
 

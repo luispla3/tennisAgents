@@ -92,6 +92,15 @@ class Toolkit:
         """Obtiene reportes de lesiones para un jugador específico"""
         return interface.get_injury_reports()
 
+    @tool
+    def get_match_live_data(
+        player_a: Annotated[str, "Nombre del primer jugador"],
+        player_b: Annotated[str, "Nombre del segundo jugador"],
+        tournament: Annotated[str, "Nombre del torneo"],
+    ) -> str:
+        """Obtiene el marcador en vivo y estadísticas del partido desde Flashscore."""
+        return interface.get_match_live_data(player_a, player_b, tournament)
+
 
     # SOCIAL MEDIA ANALYST TOOLS
 

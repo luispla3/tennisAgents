@@ -16,6 +16,7 @@ def create_player_analyst(llm, toolkit):
                 toolkit.get_surface_winrate,
                 toolkit.get_head_to_head,
                 toolkit.get_injury_reports,
+                toolkit.get_match_live_data,
             ]
         else:
             tools = [
@@ -24,6 +25,7 @@ def create_player_analyst(llm, toolkit):
                 toolkit.get_surface_winrate,
                 toolkit.get_head_to_head,
                 toolkit.get_injury_reports,
+                toolkit.get_match_live_data,
             ]
 
         # Obtener la anatomía del prompt para analista de jugadores
@@ -35,7 +37,8 @@ def create_player_analyst(llm, toolkit):
             "• get_injury_reports() - Obtiene reportes de lesiones y jugadores que regresan\n"
             "• get_recent_matches('{player_name}', '{opponent_name}', num_matches) - Últimos partidos de ambos jugadores\n"
             "• get_surface_winrate('{player_name}', 'superficie') - Winrate del jugador en una superficie específica\n"
-            "• get_head_to_head('{player_name}', '{opponent_name}') - Historial de enfrentamientos entre ambos"
+            "• get_head_to_head('{player_name}', '{opponent_name}') - Historial de enfrentamientos entre ambos\n"
+            "• get_match_live_data('{player_name}', '{opponent_name}', '{tournament}') - Marcador en vivo y estadísticas del partido desde Flashscore"
         )
         
         # Contexto adicional específico del partido
