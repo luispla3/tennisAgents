@@ -264,6 +264,10 @@ def create_generalist_llm(deep_thinking_llm):
             odds_report = interface.get_betfair_odds_scraper(player)
         except Exception as exc:
             odds_report = f"Cuotas de Betfair no disponibles: {exc}"
+        try:
+            live_report = interface.get_match_live_data(player, opponent, tournament)
+        except Exception as exc:
+            live_report = f"Datos en vivo no disponibles: {exc}"
 
         # TODO: definir prompt final, tools y formato estructurado de la decisión.
         prompt = (
@@ -276,6 +280,7 @@ def create_generalist_llm(deep_thinking_llm):
             f"Fecha: {match_date}\n"
             f"Saldo disponible: {wallet_balance}\n\n"
             f"Cuotas Betfair:\n{odds_report}\n\n"
+            f"Datos en vivo del partido:\n{live_report}\n\n"
             f"Informes de analistas:\n{analyst_reports}\n"
         )
 

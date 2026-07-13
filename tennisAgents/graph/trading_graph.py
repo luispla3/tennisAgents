@@ -96,7 +96,6 @@ class TennisAgentsGraph:
                     self.toolkit.get_surface_winrate,
                     self.toolkit.get_head_to_head,
                     self.toolkit.get_injury_reports,
-                    self.toolkit.get_match_live_data,
                 ]
             ),
             "sentiment": ToolNode(
