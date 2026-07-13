@@ -11,16 +11,6 @@
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <script>
-    (function(){
-        var publicPaths = ['/', '/login', '/register'];
-        var path = window.location.pathname;
-        if (publicPaths.indexOf(path) === -1 && !localStorage.getItem('tennisAgents_auth_token')) {
-            localStorage.setItem('tennisAgents_redirect', path);
-            window.location.replace('/login');
-        }
-    })();
-    </script>
     <!-- Navbar -->
     <nav class="navbar">
         <div class="navbar-container">
@@ -101,10 +91,6 @@
 
                 <!-- Pricing -->
                 <a href="/pricing" class="nav-link">Pricing</a>
-
-                <!-- Log in / Cerrar sesión -->
-                <a href="/login" class="nav-link login-link" id="navLogin">Log in</a>
-                <a href="#" class="nav-link logout-link" id="navLogout" style="display:none;">Cerrar sesión</a>
             </div>
 
             <!-- Mobile Menu Toggle -->
@@ -412,16 +398,9 @@
         </div>
     </div>
 
-    <script src="/static/js/auth.js?v=1"></script>
     <script src="/static/js/main.js?v=7"></script>
     <script src="/static/js/predict.js?v=10"></script>
-    <script src="/static/js/settings.js?v=10"></script>
-    <script>
-        // Check authentication on page load
-        if (typeof requireAuth === 'function') {
-            requireAuth(window.location.pathname);
-        }
-    </script>
+    <script src="/static/js/settings.js?v=11"></script>
 </body>
 </html>
 

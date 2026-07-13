@@ -35,9 +35,10 @@ import type { FullSnapshot, MatchSummary, TimelinePoint } from "@/types"
 
 type Props = {
   match: MatchSummary
+  collectorRunning?: boolean
 }
 
-export function MatchDetailPanel({ match }: Props) {
+export function MatchDetailPanel({ match, collectorRunning = false }: Props) {
   const eventId = String(match.event_id)
   const [timeline, setTimeline] = useState<TimelinePoint[]>([])
   const [snapIndex, setSnapIndex] = useState(0)
@@ -66,13 +67,13 @@ export function MatchDetailPanel({ match }: Props) {
       }
     }
     void load()
-    if (!isMatchLive(match)) return () => { cancelled = true }
+    if (!collectorRunning || !isMatchLive(match)) return () => { cancelled = true }
     const timer = setInterval(() => void load(), 8000)
     return () => {
       cancelled = true
       clearInterval(timer)
     }
-  }, [eventId, match])
+  }, [eventId, match, collectorRunning])
 
   useEffect(() => {
     const file = files[snapIndex]

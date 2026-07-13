@@ -3,3 +3,7 @@ WebSearcher>=0.7.0,<0.7.1; python_version < "3.12"
 WebSearcher>=0.9.0; python_version >= "3.12"
 # distutils (eliminado en 3.12+) lo aporta setuptools para dependencias de WebSearcher
 setuptools>=70.0.0; python_version >= "3.12"
+
+# LLM (Ollama local en llm_utils.get_local_analyst_llm)
+langchain-ollama>=0.3.10,<1.0.0
+langchain-core>=0.3.76,<1.0.0

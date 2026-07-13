@@ -52,10 +52,10 @@ class TennisAgentsGraph:
                 if self.debug:
                     local_model = self.config.get("local_model_name", "qwen2.5:3b")
                     local_base_url = self.config.get("local_base_url", "http://localhost:11434/v1")
-                    print(f"✓ LLM local inicializado para analistas: {local_model} ({local_base_url})")
+                    print(f"[OK] LLM local inicializado para analistas: {local_model} ({local_base_url})")
             except Exception as e:
                 if self.debug:
-                    print(f"⚠ Warning: No se pudo inicializar LLM para analistas: {e}")
+                    print(f"[WARN] No se pudo inicializar LLM para analistas: {e}")
 
         self.toolkit = Toolkit(config=self.config)
 

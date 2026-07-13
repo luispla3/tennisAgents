@@ -3,8 +3,17 @@ FastAPI server for TennisAgents web application
 """
 import sys
 from pathlib import Path
+
+# Windows: evitar UnicodeEncodeError en prints del grafo (✓, ✗, emojis, etc.)
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
+    except Exception:
+        pass
+
 from typing import Dict, Any, List
-from fastapi import FastAPI, Request, HTTPException, Depends
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -28,8 +37,6 @@ from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.dataflows.config import set_config
 from tennisAgents.graph.trading_graph import TennisAgentsGraph
 from tennisAgents.utils.earnings_manager import EarningsManager
-from tennisAgents.utils.auth_backend import get_current_user
-
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from typing import List, Optional
@@ -88,7 +95,6 @@ class AnalysisRequest(BaseModel):
 async def run_analysis(
     request: Request,
     analysis_request: AnalysisRequest,
-    current_user: dict = Depends(get_current_user),
 ):
     """
     Run the tennis analysis system and stream the results.
@@ -586,18 +592,6 @@ async def home(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 
-@app.get("/login", response_class=HTMLResponse)
-async def login(request: Request):
-    """Login page"""
-    return templates.TemplateResponse("login.html", {"request": request})
-
-
-@app.get("/register", response_class=HTMLResponse)
-async def register(request: Request):
-    """Register page"""
-    return templates.TemplateResponse("register.html", {"request": request})
-
-
 @app.get("/predict", response_class=HTMLResponse)
 async def predict(request: Request):
     """Predict page"""
@@ -811,8 +805,9 @@ def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[
         # Try to read tournament name from tournament_report.md
         tournament_name = ""
         try:
-            tournament_file = report_dir / "tournament_report.md"
-            if tournament_file.exists():
+            tournament_files = sorted(report_dir.glob("tournament_report*.md"))
+            tournament_file = tournament_files[0] if tournament_files else None
+            if tournament_file and tournament_file.exists():
                 keywords = [
                     "challenger",
                     "cup",
@@ -950,6 +945,60 @@ def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[
     return matches
 
 
+REPORT_AGENT_ORDER = (
+    ("news_report", "News Analyst"),
+    ("players_report", "Players Analyst"),
+    ("sentiment_report", "Social Analyst"),
+    ("tournament_report", "Tournament Analyst"),
+    ("weather_report", "Weather Analyst"),
+    ("final_bet_decision", "Generalist LLM"),
+)
+
+
+def _report_agent_label(filename_stem: str) -> str | None:
+    for prefix, label in REPORT_AGENT_ORDER:
+        if filename_stem == prefix or filename_stem.startswith(f"{prefix}_"):
+            return label
+    return None
+
+
+def _load_match_reports(report_dir: Path) -> List[Dict[str, Any]]:
+    """Carga los informes de analistas y generalista desde el directorio reports."""
+    if not report_dir.exists() or not report_dir.is_dir():
+        return []
+
+    by_agent: Dict[str, Dict[str, Any]] = {}
+    for fpath in sorted(report_dir.glob("*.md")):
+        label = _report_agent_label(fpath.stem)
+        if not label:
+            continue
+
+        try:
+            content = fpath.read_text(encoding="utf-8")
+        except Exception:
+            continue
+
+        if not content.strip():
+            continue
+
+        # Preferir final_bet_decision.md sin sufijo de modelo
+        if label in by_agent and label != "Generalist LLM":
+            continue
+        if label == "Generalist LLM" and by_agent.get(label):
+            if fpath.stem == "final_bet_decision":
+                pass
+            elif by_agent[label]["filename"] == "final_bet_decision.md":
+                continue
+
+        by_agent[label] = {
+            "agent": label,
+            "filename": fpath.name,
+            "content": content,
+        }
+
+    return [by_agent[label] for _, label in REPORT_AGENT_ORDER if label in by_agent]
+
+
 @app.get("/api/predicted-matches")
 async def get_predicted_matches():
     """
@@ -980,6 +1029,27 @@ async def get_predicted_matches():
             status_code=500,
             detail=f"Error al obtener partidos predichos: {str(e)}",
         )
+
+
+@app.get("/api/match-reports")
+async def get_match_reports(
+    storage: str, match_dir: str, analysis_date: str
+):
+    """Devuelve los informes de analistas y generalista para un partido."""
+    if storage not in {"web", "cli"}:
+        raise HTTPException(status_code=400, detail="storage debe ser 'web' o 'cli'")
+
+    base_dir = WEB_RESULTS_DIR if storage == "web" else CLI_RESULTS_DIR
+    target_dir = base_dir / match_dir / analysis_date / "reports"
+
+    if not target_dir.exists() or not target_dir.is_dir():
+        raise HTTPException(
+            status_code=404,
+            detail="No se encontró el directorio de reports para este partido",
+        )
+
+    reports = _load_match_reports(target_dir)
+    return JSONResponse({"success": True, "reports": reports})
 
 
 @app.get("/api/predicted-match-details")
@@ -1069,6 +1139,8 @@ async def get_predicted_match_details(
                 detail="No se pudieron leer las predicciones para este partido",
             )
 
+        agent_reports = _load_match_reports(target_dir)
+
         # Recreate basic match info from match_dir name
         match_label = match_dir
         timestamp = ""
@@ -1097,6 +1169,7 @@ async def get_predicted_match_details(
                     "status": status,
                 },
                 "predictions": predictions,
+                "reports": agent_reports,
                 "final_bet_decision": final_bet_decision_content,
             }
         )

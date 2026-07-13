@@ -115,7 +115,7 @@ class GraphSetup:
             heartbeat_thread.start()
 
             def run_analyst(analyst_type):
-                print(f"▶ Iniciando analista '{analyst_type}'...", flush=True)
+                print(f"[START] Iniciando analista '{analyst_type}'...", flush=True)
                 subgraph = analyst_subgraphs[analyst_type]
                 local_state = dict(state)
                 local_state[STATE.messages] = [HumanMessage(content="Continue")]
@@ -124,7 +124,7 @@ class GraphSetup:
                         local_state,
                         config={"recursion_limit": analyst_recursion_limit},
                     )
-                    print(f"✓ Analista '{analyst_type}' completado", flush=True)
+                    print(f"[OK] Analista '{analyst_type}' completado", flush=True)
                     reports = {
                         key: result[key]
                         for key in REPORT_KEYS
@@ -139,7 +139,7 @@ class GraphSetup:
                     )
                     return analyst_type, result
                 except Exception as exc:
-                    print(f"✗ Error en analista '{analyst_type}': {exc}", flush=True)
+                    print(f"[ERROR] Analista '{analyst_type}': {exc}", flush=True)
                     _emit_progress(
                         {"type": "analyst_error", "analyst": analyst_type, "error": str(exc)}
                     )
@@ -160,7 +160,7 @@ class GraphSetup:
                         try:
                             completed_type, result = future.result(timeout=900)
                         except Exception as exc:
-                            print(f"✗ Timeout/error esperando '{analyst_type}': {exc}", flush=True)
+                            print(f"[ERROR] Timeout/error esperando '{analyst_type}': {exc}", flush=True)
                             with running_lock:
                                 running.discard(analyst_type)
                             continue

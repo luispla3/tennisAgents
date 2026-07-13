@@ -23,7 +23,7 @@ def create_news_analyst(llm, toolkit):
         tournament = state[STATE.tournament]
 
         print(f"\n{'=' * 80}", flush=True)
-        print("📰 NEWS ANALYST - Recopilando noticias", flush=True)
+        print("NEWS ANALYST - Recopilando noticias", flush=True)
         print(f"{'=' * 80}", flush=True)
         print(f"Jugadores: {player} vs {opponent}", flush=True)
         print(f"Torneo: {tournament}", flush=True)
@@ -62,7 +62,7 @@ def create_news_analyst(llm, toolkit):
         )
 
         report = result.content if hasattr(result, "content") else str(result)
-        print("✅ Reporte de noticias generado", flush=True)
+        print("[OK] Reporte de noticias generado", flush=True)
 
         return {
             STATE.messages: [AIMessage(content=report)],

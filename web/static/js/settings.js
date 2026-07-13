@@ -481,17 +481,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Create AbortController for cancellation
                     currentAnalysisController = new AbortController();
                     
-                    const headers = { 'Content-Type': 'application/json' };
-                    if (typeof getAuthToken === 'function') {
-                        const token = getAuthToken();
-                        if (token) {
-                            headers['Authorization'] = `Bearer ${token}`;
-                        }
-                    }
-
                     const response = await fetch('/api/run-analysis', {
                         method: 'POST',
-                        headers,
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             player1: settings.player1,
                             player2: settings.player2,
@@ -801,6 +793,23 @@ document.addEventListener('DOMContentLoaded', function() {
             logEntry.textContent = `[${timestamp}] Agent Status: ${agent} -> ${status}`;
             analysisLogs.appendChild(logEntry);
             analysisLogs.scrollTop = analysisLogs.scrollHeight;
+        }
+        else if (event.type === 'error') {
+            const message = event.data?.message || 'Error desconocido durante el análisis';
+            analysisStatus.innerHTML = `<span style="color: #ef4444;">Error: ${message}</span>`;
+            analysisStatus.style.borderColor = '#ef4444';
+            analysisStatus.style.background = 'rgba(239, 68, 68, 0.1)';
+
+            const logEntry = document.createElement('div');
+            logEntry.style.color = '#ef4444';
+            logEntry.textContent = `[${timestamp}] Error: ${message}`;
+            analysisLogs.appendChild(logEntry);
+            analysisLogs.scrollTop = analysisLogs.scrollHeight;
+
+            if (cancelAnalysisBtn) {
+                cancelAnalysisBtn.style.display = 'none';
+            }
+            currentAnalysisController = null;
         }
         else if (event.type === 'report') {
             const { section, content } = event.data;

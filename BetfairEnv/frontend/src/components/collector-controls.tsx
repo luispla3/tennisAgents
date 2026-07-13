@@ -34,9 +34,10 @@ export function CollectorControls({ onChange, onStatusChange }: Props) {
 
   useEffect(() => {
     void refresh()
+    if (!status?.running) return
     const timer = setInterval(() => void refresh(), 10000)
     return () => clearInterval(timer)
-  }, [refresh])
+  }, [refresh, status?.running])
 
   const running = status?.running ?? false
 

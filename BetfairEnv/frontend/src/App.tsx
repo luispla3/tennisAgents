@@ -38,8 +38,8 @@ export function App() {
 
   useEffect(() => {
     void refresh()
-    const intervalMs = collectorRunning ? 8000 : 30000
-    const timer = setInterval(() => void refresh(), intervalMs)
+    if (!collectorRunning) return
+    const timer = setInterval(() => void refresh(), 8000)
     return () => clearInterval(timer)
   }, [refresh, collectorRunning])
 
@@ -90,7 +90,7 @@ export function App() {
         </aside>
         <section>
           {selected ? (
-            <MatchDetailPanel match={selected} />
+            <MatchDetailPanel match={selected} collectorRunning={collectorRunning} />
           ) : (
             <div className="rounded-xl border border-dashed p-10 text-center text-muted-foreground">
               Selecciona un partido para ver la reconstrucción punto a punto.
