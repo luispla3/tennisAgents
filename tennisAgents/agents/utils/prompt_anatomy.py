@@ -161,15 +161,15 @@ class TennisAnalystAnatomies:
                 "Contrastar información con múltiples fuentes cuando sea posible"
             ],
             
-            output_format="Informe estructurado con resumen ejecutivo, análisis detallado por jugador, comparación directa y tabla de métricas clave",
+            output_format="Informe en prosa con conclusiones verificadas por jugador, comparación directa, servicio en superficie, H2H y limitaciones de datos (sin tablas markdown)",
             
-            output_structure="1. Resumen ejecutivo\n2. Análisis por jugador\n3. Comparación directa\n4. Predicción basada en datos\n5. Tabla de métricas",
+            output_structure="1. Resumen ejecutivo\n2. Conclusiones por jugador\n3. Comparación directa\n4. Servicio en superficie\n5. Head-to-head\n6. Lectura del partido\n7. Limitaciones de datos",
             
             completion_criteria=[
-                "Análisis completo de ambos jugadores con datos verificados",
-                "Comparación directa de fortalezas y debilidades",
-                "Predicción fundamentada en datos objetivos",
-                "Informe estructurado en el formato especificado"
+                "Conclusiones basadas solo en datos devueltos por las herramientas",
+                "Comparación directa de fortalezas y debilidades verificables",
+                "Lectura cualitativa del partido sin probabilidades numéricas inventadas",
+                "Sección explícita de limitaciones cuando falten datos"
             ]
         )
     
@@ -320,54 +320,5 @@ class TennisAnalystAnatomies:
                 "Pronósticos precisos para el horario del partido",
                 "Evaluación del impacto en el rendimiento",
                 "Informe estructurado con información verificada"
-            ]
-        )
-    
-    @staticmethod
-    def social_media_analyst() -> PromptAnatomy:
-        """Anatomía para el analista de redes sociales"""
-        return PromptAnatomy(
-            role="Analista especializado en redes sociales y sentimiento público relacionado con jugadores de tenis",
-            
-            task="Analizar sentimiento público y actividad en redes sociales para evaluar su impacto en el estado mental y motivación de los jugadores",
-            
-            task_steps=[
-                "Monitorear actividad en redes sociales de los jugadores",
-                "Analizar sentimiento público y comentarios",
-                "Evaluar impacto en estado mental y motivación",
-                "Identificar patrones de comportamiento en línea",
-                "Sintetizar implicaciones para el rendimiento deportivo"
-            ],
-            
-            context="Análisis de presencia en redes sociales y sentimiento público para entender factores que pueden influir en el estado mental de los jugadores",
-            
-            exclusions=[
-                "Información personal no relacionada con el rendimiento deportivo",
-                "Comentarios tóxicos o irrelevantes",
-            ],
-            
-            reasoning_priorities=[
-                "Priorizar información relevante para el rendimiento deportivo",
-                "Enfocarse en sentimiento público general",
-                "Considerar impacto en motivación y estado mental",
-                "Identificar patrones de comportamiento relevantes"
-            ],
-            
-            verification_requirements=[
-                "Verificar fuentes de información en redes sociales",
-                "Confirmar relevancia para el rendimiento deportivo",
-                "Validar análisis de sentimiento",
-                "Respetar límites de privacidad"
-            ],
-            
-            output_format="Informe estructurado con análisis de sentimiento público, actividad en redes sociales e impacto en el rendimiento deportivo",
-            
-            output_structure="1. Actividad en redes sociales\n2. Análisis de sentimiento\n3. Impacto en estado mental\n4. Patrones de comportamiento\n5. Implicaciones para el partido",
-            
-            completion_criteria=[
-                "Análisis completo de presencia en redes sociales",
-                "Evaluación del sentimiento público",
-                "Identificación de impacto en motivación",
-                "Informe estructurado respetando privacidad"
             ]
         )

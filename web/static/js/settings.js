@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Load analysts
                 if (settings.analysts && Array.isArray(settings.analysts)) {
+                    settings.analysts = settings.analysts.filter(a => a !== 'social');
                     document.querySelectorAll('input[name="analysts"]').forEach(checkbox => {
                         checkbox.checked = settings.analysts.includes(checkbox.value);
                     });
@@ -188,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Helper function to order analysts correctly
     function orderAnalysts(selectedAnalysts) {
-        const correctOrder = ['news', 'players', 'social', 'tournament', 'weather'];
+        const correctOrder = ['news', 'players', 'tournament', 'weather'];
         return correctOrder.filter(analyst => selectedAnalysts.includes(analyst));
     }
 
@@ -217,7 +218,11 @@ document.addEventListener('DOMContentLoaded', function() {
             walletBalance: walletBalance, // Saldo - no se modifica desde los inputs
             betAmount: betAmount, // Cantidad a apostar - independiente del saldo
             // Ensure analysts are in the correct execution order
-            analysts: orderAnalysts(Array.from(document.querySelectorAll('input[name="analysts"]:checked')).map(cb => cb.value)),
+            analysts: orderAnalysts(
+                Array.from(document.querySelectorAll('input[name="analysts"]:checked'))
+                    .map(cb => cb.value)
+                    .filter(value => value !== 'social')
+            ),
             llmProvider: llmProviderSelect.value,
             backendUrl: backendUrl, // Automatically set based on provider
             shallowThinker: shallowThinkerSelect.value,
@@ -433,7 +438,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 // Initialize agents badges
                 const allAgents = [
-                    "News Analyst", "Players Analyst", "Social Analyst",
+                    "News Analyst", "Players Analyst",
                     "Tournament Analyst", "Weather Analyst",
                     "Generalist LLM",
                 ];
@@ -444,7 +449,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const analystBadgeNames = {
                     news: "News Analyst",
                     players: "Players Analyst",
-                    social: "Social Analyst",
                     tournament: "Tournament Analyst",
                     weather: "Weather Analyst",
                 };

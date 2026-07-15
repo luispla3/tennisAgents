@@ -21,14 +21,6 @@ class ConditionalLogic:
             return "tools_players"
         return "Msg Clear Players"
 
-    def should_continue_social(self, state: AgentState):
-        """Determina si el análisis de redes sociales debe continuar."""
-        messages = state[STATE.messages]
-        last_message = messages[-1]
-        if hasattr(last_message, "tool_calls") and last_message.tool_calls:
-            return "tools_social"
-        return "Msg Clear Social"
-
     def should_continue_tournament(self, state: AgentState):
         """Determina si el análisis de torneo debe continuar."""
         messages = state[STATE.messages]

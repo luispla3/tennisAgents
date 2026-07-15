@@ -55,7 +55,6 @@ class MessageBuffer:
         self.agent_status = {
             "News Analyst": "pending",
             "Players Analyst": "pending",
-            "Social Analyst": "pending",
             "Tournament Analyst": "pending",
             "Weather Analyst": "pending",
             "Generalist LLM": "pending",
@@ -64,7 +63,6 @@ class MessageBuffer:
         self.report_sections = {
             "news_report": None,
             "players_report": None,
-            "sentiment_report": None,
             "tournament_report": None,
             "weather_report": None,
             "final_bet_decision": None,
@@ -104,7 +102,6 @@ class MessageBuffer:
             section_titles = {
                 "news_report": "News Analysis",
                 "players_report": "Players Analysis",
-                "sentiment_report": "Social Sentiment",
                 "tournament_report": "Tournament Analysis",
                 "weather_report": "Weather Analysis",
                 "final_bet_decision": "Final Bet Decision",
@@ -125,7 +122,6 @@ class MessageBuffer:
             for section in [
                 "news_report",
                 "players_report",
-                "sentiment_report",
                 "tournament_report",
                 "weather_report",
             ]
@@ -138,10 +134,6 @@ class MessageBuffer:
             if self.report_sections["players_report"]:
                 report_parts.append(
                     f"### Players Analysis\n{self.report_sections['players_report']}"
-                )
-            if self.report_sections["sentiment_report"]:
-                report_parts.append(
-                    f"### Social Sentiment\n{self.report_sections['sentiment_report']}"
                 )
             if self.report_sections["tournament_report"]:
                 report_parts.append(
@@ -214,7 +206,6 @@ def update_display(layout, spinner_text=None):
         "Analyst Team": [
             "News Analyst",
             "Players Analyst",
-            "Social Analyst",
             "Tournament Analyst",
             "Weather Analyst",
         ],
@@ -529,17 +520,6 @@ def display_complete_report(final_state):
             )
         )
 
-    # Social Analyst Report
-    if final_state.get("sentiment_report"):
-        analyst_reports.append(
-            Panel(
-                Markdown(final_state["sentiment_report"]),
-                title="Social Analyst",
-                border_style="blue",
-                padding=(1, 2),
-            )
-        )
-
     # Tournament Analyst Report
     if final_state.get("tournament_report"):
         analyst_reports.append(
@@ -840,18 +820,6 @@ def run_analysis():
                         "players_report", chunk["players_report"]
                     )
                     message_buffer.update_agent_status("Players Analyst", "completed")
-                    # Set next analyst to in_progress
-                    if "social" in selections["analysts"]:
-                        message_buffer.update_agent_status(
-                            "Social Analyst", "in_progress"
-                        )
-
-                if "sentiment_report" in chunk and chunk["sentiment_report"]:
-                    message_buffer.update_report_section(
-                        "sentiment_report", chunk["sentiment_report"]
-                    )
-                    message_buffer.update_agent_status("Social Analyst", "completed")
-                    # Set next analyst to in_progress
                     if "tournament" in selections["analysts"]:
                         message_buffer.update_agent_status(
                             "Tournament Analyst", "in_progress"

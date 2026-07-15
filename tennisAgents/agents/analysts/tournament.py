@@ -1,5 +1,21 @@
+from langchain_core.messages import AIMessage
+
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
+from tennisAgents.agents.utils.agent_utils import _record_tool_output
+from tennisAgents.dataflows.config import get_config
+from tennisAgents.dataflows.interface import get_tournament_data
+from tennisAgents.dataflows.tournament_utils import normalize_tournament
+
+
+def _emit_activity(message: str) -> None:
+    callback = get_config().get("progress_callback")
+    if callback:
+        try:
+            callback({"type": "analyst_activity", "analyst": "tournament", "message": message})
+        except Exception:
+            pass
+
 
 def create_tournament_analyst(llm, toolkit):
     def tournament_analyst_node(state):
@@ -7,22 +23,24 @@ def create_tournament_analyst(llm, toolkit):
         tournament = state[STATE.tournament]
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
+        tournament_identity = normalize_tournament(tournament)
+        category = tournament_identity.category if tournament_identity.category != "unknown" else "atp"
 
-        # Herramientas específicas
-        if toolkit.config["online_tools"]:
-            tools = [toolkit.get_tournament_info]
-        else:
-            tools = [toolkit.get_tournament_info]
-
-        # Obtener la anatomía del prompt para analista de torneos
-        anatomy = TennisAnalystAnatomies.tournament_analyst()
-        
-        # Información de herramientas
-        tools_info = (
-            "• get_tournament_info() - Obtiene información detallada sobre torneos de tenis."
+        _emit_activity("Obteniendo datos del torneo...")
+        tournament_data = get_tournament_data(tournament, category, match_date)
+        _record_tool_output(
+            "get_tournament_info",
+            {
+                "tournament": tournament,
+                "tournament_normalized": tournament_identity.display_name,
+                "category": category,
+                "date": match_date,
+            },
+            tournament_data,
         )
-        
-        # Contexto adicional específico del análisis de torneos
+
+        anatomy = TennisAnalystAnatomies.tournament_analyst()
+
         additional_context = (
             "FACTORES A EVALUAR:\n"
             "• Tipo de superficie y condiciones físicas del entorno (altitud, clima habitual, velocidad de la pista)\n"
@@ -36,39 +54,39 @@ def create_tournament_analyst(llm, toolkit):
             "• En torneos menores: los jugadores buenos pueden no rendir al máximo si se reservan para torneos importantes\n"
             "• Jugadores mayores de 30 años: menor disposición para remontar partidos/sets, especialmente en formato a 5 sets\n\n"
             "OBJETIVO: Ayudar al equipo de predicción a entender el impacto del torneo sobre el rendimiento de los jugadores.\n\n"
-            "IMPORTANTE: Solo puedes hacer UNA SOLA LLAMADA a get_tournament_info. Usa esa información de manera eficiente y completa.\n\n"
-            "IMPORTANTE: Cuando uses get_tournament_info, debes incluir la fecha del partido {match_date} como parámetro 'date'."
+            "Usa EXCLUSIVAMENTE los datos del torneo proporcionados en el mensaje del usuario.\n"
+            "No inventes datos históricos ni condiciones concretas que no aparezcan en esos datos.\n"
+            "No pidas más búsquedas ni repitas get_tournament_info."
         )
 
-        # Crear prompt estructurado usando la anatomía
         prompt = PromptBuilder.create_structured_prompt(
             anatomy=anatomy,
-            tools_info=tools_info,
-            additional_context=additional_context
+            tools_info="",
+            additional_context=additional_context,
         )
 
-        # Inyección de variables al prompt
         prompt = prompt.partial(tournament=tournament)
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(match_date=match_date)
 
-        chain = prompt | llm.bind_tools(tools)
+        _emit_activity("Sintetizando informe con LLM...")
+        chain = prompt | llm
+        result = chain.invoke(
+            {
+                "messages": state[STATE.messages],
+                "user_message": (
+                    f"Analiza el torneo {tournament} y su impacto en {player} y {opponent} "
+                    f"para el partido del {match_date}.\n\n"
+                    f"DATOS DEL TORNEO (ya obtenidos — no repitas la herramienta):\n\n{tournament_data}"
+                ),
+            }
+        )
 
-        # Crear el input correcto como diccionario
-        input_data = {
-            "messages": state[STATE.messages],
-            "user_message": f"Analiza el torneo {tournament} y su impacto en {player} y {opponent}."
-        }
-
-        result = chain.invoke(input_data)
-
-        report = ""
-        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
-            report = result.content
+        report = result.content if hasattr(result, "content") else str(result)
 
         return {
-            STATE.messages: [result],
+            STATE.messages: [AIMessage(content=report)],
             REPORTS.tournament_report: report,
         }
 

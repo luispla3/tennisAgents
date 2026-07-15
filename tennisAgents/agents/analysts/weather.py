@@ -1,5 +1,21 @@
+from langchain_core.messages import AIMessage
+
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
+from tennisAgents.agents.utils.agent_utils import _record_tool_output
+from tennisAgents.dataflows.config import get_config
+from tennisAgents.dataflows.interface import get_weather_forecast
+from tennisAgents.dataflows.tournament_utils import normalize_tournament
+
+
+def _emit_activity(message: str) -> None:
+    callback = get_config().get("progress_callback")
+    if callback:
+        try:
+            callback({"type": "analyst_activity", "analyst": "weather", "message": message})
+        except Exception:
+            pass
+
 
 def create_weather_analyst(llm, toolkit):
     def weather_analyst_node(state):
@@ -7,32 +23,26 @@ def create_weather_analyst(llm, toolkit):
         player = state[STATE.player_of_interest]
         opponent = state[STATE.opponent]
         tournament = state[STATE.tournament]
+        tournament_identity = normalize_tournament(tournament)
+        location = tournament_identity.location or tournament_identity.search_name
+        fecha_hora = f"{match_date} 14:00"
 
-        # Herramientas de consulta meteorológica
-        if toolkit.config["online_tools"]:
-            tools = [toolkit.get_weather_forecast]
-        else:
-            tools = [toolkit.get_weather_forecast]  # Para testing o entorno offline
-
-        # Obtener la anatomía del prompt para analista del clima
-        anatomy = TennisAnalystAnatomies.weather_analyst()
-        
-        # Información de herramientas
-        tools_info = (
-            "• get_weather_forecast(tournament, fecha_hora, location) - Obtiene pronóstico meteorológico para una ubicación y fecha específicas.\n\n"
-            "INFORMACIÓN DISPONIBLE:\n"
-            f"• Fecha del partido: {match_date}\n"
-            f"• Torneo: {tournament}\n"
-            f"• Jugadores: {player} vs {opponent}"
+        _emit_activity("Obteniendo pronóstico meteorológico...")
+        weather_report = get_weather_forecast(tournament, fecha_hora, location)
+        _record_tool_output(
+            "get_weather_forecast",
+            {
+                "tournament": tournament,
+                "tournament_normalized": tournament_identity.display_name,
+                "fecha_hora": fecha_hora,
+                "location": location,
+            },
+            weather_report,
         )
-        
-        # Contexto adicional específico del análisis del clima
+
+        anatomy = TennisAnalystAnatomies.weather_analyst()
+
         additional_context = (
-            "INSTRUCCIONES ESPECÍFICAS:\n"
-            f"• Usa la fecha del partido: {match_date}\n"
-            f"• Usa el nombre del torneo: {tournament}\n"
-            f"• Procede DIRECTAMENTE con el análisis usando get_weather_forecast\n"
-            "• NO pidas información adicional al usuario\n\n"
             "FACTORES CLIMÁTICOS A ANALIZAR:\n"
             "• Temperatura y su impacto en la velocidad de la pelota y resistencia de los jugadores\n"
             "• Viento y su efecto en la precisión de los saques y golpes\n"
@@ -41,44 +51,42 @@ def create_weather_analyst(llm, toolkit):
             "• Presión atmosférica y su efecto en la altitud (si aplica)\n\n"
             "ANÁLISIS REQUERIDO:\n"
             "• Cómo las condiciones climáticas pueden afectar el estilo de juego de ambos jugadores\n"
-            "• Historial de rendimiento de los jugadores bajo condiciones climáticas similares\n"
             "• Impacto en la estrategia del partido y adaptaciones necesarias\n"
             "• Comparación de ventajas/desventajas para cada jugador según el clima\n\n"
-            "IMPORTANTE: Haz solo una llamada a get_weather_forecast y usa la información de manera eficiente y completa.\n"
-            "IMPORTANTE: Procede DIRECTAMENTE con el análisis usando la información disponible.\n"
-            "IMPORTANTE: NO pidas información adicional al usuario."
+            f"Fecha del partido: {match_date}. Torneo: {tournament}. Ubicación resuelta: {location}.\n"
+            "Usa EXCLUSIVAMENTE el pronóstico proporcionado en el mensaje del usuario.\n"
+            "PROHIBIDO inventar temperatura, viento, humedad o lluvia si no aparecen en esos datos.\n"
+            "No pidas más búsquedas ni repitas get_weather_forecast."
         )
 
-        # Crear prompt estructurado usando la anatomía
         prompt = PromptBuilder.create_structured_prompt(
             anatomy=anatomy,
-            tools_info=tools_info,
-            additional_context=additional_context
+            tools_info="",
+            additional_context=additional_context,
         )
 
-        # Inyección de variables al prompt
         prompt = prompt.partial(player=player)
         prompt = prompt.partial(opponent=opponent)
         prompt = prompt.partial(match_date=match_date)
         prompt = prompt.partial(tournament=tournament)
 
-        # Construcción de la cadena LLM con herramientas
-        chain = prompt | llm.bind_tools(tools)
+        _emit_activity("Sintetizando informe con LLM...")
+        chain = prompt | llm
+        result = chain.invoke(
+            {
+                "messages": state[STATE.messages],
+                "user_message": (
+                    f"Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} "
+                    f"el día {match_date} en {tournament}.\n\n"
+                    f"PRONÓSTICO (ya obtenido — no repitas la herramienta):\n\n{weather_report}"
+                ),
+            }
+        )
 
-        # Crear el input correcto como diccionario
-        input_data = {
-            "messages": state[STATE.messages],
-            "user_message": f"Analiza las condiciones meteorológicas para el partido entre {player} y {opponent} el día {match_date}."
-        }
-
-        result = chain.invoke(input_data)
-
-        report = ""
-        if len(result.tool_calls) == 0:
-            report = result.content
+        report = result.content if hasattr(result, "content") else str(result)
 
         return {
-            STATE.messages: [result],
+            STATE.messages: [AIMessage(content=report)],
             REPORTS.weather_report: report,
         }
 

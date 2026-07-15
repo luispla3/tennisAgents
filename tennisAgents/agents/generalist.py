@@ -56,7 +56,7 @@ def Close(
 GENERALIST_TOOLS = [Bet, Wait, Close]
 GENERALIST_TOOL_MAP = {t.name: t for t in GENERALIST_TOOLS}
 GENERALIST_TOOL_MAP.update({t.name.lower(): t for t in GENERALIST_TOOLS})
-REPORT_ORDER = (REPORTS.players_report, REPORTS.news_report, REPORTS.sentiment_report, REPORTS.tournament_report, REPORTS.weather_report)
+REPORT_ORDER = (REPORTS.players_report, REPORTS.news_report, REPORTS.tournament_report, REPORTS.weather_report)
 
 
 def _emit_progress(event: dict) -> None:
@@ -75,7 +75,6 @@ def _collect_analyst_reports(state: dict) -> str:
     for key in (
         REPORTS.news_report,
         REPORTS.players_report,
-        REPORTS.sentiment_report,
         REPORTS.tournament_report,
         REPORTS.weather_report,
     ):

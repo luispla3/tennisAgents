@@ -28,7 +28,7 @@ def create_news_analyst(llm, toolkit):
         print(f"Jugadores: {player} vs {opponent}", flush=True)
         print(f"Torneo: {tournament}", flush=True)
 
-        _emit_activity("news", "Buscando noticias en la web (WebSearcher)...")
+        _emit_activity("news", "Buscando noticias (Google News RSS + web)...")
 
         raw_news = fetch_news_for_match(player, opponent, tournament, current_date)
         print(f"[SUCCESS] Noticias recopiladas ({len(raw_news)} caracteres)", flush=True)

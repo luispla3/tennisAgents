@@ -1,5 +1,7 @@
 """Scraper de Flashscore: partidos en vivo y estadísticas."""
 
+from tennisAgents.dataflows.match_filters import filter_singles_male_matches
+
 from .client import FlashscoreClient, FlashscoreError, SPORT_IDS
 from .parser import (
     build_finished_results,
@@ -43,6 +45,8 @@ def get_matches(
     sport_id = client.sport_id(sport)
     feed = client.get_daily_feed(sport_id=sport_id, day_offset=day_offset)
     matches = parse_feed(feed)
+    if sport == "tennis":
+        matches = filter_singles_male_matches(matches)
     if live_only:
         return filter_matches(matches, live_only=True)
     return matches
@@ -65,6 +69,8 @@ def get_finished_matches(
     sport_id = client.sport_id(sport)
     feed = client.get_daily_feed(sport_id=sport_id, day_offset=day_offset)
     matches = dedupe_matches(parse_feed(feed))
+    if sport == "tennis":
+        matches = filter_singles_male_matches(matches)
     finished = [m for m in matches if is_finished_tennis_match(m)]
 
     if not enrich_scores or not finished:

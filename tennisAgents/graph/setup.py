@@ -9,7 +9,6 @@ from langgraph.prebuilt import ToolNode
 
 from tennisAgents.agents.analysts.news import create_news_analyst
 from tennisAgents.agents.analysts.players import create_player_analyst
-from tennisAgents.agents.analysts.social_media import create_social_media_analyst
 from tennisAgents.agents.analysts.tournament import create_tournament_analyst
 from tennisAgents.agents.analysts.weather import create_weather_analyst
 from tennisAgents.agents.generalist import GENERALIST_NODE, create_generalist_llm
@@ -24,7 +23,6 @@ from .conditional_logic import ConditionalLogic
 REPORT_KEYS = [
     REPORTS.news_report,
     REPORTS.players_report,
-    REPORTS.sentiment_report,
     REPORTS.tournament_report,
     REPORTS.weather_report,
 ]
@@ -192,7 +190,7 @@ class GraphSetup:
         return parallel_analysts_node
 
     def setup_graph(
-        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.social, ANALYST_NODES.tournament, ANALYST_NODES.weather]
+        self, selected_analysts=[ANALYST_NODES.news, ANALYST_NODES.players, ANALYST_NODES.tournament, ANALYST_NODES.weather]
     ):
         """Configura y compila el grafo: analistas en paralelo seguidos del generalista."""
         if len(selected_analysts) == 0:
@@ -212,20 +210,15 @@ class GraphSetup:
             delete_nodes["players"] = create_msg_delete()
             tool_nodes_map["players"] = self.tool_nodes.get("players")
 
-        if "social" in selected_analysts:
-            analyst_nodes["social"] = create_social_media_analyst(self.local_llm, self.toolkit)
-            delete_nodes["social"] = create_msg_delete()
-            tool_nodes_map["social"] = self.tool_nodes.get("social")
-
         if "tournament" in selected_analysts:
             analyst_nodes["tournament"] = create_tournament_analyst(self.local_llm, self.toolkit)
             delete_nodes["tournament"] = create_msg_delete()
-            tool_nodes_map["tournament"] = self.tool_nodes.get("tournament")
+            tool_nodes_map["tournament"] = None
 
         if "weather" in selected_analysts:
             analyst_nodes["weather"] = create_weather_analyst(self.local_llm, self.toolkit)
             delete_nodes["weather"] = create_msg_delete()
-            tool_nodes_map["weather"] = self.tool_nodes.get("weather")
+            tool_nodes_map["weather"] = None
 
         analyst_subgraphs = {}
         for analyst_type in selected_analysts:

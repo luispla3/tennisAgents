@@ -3,8 +3,7 @@ from .match_live_utils import fetch_match_live_data, format_match_live_report
 from .news_utils import fetch_news
 from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
 from .weather_utils import fetch_weather_forecast, format_weather_report
-from .sentiment_utils import get_sentiment_openai
-from .tournament_utils import get_tournament_info_openai
+from .tournament_utils import get_tournament_info_openai, normalize_tournament
 
 
 
@@ -150,24 +149,18 @@ def get_head_to_head(player1_name: str, player2_name: str) -> str:
         return f"Error al obtener historial H2H entre {player1_name} y {player2_name}: {str(e)}"
 
 
-def get_injury_reports() -> str:
+def get_injury_reports(player1_name: str, player2_name: str) -> str:
     try:
-        result = fetch_injury_reports()
+        result = fetch_injury_reports(player1_name, player2_name)
         if not result or result.startswith("Error"):
             return "No se encontraron registros de lesiones."
-        
-        #debug
+
         print(f"[DEBUG] Resultado de get_injury_reports: {result}")
-        
+
         return result
-        
+
     except Exception as e:
         return f"Error al obtener reportes de lesiones: {str(e)}"
-
-
-    
-def get_sentiment(player_name: str) -> str:
-    return get_sentiment_openai(player_name)
 
 
 # TOURNAMENT ANALYST TOOLS
@@ -186,8 +179,16 @@ def get_tournament_data(tournament: str, category: str, date: str) -> str:
     Returns:
         str: ID del torneo si se encuentra, mensaje de error si no se encuentra
     """
-    
-    response = get_tournament_info_openai(tournament, category, date)
+    identity = normalize_tournament(tournament)
+    effective_category = category if category and category != "atp" else identity.category
+    if effective_category == "unknown":
+        effective_category = "atp"
+
+    response = get_tournament_info_openai(
+        identity.search_name or tournament,
+        effective_category,
+        date,
+    )
 
     return response
     
@@ -204,9 +205,24 @@ def get_weather_forecast(tournament: str, fecha_hora: str, location: str) -> str
     Returns:
         str: Reporte meteorológico formateado
     """
-    
-    weather_data = fetch_weather_forecast(location, fecha_hora, tournament)
+    identity = normalize_tournament(tournament or location)
+    resolved_location = location or identity.location or identity.search_name
+    if resolved_location == tournament and identity.location:
+        resolved_location = identity.location
+    elif _looks_like_tournament_label(resolved_location):
+        resolved_location = identity.location or identity.search_name
+
+    weather_data = fetch_weather_forecast(
+        resolved_location,
+        fecha_hora,
+        identity.display_name,
+    )
     return format_weather_report(weather_data)
+
+
+def _looks_like_tournament_label(value: str) -> bool:
+    lower = (value or "").lower()
+    return any(token in lower for token in ("singles", "doubles", "challenger", "atp", "wta", ":"))
 
 
 # MATCH LIVE ANALYST TOOLS

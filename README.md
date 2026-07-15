@@ -32,7 +32,6 @@ Our framework decomposes complex tennis match analysis into specialized roles. T
 - **Odds Analyst**: Analyzes betting market movements, value opportunities, and market sentiment to identify profitable betting positions.
 - **Tournament Analyst**: Evaluates tournament-specific factors like surface type, altitude, prize money, and historical performance patterns.
 - **Weather Analyst**: Assesses weather conditions, court surface interactions, and their impact on different playing styles.
-- **Social Media Analyst**: Analyzes social media sentiment, fan engagement, and public perception to gauge momentum and confidence factors.
 
 ### Risk Management Team
 - **Conservative Debator**: Advocates for cautious betting approaches, emphasizing capital preservation and high-probability outcomes.

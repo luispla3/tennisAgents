@@ -4,7 +4,6 @@ from enum import Enum
 class AnalystType(str, Enum):
     news = "news"
     players = "players"
-    social = "social"
     tournament = "tournament"
     weather = "weather"
 
@@ -20,7 +19,6 @@ class REPORTS:
 class ANALYST_NODES:
     news = "news"
     players = "players"
-    social = "social_media"
     tournament = "tournament"
     weather = "weather"
 

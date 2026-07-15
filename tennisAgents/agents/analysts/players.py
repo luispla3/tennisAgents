@@ -1,5 +1,8 @@
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
+from tennisAgents.dataflows.player_utils import fetch_injury_reports, fetch_surface_winrate
+from tennisAgents.dataflows.tournament_utils import normalize_tournament
+from tennisAgents.agents.utils.agent_utils import _record_tool_output
 
 def create_player_analyst(llm, toolkit):
     def player_analyst_node(state):
@@ -8,22 +11,38 @@ def create_player_analyst(llm, toolkit):
         opponent_name = state[STATE.opponent]
         tournament = state[STATE.tournament]
 
+        injury_report = fetch_injury_reports(player_name, opponent_name)
+        _record_tool_output(
+            "get_injury_reports",
+            {"player1_name": player_name, "player2_name": opponent_name},
+            injury_report,
+        )
+
+        tournament_surface = normalize_tournament(tournament).surface or "clay"
+        surface_report_player = fetch_surface_winrate(player_name, tournament_surface)
+        surface_report_opponent = fetch_surface_winrate(opponent_name, tournament_surface)
+        _record_tool_output(
+            "get_surface_winrate",
+            {"player_name": player_name, "surface": tournament_surface, "tournament": tournament},
+            surface_report_player,
+        )
+        _record_tool_output(
+            "get_surface_winrate",
+            {"player_name": opponent_name, "surface": tournament_surface, "tournament": tournament},
+            surface_report_opponent,
+        )
         # Selección dinámica de herramientas - usar todas las disponibles
         if toolkit.config["online_tools"]:
             tools = [
                 toolkit.get_atp_rankings,
                 toolkit.get_recent_matches,
-                toolkit.get_surface_winrate,
                 toolkit.get_head_to_head,
-                toolkit.get_injury_reports,
             ]
         else:
             tools = [
                 toolkit.get_atp_rankings,
                 toolkit.get_recent_matches,
-                toolkit.get_surface_winrate,
                 toolkit.get_head_to_head,
-                toolkit.get_injury_reports,
             ]
 
         # Obtener la anatomía del prompt para analista de jugadores
@@ -31,152 +50,68 @@ def create_player_analyst(llm, toolkit):
         
         # Información de herramientas
         tools_info = (
-            "• get_atp_rankings('{player_name}', '{opponent_name}') - Busca en la pagina web de la ATP el ranking ATP actual y el mejor ranking de su carrera para ambos jugadores\n"
-            "• get_injury_reports() - Obtiene reportes de lesiones y jugadores que regresan\n"
-            "• get_recent_matches('{player_name}', '{opponent_name}', num_matches) - Últimos partidos de ambos jugadores\n"
-            "• get_surface_winrate('{player_name}', 'superficie') - Winrate del jugador en una superficie específica\n"
-            "• get_head_to_head('{player_name}', '{opponent_name}') - Historial de enfrentamientos entre ambos"
+            "• get_atp_rankings('{player_name}', '{opponent_name}') - Perfiles ATP desde Tennis Abstract (ranking, Elo, país, mano)\n"
+            "• get_injury_reports('{player_name}', '{opponent_name}') - Historial de lesiones desde Flashscore (ya precargado abajo; no repitas la llamada)\n"
+            "• get_recent_matches('{player_name}', '{opponent_name}', num_matches) - Últimos partidos desde Tennis Abstract\n"
+            f"• get_surface_winrate('{player_name}', '{tournament_surface}') - Estadísticas por superficie (ya precargado abajo; no repitas la llamada)\n"
+            "• get_head_to_head('{player_name}', '{opponent_name}') - Historial H2H oficial desde ATP Tour (atptour.com)"
         )
         
         # Contexto adicional específico del partido
         additional_context = (
             "PROCESO RECOMENDADO:\n"
-            "1. Comienza obteniendo el ranking ATP para contextualizar la posición de ambos jugadores\n"
-            "2. Consulta reportes de lesiones para evaluar el estado físico actual\n"
-            "3. Analiza partidos recientes de ambos jugadores (últimos 20-30 partidos)\n"
-            "4. Evalúa el rendimiento específico en la superficie del torneo\n"
-            "5. Revisa el historial head-to-head para patrones históricos\n\n"
-            "REGLAS IMPORTANTES:\n"
-            "• Las herramientas usan búsqueda web + LLM; cada herramienta debe invocarse COMO MÁXIMO UNA VEZ\n"
-            "• No repitas herramientas ya consultadas; con los datos obtenidos elabora el reporte final\n"
-            "• No hay un orden estricto - usa las herramientas según la información que necesites\n"
-            "• Para get_recent_matches, puedes especificar el número de partidos (por defecto 30)\n"
-            "• Para get_surface_winrate, usa la superficie exacta del torneo (clay, hard, grass)\n"
-            "• Todas las herramientas devuelven análisis detallados, no solo datos crudos\n\n"
-            "ANÁLISIS BASE REQUERIDO:\n"
-            "• Ranking actual y evolución reciente de posiciones\n"
-            "• Estado físico y reportes de lesiones recientes\n"
-            "• Rendimiento en partidos recientes (últimos 20-30 partidos)\n"
-            "• Eficiencia específica sobre la superficie del torneo\n"
-            "• Comparación de winrates entre ambos jugadores en la superficie\n"
-            "• Estadísticas head-to-head y su relevancia histórica\n"
-            "• Factores que puedan influir en el resultado del partido\n\n"
-            "ESTRUCTURA OBLIGATORIA DEL REPORTE FINAL:\n"
-            "1. Encabeza el documento con `## 1. Resumen Ejecutivo` y resume en 4-6 líneas los hallazgos más relevantes.\n"
-            "2. Añade `## 2. Análisis por Jugador` con sub-secciones claras para cada jugador y su contexto reciente.\n"
-            "3. Continúa con `## 3. Comparación directa` destacando similitudes y diferencias clave.\n"
-            "4. Incluye `## 4. Predicción basada en datos` donde consolidas insights cuantitativos que respalden la predicción.\n"
-            "5. Presenta `## 5. Tabla de métricas clave` con una tabla markdown (| col1 | col2 | ...) que muestre estadísticas comparables.\n"
-            "6. Solo después de estas secciones, procede con los FUNDAMENTALS enumerados a continuación exactamente como se indica.\n\n"
-
-            "==========================================\n"
-            "IMPORTANTE: En tu reporte final, cuando incluyas cada uno de los siguientes análisis fundamentales,\n"
-            "DEBES incluir expresamente el encabezado 'FUNDAMENTAL X:' en el reporte para identificar claramente cada sección.\n"
-            "==========================================\n\n"
-
-            "FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO:\n"
-            
-            "Si hay una diferencia significativa de ranking (>50 posiciones):\n"
-            "• Identifica quién es el jugador favorito según ranking y forma actual\n"
-            "• Evalúa la CONSISTENCIA del favorito contra jugadores de menor nivel:\n"
-            "  - Tasa de victoria del favorito contra jugadores en el rango de ranking del rival\n"
-            "  - Rendimiento histórico en torneos de este nivel vs torneos superiores\n"
-            "  - ¿Viene de jugar torneos de categoría superior? (Grand Slams, Masters 1000, etc.)\n"
-            "    Si es así, analiza su adaptación al nivel del torneo actual\n"
-            "  - Contexto de la temporada: ¿Es inicio, mitad o final de temporada? Analizar bien ese momento de la temporada\n"
-            "  - ¿El favorito tiene necesidad de ganar este partido para mantener su posición en el ranking? Si es así, analiza la informacion en ese momento de la temporada\n"
-            "  - ¿El favorito suele tener bajadas de rendimiento contra rivales teóricamente inferiores?\n\n"
-            "• Evalúa si el jugador 'peor' está realmente en peor forma:\n"
-            "  - ¿El ranking refleja su nivel actual o está en un valle temporal?\n"
-            "  - ¿Ha tenido lesiones o bajón de forma reciente que expliquen su posición?\n"
-            "  - ¿Su forma reciente sugiere que es mejor jugador de lo que indica su ranking, por ejemplo, si es un jugador next gen y esta empezando a hacer buenos resultados\n"
-            "  - ¿Tiene historial de ser más fuerte de lo que su ranking sugiere?\n\n"
-            "• PROBABILIDAD ESTIMADA: Basándote en estos factores, estima la probabilidad real\n"
-            "  de que el favorito gane considerando:\n"
-            "  - Su consistencia histórica contra jugadores de este perfil\n"
-            "  - El nivel del torneo actual y su adaptación a él\n"
-            "  - La verdadera forma actual del rival (más allá del ranking)\n"
-            "  - Factores contextuales (etapa temporada, necesidad de ganar puntos para mantener la posición en el ranking, torneos previos, etc.)\n\n"
-            "• NOTA: si el rival peor resulta no ser tan malo como parecía, asegurate de bajar la probabilidad de victoria del favorito considerablemente. Si ambos jugadores resultan ser muy parecidos, ajusta la probabilidad de victoria del favorito a un valor que refleje la realidad.\n"
-            "\n"
-            "**RECUERDA: En tu reporte, incluye el encabezado '## FUNDAMENTAL 1: ANÁLISIS DE CONSISTENCIA DEL FAVORITO' antes de esta sección.**\n\n"
-
-            "FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE (MUY IMPORTANTE):\n"
-
-            "Este análisis es FUNDAMENTAL para predicciones. Para CADA jugador, debes investigar y analizar:\n\n"
-            "### JUGADOR 1: {player_name}\n"
-            "**A) Estadísticas Históricas de Servicio en la superficie del torneo:**\n"
-            "Usando get_recent_matches y get_surface_winrate, analiza el rendimiento histórico del servicio:\n"
-            "• % promedio de primer servicio efectivo en la superficie del torneo (últimos partidos en esta superficie)\n"
-            "• % promedio de puntos ganados con primer servicio en la superficie del torneo\n"
-            "• % promedio de puntos ganados con segundo servicio en la superficie del torneo\n"
-            "• Promedio de aces por partido en la superficie del torneo\n"
-            "• Promedio de dobles faltas por partido en la superficie del torneo.\n"
-            "• % de juegos de servicio ganados en la superficie del torneo\n"
-            "• % de break points salvados en la superficie del torneo\n"
-            "• Tendencias: ¿está mejorando o empeorando su servicio en partidos recientes?\n\n"
-            "**B) Solidez del Servicio Histórico - PUNTUACIÓN 1-10:**\n"
-            "Basándote en las estadísticas históricas en la superficie del torneo, asigna una puntuación donde:\n"
-            "• 10 = Servicio dominante en esta superficie (>80% puntos ganados con 1er servicio)\n"
-            "• 7-9 = Servicio muy sólido en esta superficie (65-80% puntos ganados con 1er servicio)\n"
-            "• 4-6 = Servicio promedio en esta superficie (50-65% puntos ganados con 1er servicio)\n"
-            "• 1-3 = Servicio débil en esta superficie (<50% puntos ganados con 1er servicio)\n"
-            "\n"
-            "**PUNTUACIÓN HISTÓRICA EN LA SUPERFICIE DEL TORNEO: [X/10]**\n"
-            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en la superficie del torneo]\n\n"
-            "### JUGADOR 2: {opponent_name}\n"
-            "**A) Estadísticas Históricas de Servicio en la superficie del torneo:**\n"
-            "[Mismo análisis detallado que para el Jugador 1]\n\n"
-            "**B) Solidez del Servicio Histórico - PUNTUACIÓN 1-10:**\n"
-            "**PUNTUACIÓN HISTÓRICA EN LA SUPERFICIE DEL TORNEO: [X/10]**\n"
-            "**JUSTIFICACIÓN:** [Basada en estadísticas históricas concretas en la superficie del torneo]\n\n"
-            "### COMPARACIÓN DE SERVICIO:\n"
-            "• ¿Quién tiene históricamente mejor servicio en la superficie del torneo?\n"
-            "• ¿La diferencia en calidad de servicio es significativa?\n"
-            "• ¿Cómo afecta esto a la probabilidad de quiebres de servicio en el partido?\n"
-            "• ¿Alguno de los jugadores tiene tendencias especiales con el servicio en la superficie del torneo?\n"
-            "• Basándote en el servicio histórico: ¿quién tiene ventaja para mantener sus servicios?\n\n"
-            "**RECUERDA: En tu reporte, incluye el encabezado '## FUNDAMENTAL 2: ANÁLISIS CRÍTICO DEL SERVICIO EN LA SUPERFICIE' antes de esta sección.**\n\n"
-            
-            "FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET:\n"
-
-            "\n"
-            "Basándote en TODO el análisis previo (servicio, consistencia, rankings, forma, head-to-head, superficie...):\n"
-            "debes proporcionar una predicción CONCRETA y JUSTIFICADA del resultado del set:\n\n"
-            "### SÍNTESIS DE FACTORES CLAVE:\n"
-            "### ESCENARIOS PROBABLES PARA EL SET:\n"
-            "Analiza los escenarios más probables:\n\n"
-            "**ESCENARIO 1 - Set sin tie-break (6-4, 6-3, 6-2, 6-1, 6-0):**\n"
-            "• Probabilidad: [X]%\n"
-            "• Ganador probable: {player_name} o {opponent_name}\n"
-            "• Marcador probable: [X-X]\n"
-            "• Justificación: [Basada en ventaja clara de servicio/nivel/forma]\n\n"
-            "**ESCENARIO 2 - Set con tie-break (7-6):**\n"
-            "• Probabilidad: [X]%\n"
-            "• Ganador probable en tie-break: {player_name} o {opponent_name}\n"
-            "• Justificación: [Basada en igualdad de niveles, experiencia en tie-breaks]\n\n"
-            "**ESCENARIO 3 - Set dominante (6-0, 6-1, 6-2):**\n"
-            "• Probabilidad: [X]%\n"
-            "• Ganador probable: {player_name} o {opponent_name}\n"
-            "• Justificación: [Basada en gran diferencia de nivel/servicio]\n\n"
-            "### PREDICCIÓN FINAL DEL SET:\n"
-            "**GANADOR PREDICHO:** [{player_name} o {opponent_name}]\n"
-            "**MARCADOR PREDICHO:** [X-X]\n"
-            "**CONFIANZA EN LA PREDICCIÓN:** [Alta/Media/Baja] ([XX]%)\n\n"
-            "**JUSTIFICACIÓN DETALLADA:**\n"
-            "[Explicación de 3-5 líneas integrando todos los factores analizados: servicio histórico, "
-            "forma reciente, superficie, head-to-head, estado físico, consistencia. Explica por qué "
-            "este jugador tiene ventaja y por qué se espera este marcador específico]\n\n"
-            "**FACTORES DE RIESGO QUE PODRÍAN CAMBIAR LA PREDICCIÓN:**\n"
-            "• [Factor 1: ej. si {player_name} tiene un mal día de servicio]\n"
-            "• [Factor 2: ej. si {opponent_name} juega muy agresivo desde el inicio]\n"
-            "• [Factor 3: ej. condiciones climáticas adversas]\n\n"
-            "**PROBABILIDADES FINALES:**\n"
-            "• {player_name} gana el set: [XX]%\n"
-            "• {opponent_name} gana el set: [XX]%\n\n"
-            "**RECUERDA: En tu reporte, incluye el encabezado '## FUNDAMENTAL 3: PREDICCIÓN DEL RESULTADO DEL SET' antes de esta sección.**\n\n"
-            "IMPORTANTE: Proporciona análisis específico y cuantitativo, no generalidades. Incluye estadísticas concretas, fechas relevantes y contexto específico. Las herramientas te darán información detallada y actualizada.\n\n"
-            "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: la superficie del torneo, Jugadores: {player_name} vs {opponent_name}"
+            "1. get_atp_rankings -> ranking, Elo, perfil básico\n"
+            "2. Lesiones -> usa los datos Flashscore precargados (sección DATOS DE LESIONES)\n"
+            "3. get_recent_matches -> forma reciente y stats de servicio por partido\n"
+            "4. Superficie/servicio -> usa DATOS DE SUPERFICIE precargados (Tennis Abstract)\n"
+            "5. get_head_to_head -> historial oficial ATP (incluye event breakdown)\n\n"
+            f"Superficie del torneo resuelta: {tournament_surface} (torneo: {tournament})\n\n"
+            "DATOS DE LESIONES (Flashscore, ya obtenidos — no llames get_injury_reports):\n"
+            f"{injury_report}\n\n"
+            f"DATOS DE SUPERFICIE Y SERVICIO — {player_name} (Tennis Abstract, ya obtenidos — no llames get_surface_winrate):\n"
+            f"{surface_report_player}\n\n"
+            f"DATOS DE SUPERFICIE Y SERVICIO — {opponent_name} (Tennis Abstract, ya obtenidos):\n"
+            f"{surface_report_opponent}\n\n"
+            "REGLAS DE FIDELIDAD A LOS DATOS:\n"
+            "• Cada herramienta restante se invoca COMO MÁXIMO UNA VEZ; lesiones y superficie ya están precargadas\n"
+            "• PROHIBIDO inventar rankings, porcentajes, récords, probabilidades numéricas o estadísticas\n"
+            "• PROHIBIDO usar tablas markdown en el reporte final (las tools ya devuelven tablas crudas)\n"
+            "• Redacta conclusiones en prosa y bullet points; cita la fuente: (Tennis Abstract), (ATP Tour), (Flashscore) o `No disponible`\n"
+            "• Si un jugador tiene filas en DATOS DE LESIONES, cítalas con fechas en la sección 2 — no digas que faltan datos\n"
+            "• Si Flashscore dice 'sin registros' para un jugador, escribe `Lesiones (Flashscore): sin registros` — no afirmes que está sano\n"
+            "• PROHIBIDO afirmar 'no presenta lesiones' o 'está sano' sin evidencia explícita\n"
+            "• En H2H: si hay filas en event breakdown, úsalas aunque el marcador global diga 0-0\n"
+            "• Si DATOS DE SUPERFICIE incluyen 1stIn/1st%/2nd%/A%, cítalos en secciones 2 y 4 — no digas que faltan\n"
+            "• Si solo hay split de últimas 52 semanas (sin carrera), úsalo igualmente como fuente válida\n"
+            "• Si get_surface_winrate devuelve métricas derivadas de partidos recientes, indícalo como tal\n"
+            "• Para get_recent_matches puedes usar num_matches=30\n\n"
+            "QUÉ SINTETIZAR (no volcar tablas):\n"
+            "• Ranking, Elo y mejor ranking de carrera\n"
+            "• Forma reciente en la superficie: últimos resultados relevantes con fechas y torneos\n"
+            "• Estado físico / lesiones: fechas y tipo según DATOS DE LESIONES (Flashscore)\n"
+            "• Servicio en la superficie: 1stIn, 1st%, 2nd%, A% — solo si aparecen en las tools\n"
+            "• Winrate en superficie (carrera o muestra reciente, según lo que devuelva la tool)\n"
+            "• H2H: enfrentamientos concretos del event breakdown, no solo el marcador global\n"
+            "• Factores que influyen en el partido, basados exclusivamente en los datos obtenidos\n\n"
+            "ESTRUCTURA DEL REPORTE (solo texto y bullet points, sin tablas):\n"
+            "## 1. Resumen ejecutivo\n"
+            "4-6 líneas con los hallazgos más relevantes y verificables.\n\n"
+            "## 2. Conclusiones por jugador\n"
+            "Subsección por jugador. Bullets con ranking, forma, servicio en superficie y lesiones (Flashscore).\n\n"
+            "## 3. Comparación directa\n"
+            "Similitudes y diferencias clave entre ambos, solo con datos verificados.\n\n"
+            "## 4. Servicio en la superficie del torneo\n"
+            "Compara el servicio de ambos en la superficie usando DATOS DE SUPERFICIE precargados (1stIn, 1st%, 2nd%, A%). "
+            "Si faltan datos para uno, dilo explícitamente.\n\n"
+            "## 5. Head-to-head y contexto del enfrentamiento\n"
+            "Resume enfrentamientos previos del event breakdown. Si no hay H2H, indícalo.\n\n"
+            "## 6. Lectura del partido\n"
+            "Ventajas/desventajas cualitativas. Puedes indicar favorito y confianza (Alta/Media/Baja) "
+            "como etiqueta cualitativa, SIN porcentajes numéricos inventados.\n\n"
+            "## 7. Limitaciones de datos\n"
+            "Lista qué no se pudo verificar o qué tools devolvieron datos insuficientes.\n\n"
+            "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: "
+            f"{tournament_surface}, Jugadores: {{player_name}} vs {{opponent_name}}"
         )
 
         # Crear prompt estructurado usando la anatomía
@@ -203,13 +138,9 @@ def create_player_analyst(llm, toolkit):
 
         result = chain.invoke(input_data)
 
-        report = ""
-        if len(result.tool_calls) == 0:  #len(result.tool_calls) == 0 significa: "En esta respuesta específica que acabo de generar, NO estoy pidiendo usar ninguna herramienta más".
-            report = result.content
-
-        return {
-            STATE.messages: [result],
-            REPORTS.players_report: report,
-        }
+        output = {STATE.messages: [result]}
+        if len(result.tool_calls) == 0:
+            output[REPORTS.players_report] = result.content
+        return output
 
     return player_analyst_node

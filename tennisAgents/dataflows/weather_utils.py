@@ -1,6 +1,79 @@
 from tennisAgents.dataflows.config import get_config
 from tennisAgents.dataflows.llm_utils import invoke_chat_llm, invoke_local_analyst_llm
 from tennisAgents.dataflows.web_search_utils import perform_web_search
+from tennisAgents.dataflows.tournament_utils import normalize_tournament
+
+import requests
+
+
+def _open_meteo_forecast(location: str, fecha_hora: str, tournament: str) -> dict | None:
+    geo = requests.get(
+        "https://geocoding-api.open-meteo.com/v1/search",
+        params={"name": location, "count": 1, "language": "en", "format": "json"},
+        timeout=10,
+    )
+    geo.raise_for_status()
+    results = geo.json().get("results") or []
+    if not results:
+        return None
+
+    place = results[0]
+    forecast = requests.get(
+        "https://api.open-meteo.com/v1/forecast",
+        params={
+            "latitude": place["latitude"],
+            "longitude": place["longitude"],
+            "daily": (
+                "temperature_2m_max,temperature_2m_min,"
+                "precipitation_probability_max,wind_speed_10m_max"
+            ),
+            "timezone": place.get("timezone", "auto"),
+        },
+        timeout=10,
+    )
+    forecast.raise_for_status()
+    data = forecast.json()
+    match_date = str(fecha_hora).split()[0]
+    daily = data.get("daily") or {}
+    dates = daily.get("time") or []
+    if match_date not in dates:
+        return None
+
+    idx = dates.index(match_date)
+    weather_info = (
+        f"Datos Open-Meteo para {place.get('name')}, {place.get('country')} "
+        f"({match_date}):\n"
+        f"- Temperatura máxima: {daily.get('temperature_2m_max', [None])[idx]} °C\n"
+        f"- Temperatura mínima: {daily.get('temperature_2m_min', [None])[idx]} °C\n"
+        f"- Probabilidad máxima de precipitación: "
+        f"{daily.get('precipitation_probability_max', [None])[idx]}%\n"
+        f"- Viento máximo a 10m: {daily.get('wind_speed_10m_max', [None])[idx]} km/h\n"
+        f"- Elevación aproximada: {place.get('elevation', 'N/D')} m\n"
+    )
+    return {
+        "tournament": tournament,
+        "fecha_hora": fecha_hora,
+        "location": f"{place.get('name')}, {place.get('country')}",
+        "weather_info": weather_info,
+        "source": "Open-Meteo",
+        "timestamp": data.get("generationtime_ms", ""),
+    }
+
+
+def _weather_location_candidates(location: str, tournament: str) -> list[str]:
+    identity = normalize_tournament(tournament or location)
+    candidates = [
+        location,
+        identity.location,
+        identity.search_name,
+        tournament,
+    ]
+    deduped: list[str] = []
+    for candidate in candidates:
+        cleaned = " ".join(str(candidate or "").split())
+        if cleaned and cleaned not in deduped:
+            deduped.append(cleaned)
+    return deduped
 
 
 def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> dict:
@@ -18,13 +91,24 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
     try:
         config = get_config()
 
+        for candidate in _weather_location_candidates(location, tournament):
+            try:
+                open_meteo = _open_meteo_forecast(candidate, fecha_hora, tournament)
+                if open_meteo:
+                    return open_meteo
+            except Exception:
+                continue
+
+        identity = normalize_tournament(tournament or location)
+        fallback_location = identity.location or identity.search_name or location
+
         if config.get("use_local_analysts", False):
             try:
                 local_model = config.get("local_model_name", "qwen2.5:3b")
                 text, label = invoke_local_analyst_llm(
                     "Eres un experto meteorólogo deportivo.",
                     (
-                        f"Genera un pronóstico del tiempo SIMULADO y plausible para {location} "
+                        f"Genera un pronóstico del tiempo SIMULADO y plausible para {fallback_location} "
                         f"en la fecha {fecha_hora} durante el torneo {tournament}. Incluye temperatura, "
                         f"viento, humedad y probabilidad de lluvia basándote en el clima típico de esa "
                         f"región en esa época del año. Aclara que esto es una estimación basada en "
@@ -49,12 +133,12 @@ def fetch_weather_forecast(location: str, fecha_hora: str, tournament: str) -> d
                     "location": location,
                 }
 
-        search_query = f"weather forecast {location} {fecha_hora} {tournament}"
+        search_query = f"{fallback_location} weather forecast {fecha_hora.split()[0]}"
         search_context = perform_web_search(search_query)
 
         system_prompt = f"""
-        Busca información meteorológica detallada para la ubicación {location}
-        para la fecha {fecha_hora} donde se jugará el torneo {tournament}.
+        Resume la información meteorológica disponible para {fallback_location}
+        alrededor del {fecha_hora}. Torneo: {identity.display_name}.
 
         Necesito información específica sobre:
         - Temperatura máxima y mínima (en Celsius)

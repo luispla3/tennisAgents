@@ -15,6 +15,7 @@ from tennisAgents.dataflows.flashscore_scraper import (
     get_matches,
 )
 from tennisAgents.dataflows.flashscore_scraper.client import FlashscoreError
+from tennisAgents.dataflows.match_filters import filter_singles_male_matches
 
 
 def normalize_name(name: str) -> str:
@@ -80,8 +81,9 @@ def _collect_matches(live_only: bool = False) -> list[dict[str, Any]]:
         if live_only:
             matches = get_live_matches("tennis")
             if matches:
-                return matches
-        return get_matches("tennis", live_only=live_only)
+                return filter_singles_male_matches(matches)
+        matches = get_matches("tennis", live_only=live_only)
+        return filter_singles_male_matches(matches)
     except FlashscoreError as exc:
         print(f"[ERROR] Flashscore: {exc}")
         return []

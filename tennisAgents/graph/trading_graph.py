@@ -24,7 +24,7 @@ class TennisAgentsGraph:
 
     def __init__(
         self,
-        selected_analysts=["news", "players", "social", "tournament", "weather"],
+        selected_analysts=["news", "players", "tournament", "weather"],
         debug=False,
         config: Dict[str, Any] = None,
     ):
@@ -98,16 +98,6 @@ class TennisAgentsGraph:
                     self.toolkit.get_injury_reports,
                 ]
             ),
-            "sentiment": ToolNode(
-                [
-                    self.toolkit.get_sentiment,
-                ]
-            ),
-            "social": ToolNode(
-                [
-                    self.toolkit.get_sentiment,
-                ]
-            ),
             "tournament": ToolNode(
                 [
                     self.toolkit.get_tournament_info,
@@ -160,7 +150,6 @@ class TennisAgentsGraph:
         "reports": {
             REPORTS.players_report: final_state.get(REPORTS.players_report, ""),
             REPORTS.news_report: final_state.get(REPORTS.news_report, ""),
-            REPORTS.sentiment_report: final_state.get(REPORTS.sentiment_report, ""),
             REPORTS.weather_report: final_state.get(REPORTS.weather_report, ""),
             REPORTS.tournament_report: final_state.get(REPORTS.tournament_report, ""),
         },

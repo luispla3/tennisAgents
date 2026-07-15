@@ -119,6 +119,10 @@ async def run_analysis(
 
             config["progress_callback"] = progress_callback
             set_config(config)
+
+            selected_analysts = [a for a in analysis_request.analysts if a != "social"]
+            if not selected_analysts:
+                selected_analysts = ["news", "players", "tournament", "weather"]
             
             # For web runs, force results into web/results (separado de la CLI)
             web_results_root = PROJECT_ROOT / "web" / "results"
@@ -136,6 +140,7 @@ async def run_analysis(
             log_file = results_dir / "message_tool.log"
             log_file.touch(exist_ok=True)
             config["generalist_turns_log"] = str(results_dir / "generalist_turns.jsonl")
+            config["tool_outputs_log"] = str(results_dir / "tool_outputs.jsonl")
             
             # Initial status: In Progress
             status_file = results_dir / "status.json"
@@ -176,7 +181,7 @@ async def run_analysis(
             }) + "\n"
             
             graph = TennisAgentsGraph(
-                analysis_request.analysts, 
+                selected_analysts, 
                 config=config, 
                 debug=True
             )
@@ -203,7 +208,6 @@ async def run_analysis(
             analyst_display_names = {
                 "news": "News Analyst",
                 "players": "Players Analyst",
-                "social": "Social Analyst",
                 "tournament": "Tournament Analyst",
                 "weather": "Weather Analyst",
             }
@@ -212,7 +216,6 @@ async def run_analysis(
                 file_map = {
                     "news_report": f"news_report_{safe_analyst_model_name}.md",
                     "players_report": f"players_report_{safe_main_model_name}.md",
-                    "sentiment_report": f"sentiment_report_{safe_analyst_model_name}.md",
                     "tournament_report": f"tournament_report_{safe_analyst_model_name}.md",
                     "weather_report": f"weather_report_{safe_analyst_model_name}.md",
                 }
@@ -420,11 +423,6 @@ async def run_analysis(
                     content = chunk["players_report"]
                     save_report("players_report", content)
                     yield json.dumps({"type": "report", "data": {"section": "players_report", "content": content}}) + "\n"
-
-                if "sentiment_report" in chunk and chunk["sentiment_report"]:
-                    content = chunk["sentiment_report"]
-                    save_report("sentiment_report", content)
-                    yield json.dumps({"type": "report", "data": {"section": "sentiment_report", "content": content}}) + "\n"
 
                 if "tournament_report" in chunk and chunk["tournament_report"]:
                     content = chunk["tournament_report"]

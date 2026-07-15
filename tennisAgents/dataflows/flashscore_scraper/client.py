@@ -126,6 +126,11 @@ class FlashscoreClient:
         path = f"/{sport_id}/x/feed/pr_2_167_{player_id}_{page}_1_{self.locale}_1_s"
         return self._get_text(f"{self.feed_base}{path}")
 
+    def get_player_meta(self, player_id: str, sport_id: int = 2) -> str:
+        """Metadatos del jugador (pm feed), incluye slug del perfil."""
+        path = f"/{sport_id}/x/feed/pm_1_{player_id}"
+        return self._get_text(f"{self.feed_base}{path}")
+
     def sport_id(self, sport: str) -> int:
         key = sport.lower().strip()
         if key not in SPORT_IDS:

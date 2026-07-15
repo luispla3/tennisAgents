@@ -1,5 +1,6 @@
 from typing import Dict, Any
 
+from tennisAgents.dataflows.tournament_utils import normalize_tournament
 from tennisAgents.utils.enumerations import REPORTS, STATE
 
 
@@ -19,12 +20,13 @@ class Propagator:
         wallet_balance: float,
     ) -> Dict[str, Any]:
         """Crea el estado inicial para el grafo de agentes deportivos."""
+        tournament_identity = normalize_tournament(tournament)
         return {
             STATE.messages: [("human", f"Análisis del partido entre {player_name} y {opponent_name}")],
             STATE.player_of_interest: player_name,
             STATE.opponent: opponent_name,
             STATE.match_date: str(match_date),
-            STATE.tournament: tournament,
+            STATE.tournament: tournament_identity.display_name,
             STATE.wallet_balance: wallet_balance,
             REPORTS.players_report: "",
             REPORTS.news_report: "",

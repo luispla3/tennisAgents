@@ -6,7 +6,6 @@ from cli.models import AnalystType
 ANALYST_ORDER = [
     ("News Analyst", AnalystType.news),
     ("Players Analyst", AnalystType.players),
-    ("Social Analyst", AnalystType.social),
     ("Tournament Analyst", AnalystType.tournament),
     ("Weather Analyst", AnalystType.weather),
 ]

@@ -63,12 +63,37 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
+    function isSinglesMaleMatch(match) {
+        const player1 = match.player1 || match.sport_event?.competitors?.[0]?.name || '';
+        const player2 = match.player2 || match.sport_event?.competitors?.[1]?.name || '';
+        if (!player1 || !player2) return false;
+        if (player1.includes('/') || player2.includes('/')) return false;
+
+        const blob = [
+            match.tournament,
+            match.category,
+            match.competition,
+            match.name,
+            match.sport_event?.sport_event_context?.competition?.name,
+            match.sport_event?.sport_event_context?.season?.name,
+        ].filter(Boolean).join(' ').toLowerCase();
+
+        const womensKeywords = ['femenin', 'women', 'wta', 'ladies', 'damen', ' fem ', '(w)', ' fem.', 'challenger women'];
+        const doublesKeywords = ['dobles', 'doubles', 'double', 'mixed', 'mixto', 'mixtos'];
+
+        if (womensKeywords.some(k => blob.includes(k)) || /\bw\b/.test(blob)) return false;
+        if (doublesKeywords.some(k => blob.includes(k))) return false;
+        return true;
+    }
+
     function getNormalizedMatches(matchesData) {
         if (!matchesData) return [];
         if (Array.isArray(matchesData.matches) && matchesData.matches.length > 0) {
-            return matchesData.matches.map(normalizeFlashscoreMatch);
+            return matchesData.matches
+                .filter(isSinglesMaleMatch)
+                .map(normalizeFlashscoreMatch);
         }
-        return matchesData.summaries || [];
+        return (matchesData.summaries || []).filter(isSinglesMaleMatch);
     }
 
     function getFlashscoreId(summary) {
