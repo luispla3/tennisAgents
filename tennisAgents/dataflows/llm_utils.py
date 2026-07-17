@@ -37,9 +37,15 @@ def get_chat_llm(model_key: ModelKey = "quick_think_llm", **overrides) -> BaseCh
     config = get_config()
     provider = config.get("llm_provider", "openai").lower()
     model = config[model_key]
+    timeout = config.get("llm_timeout_sec")
+    max_retries = config.get("llm_max_retries")
 
     if provider in ("openai", "ollama", "openrouter"):
         kwargs = {"model": model, "base_url": config["backend_url"], **overrides}
+        if timeout is not None:
+            kwargs.setdefault("timeout", timeout)
+        if max_retries is not None:
+            kwargs.setdefault("max_retries", max_retries)
         if provider == "openrouter":
             api_key = config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
             if api_key:
@@ -51,10 +57,20 @@ def get_chat_llm(model_key: ModelKey = "quick_think_llm", **overrides) -> BaseCh
         return ChatOpenAI(**kwargs)
 
     if provider == "anthropic":
-        return ChatAnthropic(model=model, base_url=config["backend_url"], **overrides)
+        kwargs = {"model": model, "base_url": config["backend_url"], **overrides}
+        if timeout is not None:
+            kwargs.setdefault("timeout", timeout)
+        if max_retries is not None:
+            kwargs.setdefault("max_retries", max_retries)
+        return ChatAnthropic(**kwargs)
 
     if provider == "google":
-        return ChatGoogleGenerativeAI(model=model, **overrides)
+        kwargs = {"model": model, **overrides}
+        if timeout is not None:
+            kwargs.setdefault("timeout", timeout)
+        if max_retries is not None:
+            kwargs.setdefault("max_retries", max_retries)
+        return ChatGoogleGenerativeAI(**kwargs)
 
     raise ValueError(f"Proveedor LLM no soportado: {provider}")
 
@@ -72,6 +88,11 @@ def get_local_analyst_llm(**overrides) -> Tuple[BaseChatModel, str]:
             if local_base_url.endswith("/v1")
             else local_base_url
         )
+        local_overrides = dict(overrides)
+        client_kwargs = dict(local_overrides.pop("client_kwargs", {}) or {})
+        timeout = config.get("llm_timeout_sec")
+        if timeout is not None:
+            client_kwargs.setdefault("timeout", timeout)
         llm = ChatOllama(
             model=local_model,
             base_url=base_url_cleaned,
@@ -79,7 +100,8 @@ def get_local_analyst_llm(**overrides) -> Tuple[BaseChatModel, str]:
             num_ctx=16384,
             num_predict=4096,
             reasoning=False,
-            **overrides,
+            client_kwargs=client_kwargs,
+            **local_overrides,
         )
         return llm, "OLLAMA LOCAL"
 
@@ -87,6 +109,11 @@ def get_local_analyst_llm(**overrides) -> Tuple[BaseChatModel, str]:
     if not local_api_key:
         raise ValueError("OPENROUTER_API_KEY no configurada")
 
+    remote_kwargs = {
+        "timeout": config.get("llm_timeout_sec"),
+        "max_retries": config.get("llm_max_retries"),
+    }
+    remote_kwargs.update(overrides)
     llm = ChatOpenAI(
         model=local_model,
         base_url=local_base_url,
@@ -96,7 +123,7 @@ def get_local_analyst_llm(**overrides) -> Tuple[BaseChatModel, str]:
             "X-Title": "Tennis Agents",
         },
         temperature=0.7,
-        **overrides,
+        **remote_kwargs,
     )
     return llm, "OPENROUTER"
 

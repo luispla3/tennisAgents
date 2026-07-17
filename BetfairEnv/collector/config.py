@@ -2,8 +2,19 @@
 
 from __future__ import annotations
 
-INTERVAL_BASE_SEC = 45
-INTERVAL_JITTER_SEC = 10
+import os
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except (TypeError, ValueError):
+        return default
+
+
+# Dos minutos de media con jitter suficiente para evitar patrones rígidos.
+INTERVAL_BASE_SEC = 120
+INTERVAL_JITTER_SEC = 30
 
 REQUEST_DELAY_MIN_SEC = 1.5
 REQUEST_DELAY_MAX_SEC = 4.0
@@ -15,5 +26,9 @@ DEFAULT_SPORT = "tennis"
 DEFAULT_LOCALE = "es"
 
 TRACK_GRACE_MINUTES = 45
+SNAPSHOT_RETENTION_COUNT = max(
+    100,
+    _env_int("TENNISAGENTS_SNAPSHOT_RETENTION_COUNT", 20000),
+)
 
 API_PORT = 8770

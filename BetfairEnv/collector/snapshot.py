@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import Any, Callable
 
 import collector.paths  # noqa: F401
 
@@ -165,6 +165,7 @@ def _build_betfair_section(event_data: dict[str, Any], betfair_match: dict[str, 
         "is_live": bool(event.get("is_live", betfair_match.get("is_live"))),
         "player1": event.get("player1") or betfair_match.get("player1"),
         "player2": event.get("player2") or betfair_match.get("player2"),
+        "competition": event.get("competition") or betfair_match.get("competition"),
         "primary_market": primary,
         "markets": markets,
         "live_score": live_score,
@@ -414,7 +415,12 @@ def _should_drop_entry(entry: dict[str, Any], now: datetime) -> bool:
     return now - finished_at > grace
 
 
-def collect_once(*, sport: str = DEFAULT_SPORT, locale: str = DEFAULT_LOCALE) -> dict[str, Any]:
+def collect_once(
+    *,
+    sport: str = DEFAULT_SPORT,
+    locale: str = DEFAULT_LOCALE,
+    snapshot_callback: Callable[[str, dict[str, Any], dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
     """Ejecuta un ciclo: descubre partidos en vivo y captura snapshots pendientes."""
     snapshots = 0
     errors = 0
@@ -506,6 +512,11 @@ def collect_once(*, sport: str = DEFAULT_SPORT, locale: str = DEFAULT_LOCALE) ->
             entry.pop("snapshot_error", None)
             snapshots += 1
             log.info("Snapshot guardado event_id=%s", event_id)
+            if snapshot_callback:
+                try:
+                    snapshot_callback(event_id, snapshot, dict(entry))
+                except Exception:
+                    log.exception("Error notificando snapshot al orquestador event_id=%s", event_id)
         except (BetfairError, FlashscoreError, OSError, ValueError) as exc:
             errors += 1
             entry["snapshot_error"] = str(exc)

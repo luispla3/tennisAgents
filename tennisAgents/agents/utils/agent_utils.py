@@ -7,7 +7,22 @@ from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.utils.enumerations import STATE
 
 import json
+import os
+import threading
 from datetime import datetime
+
+_TOOL_OUTPUT_LOCK = threading.Lock()
+
+
+def _rotate_jsonl(path: str, max_bytes: int) -> None:
+    try:
+        if os.path.exists(path) and os.path.getsize(path) >= max_bytes:
+            rotated = f"{path}.1"
+            if os.path.exists(rotated):
+                os.remove(rotated)
+            os.replace(path, rotated)
+    except OSError:
+        pass
 
 
 def create_msg_delete():
@@ -31,19 +46,24 @@ def _record_tool_output(tool_name: str, args: dict, output: str) -> str:
     try:
         log_path = get_config().get("tool_outputs_log")
         if log_path:
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write(
-                    json.dumps(
-                        {
-                            "timestamp": datetime.now().isoformat(),
-                            "tool": tool_name,
-                            "args": args,
-                            "output": output,
-                        },
-                        ensure_ascii=False,
-                    )
-                    + "\n"
+            with _TOOL_OUTPUT_LOCK:
+                _rotate_jsonl(
+                    log_path,
+                    int(get_config().get("audit_log_max_bytes", 100 * 1024 * 1024)),
                 )
+                with open(log_path, "a", encoding="utf-8") as f:
+                    f.write(
+                        json.dumps(
+                            {
+                                "timestamp": datetime.now().isoformat(),
+                                "tool": tool_name,
+                                "args": args,
+                                "output": output,
+                            },
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
     except Exception:
         pass
     return output

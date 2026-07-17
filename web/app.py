@@ -141,6 +141,7 @@ async def run_analysis(
             log_file.touch(exist_ok=True)
             config["generalist_turns_log"] = str(results_dir / "generalist_turns.jsonl")
             config["tool_outputs_log"] = str(results_dir / "tool_outputs.jsonl")
+            config["context_path"] = str(results_dir / "context.md")
             
             # Initial status: In Progress
             status_file = results_dir / "status.json"
@@ -201,7 +202,8 @@ async def run_analysis(
                 analysis_request.player2, 
                 analysis_request.analysis_date,
                 analysis_request.tournament,
-                analysis_request.wallet_balance
+                analysis_request.wallet_balance,
+                context_path=str(results_dir / "context.md"),
             )
             args = graph.propagator.get_graph_args()
 

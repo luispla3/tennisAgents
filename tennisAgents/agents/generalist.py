@@ -1,5 +1,7 @@
 import json
+import os
 import re
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from typing import Annotated
@@ -26,9 +28,19 @@ def Bet(
     stake: Annotated[float, "Importe de la apuesta"],
     rationale: Annotated[str, "Motivo breve de la apuesta"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
+    notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
 ) -> str:
     """Registra una apuesta."""
-    return _tool_log("Bet", match_id=match_id, market=market, selection=selection, stake=stake, rationale=rationale, confidence=confidence)
+    return _tool_log(
+        "Bet",
+        match_id=match_id,
+        market=market,
+        selection=selection,
+        stake=stake,
+        rationale=rationale,
+        confidence=confidence,
+        notes=notes,
+    )
 
 
 @tool
@@ -37,9 +49,17 @@ def Wait(
     rationale: Annotated[str, "Motivo breve para no actuar"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
     next_trigger: Annotated[str, "Condición que haría reconsiderar la decisión"] = "",
+    notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
 ) -> str:
     """Registra que se decide esperar sin hacer nada."""
-    return _tool_log("Wait", match_id=match_id, rationale=rationale, confidence=confidence, next_trigger=next_trigger)
+    return _tool_log(
+        "Wait",
+        match_id=match_id,
+        rationale=rationale,
+        confidence=confidence,
+        next_trigger=next_trigger,
+        notes=notes,
+    )
 
 
 @tool
@@ -48,9 +68,17 @@ def Close(
     close_percentage: Annotated[float, "Porcentaje de cierre, de 0 a 1"],
     rationale: Annotated[str, "Motivo breve del cierre"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
+    notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
 ) -> str:
     """Registra el cierre de una apuesta."""
-    return _tool_log("Close", match_id=match_id, close_percentage=close_percentage, rationale=rationale, confidence=confidence)
+    return _tool_log(
+        "Close",
+        match_id=match_id,
+        close_percentage=close_percentage,
+        rationale=rationale,
+        confidence=confidence,
+        notes=notes,
+    )
 
 
 GENERALIST_TOOLS = [Bet, Wait, Close]
@@ -112,8 +140,17 @@ def _num(value, default=None):
 
 
 def _market_snapshot(state: dict, captured_at: str) -> dict:
-    """Construye snapshot de mercado vacío; las cuotas ya no vienen de un analista dedicado."""
-    return {"source": "none", "captured_at": captured_at, "markets": []}
+    """Extrae el mercado del snapshot producido por BetfairEnv."""
+    scraper_snapshot = state.get("scraper_snapshot") or {}
+    betfair = scraper_snapshot.get("betfair") or {}
+    return {
+        "source": "BetfairEnv",
+        "captured_at": scraper_snapshot.get("timestamp") or captured_at,
+        "event_id": scraper_snapshot.get("betfair_event_id"),
+        "status": betfair.get("status"),
+        "primary_market": betfair.get("primary_market") or {},
+        "markets": betfair.get("markets") or [],
+    }
 
 
 def _match_live_state(state: dict) -> dict:
@@ -135,10 +172,38 @@ def _target_call(tool_call, snapshot: dict) -> dict:
     reason = args.get("reason") or args.get("rationale") or ""
     if name == "bet":
         option, market = args.get("option") or args.get("selection", ""), args.get("market", "")
-        return {"name": "bet", "arguments": {"market": market, "option": option, "stake": _num(args.get("stake"), 0.0), "odds": _num(args.get("odds")), "reason": reason}}
+        return {
+            "name": "bet",
+            "arguments": {
+                "market": market,
+                "option": option,
+                "stake": _num(args.get("stake"), 0.0),
+                "odds": _num(args.get("odds")),
+                "reason": reason,
+                "confidence": _num(args.get("confidence")),
+                "notes": args.get("notes") or "",
+            },
+        }
     if name == "close":
-        return {"name": "close", "arguments": {"position_id": args.get("position_id", ""), "close_percentage": _num(args.get("close_percentage"), 1.0), "reason": reason}}
-    return {"name": "wait", "arguments": {"reason": reason}}
+        return {
+            "name": "close",
+            "arguments": {
+                "position_id": args.get("position_id") or args.get("match_id", ""),
+                "close_percentage": _num(args.get("close_percentage"), 1.0),
+                "reason": reason,
+                "confidence": _num(args.get("confidence")),
+                "notes": args.get("notes") or "",
+            },
+        }
+    return {
+        "name": "wait",
+        "arguments": {
+            "reason": reason,
+            "confidence": _num(args.get("confidence")),
+            "next_trigger": args.get("next_trigger") or "",
+            "notes": args.get("notes") or "",
+        },
+    }
 
 
 def _turn_log(state: dict, tool_call) -> dict:
@@ -163,15 +228,122 @@ def _turn_log(state: dict, tool_call) -> dict:
     }
 
 
-def _save_turn_log(record: dict) -> None:
-    path = get_config().get("generalist_turns_log")
+def _save_turn_log(record: dict, path: str | None = None) -> None:
+    path = path or get_config().get("generalist_turns_log")
     if path:
         try:
             Path(path).parent.mkdir(parents=True, exist_ok=True)
+            max_bytes = int(
+                get_config().get("audit_log_max_bytes", 100 * 1024 * 1024)
+            )
+            if Path(path).exists() and Path(path).stat().st_size >= max_bytes:
+                rotated = Path(f"{path}.1")
+                rotated.unlink(missing_ok=True)
+                os.replace(path, rotated)
             with open(path, "a", encoding="utf-8") as f:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
         except Exception:
             pass
+
+
+def _read_context_file(state: dict) -> tuple[str, str | None]:
+    """Lee el contexto persistente del partido antes de cada invocación."""
+    path = state.get("context_path") or get_config().get("context_path")
+    if not path:
+        return "No existe context.md para este análisis.", None
+
+    context_path = Path(path)
+    try:
+        if not context_path.exists():
+            return "context.md todavía no existe; este es el primer timestep.", str(context_path)
+        content = context_path.read_text(encoding="utf-8").strip()
+        return content or "context.md está vacío; no hay notas previas.", str(context_path)
+    except OSError as exc:
+        return f"No se pudo leer context.md: {exc}", str(context_path)
+
+
+def _scraper_context(state: dict) -> str:
+    """Serializa el snapshot actual para que el generalista razone sobre datos frescos."""
+    snapshot = state.get("scraper_snapshot")
+    if not snapshot:
+        return "No hay snapshot de BetfairEnv; se usarán los fallbacks configurados."
+    return json.dumps(snapshot, ensure_ascii=False, indent=2)
+
+
+def _write_context_file(
+    path: str | None,
+    *,
+    record: dict,
+    scraper_snapshot: dict | None,
+) -> None:
+    """Reescribe context.md con la justificación y las notas del timestep actual."""
+    if not path:
+        return
+
+    match = record.get("match") or {}
+    state = record.get("state") or {}
+    target = record.get("target", {}).get("tool_call") or {}
+    arguments = target.get("arguments") or {}
+    action = target.get("name", "wait").capitalize()
+    snapshot = scraper_snapshot or {}
+    betfair = snapshot.get("betfair") or {}
+    flashscore = snapshot.get("flashscore") or {}
+
+    lines = [
+        "# Contexto persistente del partido",
+        "",
+        f"- **Actualizado:** {record.get('timestamp', 'N/D')}",
+        f"- **Partido:** {match.get('player_a', 'N/D')} vs {match.get('player_b', 'N/D')}",
+        f"- **Torneo:** {match.get('tournament', 'N/D')}",
+        f"- **Fecha:** {match.get('match_date', 'N/D')}",
+        f"- **Timestep:** {record.get('step_index', 'N/D')}",
+        "",
+        "## Decisión anterior",
+        "",
+        f"- **Tool:** `{action}`",
+        f"- **Confianza:** {arguments.get('confidence', 'N/D')}",
+        f"- **Justificación:** {arguments.get('reason') or 'N/D'}",
+        "",
+        "## Notas para el siguiente timestep",
+        "",
+        arguments.get("notes")
+        or arguments.get("next_trigger")
+        or "Reevaluar cuando llegue el siguiente snapshot.",
+        "",
+        "## Estado observado por los scrapers",
+        "",
+        f"- **Snapshot:** {snapshot.get('timestamp', 'N/D')}",
+        f"- **Estado Betfair:** {betfair.get('status', 'N/D')}",
+        f"- **Marcador Flashscore:** {flashscore.get('score', 'N/D')}",
+        f"- **Puntos actuales:** {flashscore.get('current_points') or flashscore.get('current_game') or 'N/D'}",
+        f"- **Servidor:** {flashscore.get('serving', 'N/D')}",
+        "",
+        "El archivo se reescribe en cada timestep; el historial completo permanece en generalist_turns.jsonl.",
+        "",
+    ]
+
+    context_path = Path(path)
+    temporary_path: Path | None = None
+    try:
+        context_path.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=context_path.parent,
+            prefix=f".{context_path.name}-",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary.write("\n".join(str(line) for line in lines))
+            temporary.flush()
+            os.fsync(temporary.fileno())
+            temporary_path = Path(temporary.name)
+        os.replace(temporary_path, context_path)
+    except OSError:
+        pass
+    finally:
+        if temporary_path and temporary_path.exists():
+            temporary_path.unlink(missing_ok=True)
 
 
 _ACTION_LABELS = {
@@ -218,6 +390,8 @@ def format_decision_display(record: dict) -> str:
                 f"- **Stake:** {args.get('stake') if args.get('stake') is not None else 'N/A'}",
                 f"- **Cuota:** {args.get('odds') if args.get('odds') is not None else 'N/A'}",
                 f"- **Motivo:** {args.get('reason') or 'N/A'}",
+                f"- **Confianza:** {args.get('confidence') if args.get('confidence') is not None else 'N/A'}",
+                f"- **Notas:** {args.get('notes') or 'N/A'}",
             ]
         )
     elif name == "close":
@@ -228,10 +402,15 @@ def format_decision_display(record: dict) -> str:
                 f"- **Posición:** {args.get('position_id') or 'N/A'}",
                 f"- **Cierre:** {close_label}",
                 f"- **Motivo:** {args.get('reason') or 'N/A'}",
+                f"- **Confianza:** {args.get('confidence') if args.get('confidence') is not None else 'N/A'}",
+                f"- **Notas:** {args.get('notes') or 'N/A'}",
             ]
         )
     else:
         lines.append(f"- **Motivo:** {args.get('reason') or 'N/A'}")
+        lines.append(f"- **Confianza:** {args.get('confidence') if args.get('confidence') is not None else 'N/A'}")
+        lines.append(f"- **Siguiente condición:** {args.get('next_trigger') or 'N/A'}")
+        lines.append(f"- **Notas:** {args.get('notes') or 'N/A'}")
 
     timestamp = record.get("timestamp")
     if timestamp:
@@ -258,29 +437,51 @@ def create_generalist_llm(deep_thinking_llm):
         wallet_balance = state.get(STATE.wallet_balance, 0)
         analyst_reports = _collect_analyst_reports(state)
         match_id = f"{player} vs {opponent} | {tournament} | {match_date}"
+        context_text, context_path = _read_context_file(state)
+        scraper_snapshot = state.get("scraper_snapshot") or {}
 
-        try:
-            odds_report = interface.get_betfair_odds_scraper(player)
-        except Exception as exc:
-            odds_report = f"Cuotas de Betfair no disponibles: {exc}"
-        try:
-            live_report = interface.get_match_live_data(player, opponent, tournament)
-        except Exception as exc:
-            live_report = f"Datos en vivo no disponibles: {exc}"
+        if scraper_snapshot:
+            odds_report = json.dumps(
+                scraper_snapshot.get("betfair") or {},
+                ensure_ascii=False,
+                indent=2,
+            )
+            live_report = json.dumps(
+                scraper_snapshot.get("flashscore") or {},
+                ensure_ascii=False,
+                indent=2,
+            )
+        else:
+            try:
+                odds_report = interface.get_betfair_odds_scraper(player)
+            except Exception as exc:
+                odds_report = f"Cuotas de Betfair no disponibles: {exc}"
+            try:
+                live_report = interface.get_match_live_data(player, opponent, tournament)
+            except Exception as exc:
+                live_report = f"Datos en vivo no disponibles: {exc}"
 
-        # TODO: definir prompt final, tools y formato estructurado de la decisión.
         prompt = (
             "Eres el agente generalista del sistema de apuestas de tenis.\n"
-            "Lee los informes y termina ejecutando exactamente una tool call: Bet, Wait o Close.\n"
-            "No escribas informe final, markdown ni texto adicional. Si no hay valor claro o faltan cuotas fiables, usa Wait.\n\n"
+            "Debes leer los informes, el snapshot actual de los scrapers y context.md.\n"
+            "Termina ejecutando exactamente una tool call: Bet, Wait o Close.\n"
+            "La tool call debe contener una justificación factual en 'rationale' y notas accionables "
+            "para el siguiente timestep en 'notes' (Wait también puede usar 'next_trigger').\n"
+            "No escribas texto fuera de la tool call. Si no hay valor claro o faltan cuotas fiables, usa Wait.\n"
+            "No inventes marcador, cuotas, estadísticas ni eventos que no aparezcan en los datos.\n\n"
             f"match_id: {match_id}\n"
             f"Partido: {player} vs {opponent}\n"
             f"Torneo: {tournament}\n"
             f"Fecha: {match_date}\n"
             f"Saldo disponible: {wallet_balance}\n\n"
+            f"Acciones anteriores:\n{json.dumps(state.get('previous_actions') or [], ensure_ascii=False, indent=2)}\n\n"
+            f"Posiciones abiertas:\n{json.dumps(state.get('open_positions') or [], ensure_ascii=False, indent=2)}\n\n"
             f"Cuotas Betfair:\n{odds_report}\n\n"
             f"Datos en vivo del partido:\n{live_report}\n\n"
-            f"Informes de analistas:\n{analyst_reports}\n"
+            f"Snapshot completo de los scrapers:\n{_scraper_context(state)}\n\n"
+            f"Informes de analistas:\n{analyst_reports}\n\n"
+            f"context.md de timesteps anteriores ({context_path or 'sin archivo'}):\n"
+            f"{context_text}\n"
         )
 
         try:
@@ -301,7 +502,12 @@ def create_generalist_llm(deep_thinking_llm):
 
         print("Decision final generada por generalist_llm", flush=True)
         record = _turn_log(state, tool_call)
-        _save_turn_log(record)
+        _save_turn_log(record, state.get("generalist_turns_log"))
+        _write_context_file(
+            context_path,
+            record=record,
+            scraper_snapshot=scraper_snapshot,
+        )
         decision = format_decision_display(record)
         _emit_progress({"type": "generalist_complete", "decision": decision})
 

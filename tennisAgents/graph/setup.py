@@ -233,6 +233,8 @@ class GraphSetup:
 
         generalist_node = create_generalist_llm(self.deep_thinking_llm)
         parallel_analysts_node = self._create_parallel_analysts_node(analyst_subgraphs, selected_analysts)
+        self._generalist_node = generalist_node
+        self._parallel_analysts_node = parallel_analysts_node
 
         workflow = StateGraph(AgentState)
         workflow.add_node("Parallel Analysts", parallel_analysts_node)
@@ -243,3 +245,15 @@ class GraphSetup:
         workflow.add_edge(GENERALIST_NODE, END)
 
         return workflow.compile()
+
+    def run_analysts_once(self, state):
+        """Ejecuta únicamente los analistas, sin invocar todavía al generalista."""
+        if not hasattr(self, "_parallel_analysts_node"):
+            raise RuntimeError("El grafo todavía no ha sido configurado.")
+        return self._parallel_analysts_node(state)
+
+    def run_generalist(self, state):
+        """Ejecuta únicamente el generalista sobre el estado/timestep recibido."""
+        if not hasattr(self, "_generalist_node"):
+            raise RuntimeError("El grafo todavía no ha sido configurado.")
+        return self._generalist_node(state)

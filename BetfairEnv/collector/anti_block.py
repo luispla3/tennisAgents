@@ -17,7 +17,7 @@ from collector.config import (
 
 def _interval_bounds() -> tuple[float, float]:
     low = max(60.0, INTERVAL_BASE_SEC - INTERVAL_JITTER_SEC)
-    high = INTERVAL_BASE_SEC + INTERVAL_JITTER_SEC
+    high = max(low, INTERVAL_BASE_SEC + INTERVAL_JITTER_SEC)
     return low, high
 
 

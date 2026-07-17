@@ -3,13 +3,16 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
+import tempfile
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from collector.anti_block import _interval_bounds, snapshot_interval
-from collector.config import TRACK_GRACE_MINUTES
+from collector.config import SNAPSHOT_RETENTION_COUNT, TRACK_GRACE_MINUTES
 from collector.paths import DATA_DIR
 
 FINISHED_STATUS = ("final", "terminad", "finished", "walkover", "retirad", "abandon")
@@ -41,6 +44,29 @@ def ensure_data_dirs() -> None:
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
+def _atomic_write_text(path: Path, content: str) -> None:
+    """Escribe un archivo sin dejar JSON/Markdown parcialmente escrito."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary_path: Path | None = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=path.parent,
+            prefix=f".{path.name}.{os.getpid()}-{threading.get_ident()}-",
+            suffix=".tmp",
+            delete=False,
+        ) as temporary:
+            temporary.write(content)
+            temporary.flush()
+            os.fsync(temporary.fileno())
+            temporary_path = Path(temporary.name)
+        os.replace(temporary_path, path)
+    finally:
+        if temporary_path and temporary_path.exists():
+            temporary_path.unlink(missing_ok=True)
+
+
 def index_path() -> Path:
     return DATA_DIR / "index.json"
 
@@ -53,29 +79,42 @@ def load_index() -> dict[str, Any]:
     path = index_path()
     if not path.exists():
         return {"updated_at": None, "matches": {}}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"updated_at": None, "matches": {}}
+    return data if isinstance(data, dict) else {"updated_at": None, "matches": {}}
 
 
 def save_index(index: dict[str, Any]) -> None:
     ensure_data_dirs()
     index["updated_at"] = _utc_now_iso()
-    index_path().write_text(json.dumps(index, ensure_ascii=False, indent=2), encoding="utf-8")
+    _atomic_write_text(
+        index_path(),
+        json.dumps(index, ensure_ascii=False, indent=2),
+    )
 
 
 def load_meta(event_id: str | int) -> dict[str, Any]:
     path = match_dir(event_id) / "meta.json"
     if not path.exists():
         return {}
-    return json.loads(path.read_text(encoding="utf-8"))
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
 
 
 def save_meta(event_id: str | int, meta: dict[str, Any]) -> None:
     directory = match_dir(event_id)
     directory.mkdir(parents=True, exist_ok=True)
-    meta["updated_at"] = _utc_now_iso()
-    (directory / "meta.json").write_text(
-        json.dumps(meta, ensure_ascii=False, indent=2),
-        encoding="utf-8",
+    merged = load_meta(event_id)
+    merged.update(meta)
+    merged["updated_at"] = _utc_now_iso()
+    _atomic_write_text(
+        directory / "meta.json",
+        json.dumps(merged, ensure_ascii=False, indent=2),
     )
 
 
@@ -84,9 +123,41 @@ def save_snapshot(event_id: str | int, snapshot: dict[str, Any]) -> str:
     directory.mkdir(parents=True, exist_ok=True)
     filename = _snapshot_filename(_parse_iso(snapshot.get("timestamp")))
     path = directory / filename
-    path.write_text(json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8")
+    was_existing = path.exists()
+    _atomic_write_text(
+        path,
+        json.dumps(snapshot, ensure_ascii=False, indent=2),
+    )
 
     meta = load_meta(event_id)
+    try:
+        snapshot_count = int(meta.get("snapshots_count"))
+    except (TypeError, ValueError):
+        snapshot_count = -1
+    if snapshot_count < 0:
+        snapshot_count = len(list_snapshot_files(event_id))
+    elif not was_existing:
+        snapshot_count += 1
+
+    # Se poda en lotes para no ordenar miles de archivos en cada snapshot.
+    prune_threshold = SNAPSHOT_RETENTION_COUNT + max(100, SNAPSHOT_RETENTION_COUNT // 20)
+    if snapshot_count > prune_threshold:
+        snapshot_paths = sorted(
+            (
+                candidate
+                for candidate in directory.glob("*.json")
+                if candidate.name != "meta.json"
+            ),
+            key=lambda candidate: candidate.name,
+        )
+        excess = len(snapshot_paths) - SNAPSHOT_RETENTION_COUNT
+        for old_path in snapshot_paths[: max(0, excess)]:
+            try:
+                old_path.unlink()
+                snapshot_count -= 1
+            except OSError:
+                pass
+
     meta.update(
         {
             "betfair_event_id": snapshot.get("betfair_event_id", meta.get("betfair_event_id")),
@@ -94,8 +165,7 @@ def save_snapshot(event_id: str | int, snapshot: dict[str, Any]) -> str:
             "last_snapshot_at": snapshot.get("timestamp"),
         }
     )
-    snaps = list_snapshots(event_id)
-    meta["snapshots_count"] = len(snaps)
+    meta["snapshots_count"] = snapshot_count
     save_meta(event_id, meta)
     return filename
 
@@ -105,16 +175,15 @@ def list_snapshots(event_id: str | int) -> list[dict[str, Any]]:
     if not directory.exists():
         return []
     items: list[dict[str, Any]] = []
-    for path in sorted(directory.glob("*.json")):
-        if path.name == "meta.json":
-            continue
+    for item in list_snapshot_files(event_id):
+        path = directory / item["file"]
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except json.JSONDecodeError:
+        except (OSError, json.JSONDecodeError):
             continue
         items.append(
             {
-                "file": path.name,
+                "file": item["file"],
                 "timestamp": data.get("timestamp"),
                 "score": (data.get("flashscore") or {}).get("score"),
                 "status": (data.get("betfair") or {}).get("status")
@@ -122,6 +191,31 @@ def list_snapshots(event_id: str | int) -> list[dict[str, Any]]:
             }
         )
     items.sort(key=lambda x: x.get("timestamp") or "")
+    return items
+
+
+def list_snapshot_files(event_id: str | int) -> list[dict[str, str]]:
+    """Lista snapshots sin leer su contenido, para colas de larga duración."""
+    directory = match_dir(event_id)
+    if not directory.exists():
+        return []
+    items: list[dict[str, str]] = []
+    for path in sorted(directory.glob("*.json")):
+        if path.name == "meta.json":
+            continue
+        try:
+            timestamp = datetime.strptime(
+                path.stem,
+                "%Y-%m-%dT%H-%M-%S+00-00",
+            ).replace(tzinfo=timezone.utc)
+        except ValueError:
+            timestamp = None
+        items.append(
+            {
+                "file": path.name,
+                "timestamp": timestamp.isoformat() if timestamp else path.stem,
+            }
+        )
     return items
 
 
@@ -243,6 +337,16 @@ def list_all_matches() -> list[dict[str, Any]]:
                 "queued_for_snapshot": bool(merged.get("queued_for_snapshot")),
                 "snapshot_due": is_snapshot_due(merged),
                 "snapshot_error": merged.get("snapshot_error"),
+                "analysis_status": merged.get("analysis_status"),
+                "analysts_completed": bool(merged.get("analysts_completed")),
+                "last_analysis_step": merged.get("last_analysis_step"),
+                "last_analysis_at": merged.get("last_analysis_at"),
+                "last_processed_snapshot_at": merged.get("last_processed_snapshot_at"),
+                "analysis_current_snapshot_at": merged.get("analysis_current_snapshot_at"),
+                "analysis_error": merged.get("analysis_error"),
+                "context_file": str((match_dir(event_id) / "context.md").relative_to(DATA_DIR)).replace("\\", "/")
+                if (match_dir(event_id) / "context.md").exists()
+                else None,
                 "betfair_url": merged.get("betfair_url"),
                 "flashscore_url": merged.get("flashscore_url"),
             }
@@ -280,9 +384,9 @@ def clear_dataset() -> dict[str, Any]:
             path.unlink()
             removed_files += 1
 
-    index_path().write_text(
+    _atomic_write_text(
+        index_path(),
         json.dumps({"updated_at": None, "matches": {}}, ensure_ascii=False, indent=2),
-        encoding="utf-8",
     )
 
     return {

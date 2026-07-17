@@ -18,6 +18,7 @@ class Propagator:
         match_date: str,
         tournament: str,
         wallet_balance: float,
+        context_path: str | None = None,
     ) -> Dict[str, Any]:
         """Crea el estado inicial para el grafo de agentes deportivos."""
         tournament_identity = normalize_tournament(tournament)
@@ -28,6 +29,19 @@ class Propagator:
             STATE.match_date: str(match_date),
             STATE.tournament: tournament_identity.display_name,
             STATE.wallet_balance: wallet_balance,
+            "scraper_snapshot": None,
+            "context_path": context_path,
+            "step_index": 0,
+            "phase": "pre_match",
+            "score": "",
+            "current_set": None,
+            "server": "",
+            "game_score": "",
+            "elapsed_minutes": None,
+            "previous_actions": [],
+            "open_positions": [],
+            "available_balance": wallet_balance,
+            "generalist_turns_log": None,
             REPORTS.players_report: "",
             REPORTS.news_report: "",
             REPORTS.sentiment_report: "",

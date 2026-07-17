@@ -139,6 +139,20 @@ class TennisAgentsGraph:
 
         return final_state, self.process_signal(final_state["final_bet_decision"])
 
+    def run_analysts_once(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """Ejecuta el bloque de analistas sin pasar todavía por el generalista."""
+        result = self.graph_setup.run_analysts_once(state)
+        merged = dict(state)
+        merged.update(result)
+        return merged
+
+    def run_generalist_timestep(self, state: Dict[str, Any]) -> Dict[str, Any]:
+        """Ejecuta el generalista una vez para el snapshot actual."""
+        result = self.graph_setup.run_generalist(state)
+        merged = dict(state)
+        merged.update(result)
+        return merged
+
     def _log_state(self, match_date, final_state):
         self.log_states_dict[str(match_date)] = {
         STATE.match_date: final_state[STATE.match_date],

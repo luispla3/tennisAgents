@@ -12,7 +12,7 @@ from pathlib import Path
 from collector.anti_block import cycle_interval
 from collector.config import INTERVAL_BASE_SEC, INTERVAL_JITTER_SEC
 from collector.paths import ROOT, RUN_DIR
-from collector.storage import clear_dataset, load_index
+from collector.storage import _atomic_write_text, clear_dataset, load_index
 
 PID_FILE = RUN_DIR / "collector.pid"
 LOG_FILE = RUN_DIR / "collector.log"
@@ -72,7 +72,7 @@ def _cycle_timing() -> dict:
         return empty
     try:
         raw = json.loads(LAST_CYCLE_FILE.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
+    except (OSError, json.JSONDecodeError, TypeError):
         return empty
 
     last_s = raw.get("last_cycle_at")
@@ -82,25 +82,33 @@ def _cycle_timing() -> dict:
         return empty
 
     now = datetime.now(timezone.utc)
-    last_dt = _parse_iso(last_s)
+    try:
+        last_dt = _parse_iso(last_s)
+    except (TypeError, ValueError):
+        return empty
     if last_dt.tzinfo is None:
         last_dt = last_dt.replace(tzinfo=timezone.utc)
 
-    next_dt = _parse_iso(next_s) if next_s else None
+    try:
+        next_dt = _parse_iso(next_s) if next_s else None
+    except (TypeError, ValueError):
+        next_dt = None
     if next_dt and next_dt.tzinfo is None:
         next_dt = next_dt.replace(tzinfo=timezone.utc)
-    if next_dt is None and interval is not None:
-        next_dt = last_dt + timedelta(seconds=float(interval))
+    try:
+        interval_value = float(interval) if interval is not None else float(INTERVAL_BASE_SEC)
+    except (TypeError, ValueError):
+        interval_value = float(INTERVAL_BASE_SEC)
+    interval_value = min(float(high), max(float(low), interval_value))
     if next_dt is None:
-        return {**empty, "last_cycle_at": last_dt.isoformat()}
+        next_dt = last_dt + timedelta(seconds=interval_value)
 
     if next_dt <= now:
-        resolved = float(interval) if interval is not None else float(INTERVAL_BASE_SEC)
-        next_dt = now + timedelta(seconds=resolved)
-        remaining = resolved
+        next_dt = now + timedelta(seconds=interval_value)
+        remaining = interval_value
         progress = 0.0
     else:
-        total = (next_dt - last_dt).total_seconds() or resolved if (resolved := (float(interval) if interval else float(INTERVAL_BASE_SEC))) else 1.0
+        total = (next_dt - last_dt).total_seconds() or interval_value
         elapsed = (now - last_dt).total_seconds()
         remaining = max(0.0, (next_dt - now).total_seconds())
         progress = min(1.0, max(0.0, elapsed / total)) if total > 0 else 0.0
@@ -110,7 +118,7 @@ def _cycle_timing() -> dict:
         "next_cycle_at": next_dt.isoformat(),
         "seconds_until_next": remaining,
         "progress": progress,
-        "interval_sec": interval,
+        "interval_sec": interval_value,
         "interval_sec_min": low,
         "interval_sec_max": high,
     }
@@ -141,16 +149,17 @@ def start_collector() -> dict:
         }
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)
-    log_handle = open(LOG_FILE, "a", encoding="utf-8")
     proc = subprocess.Popen(
         [sys.executable, str(RUNNER)],
         cwd=str(ROOT),
-        stdout=log_handle,
-        stderr=log_handle,
+        # runner.py gestiona el archivo rotativo; mantener otro descriptor
+        # abierto aquí impediría rotarlo correctamente en Windows.
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.STDOUT,
         env={**os.environ, "PYTHONPATH": str(ROOT)},
         creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
     )
-    PID_FILE.write_text(str(proc.pid), encoding="utf-8")
+    _atomic_write_text(PID_FILE, str(proc.pid))
     return {
         **collector_status(),
         "message": "Colector iniciado",
