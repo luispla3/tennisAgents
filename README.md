@@ -66,12 +66,12 @@ pip install -r requirements.txt
 
 ### Required APIs
 
-You will need the OpenAI API for all the agents:
+The default configuration uses OpenRouter with DeepSeek V4 Flash:
 ```bash
 # On Linux
-export OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
+export OPENROUTER_API_KEY=$YOUR_OPENROUTER_API_KEY
 # On Windows
-set OPENAI_API_KEY=$YOUR_OPENAI_API_KEY
+set OPENROUTER_API_KEY=$YOUR_OPENROUTER_API_KEY
 ```
 
 Or create a:
@@ -124,8 +124,10 @@ from tennisAgents.default_config import DEFAULT_CONFIG
 
 # Create a custom config
 config = DEFAULT_CONFIG.copy()
-config["deep_think_llm"] = "o4-mini"
-config["quick_think_llm"] = "gpt-4o-mini"
+config["llm_provider"] = "openrouter"
+config["backend_url"] = "https://openrouter.ai/api/v1"
+config["deep_think_llm"] = "deepseek/deepseek-v4-flash"
+config["quick_think_llm"] = "deepseek/deepseek-v4-flash"
 config["max_debate_rounds"] = 3
 
 # Initialize with custom config

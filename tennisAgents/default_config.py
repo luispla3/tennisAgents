@@ -4,6 +4,26 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+DEFAULT_LLM_PROVIDER = (
+    os.getenv("TENNISAGENTS_LLM_PROVIDER", "openrouter").strip().lower()
+    or "openrouter"
+)
+DEFAULT_BACKEND_URLS = {
+    "openai": "https://api.openai.com/v1",
+    "openrouter": "https://openrouter.ai/api/v1",
+    "ollama": "http://localhost:11434/v1",
+    "anthropic": "https://api.anthropic.com/",
+    "google": "https://generativelanguage.googleapis.com/v1",
+}
+DEFAULT_DEEP_THINK_LLM = os.getenv(
+    "TENNISAGENTS_DEEP_THINK_LLM",
+    "deepseek/deepseek-v4-flash",
+)
+DEFAULT_QUICK_THINK_LLM = os.getenv(
+    "TENNISAGENTS_QUICK_THINK_LLM",
+    "deepseek/deepseek-v4-flash",
+)
+
 
 def _env_float(name: str, default: float) -> float:
     try:
@@ -19,6 +39,25 @@ def _env_int(name: str, default: int) -> int:
         return default
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+_DEFAULT_BACKEND_URL = DEFAULT_BACKEND_URLS.get(
+    DEFAULT_LLM_PROVIDER,
+    DEFAULT_BACKEND_URLS["openrouter"],
+)
+# Si el proveedor es OpenRouter, nunca se permite caer en api.openai.com
+# aunque exista un TENNISAGENTS_LLM_BASE_URL residual.
+_CONFIGURED_BACKEND_URL = os.getenv("TENNISAGENTS_LLM_BASE_URL", _DEFAULT_BACKEND_URL)
+if DEFAULT_LLM_PROVIDER == "openrouter" and "openrouter.ai" not in (
+    _CONFIGURED_BACKEND_URL or ""
+):
+    _CONFIGURED_BACKEND_URL = DEFAULT_BACKEND_URLS["openrouter"]
+
 DEFAULT_CONFIG = {
     "project_dir": os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
     "results_dir": os.getenv("TENNISAGENTS_RESULTS_DIR", "./results"),
@@ -27,10 +66,10 @@ DEFAULT_CONFIG = {
         os.path.abspath(os.path.join(os.path.dirname(__file__), ".")),
         "dataflows/data_cache",
     ),
-    "llm_provider": "openai",
-    "deep_think_llm": "o4-mini",
-    "quick_think_llm": "gpt-4o-mini",
-    "backend_url": "https://api.openai.com/v1",
+    "llm_provider": DEFAULT_LLM_PROVIDER,
+    "deep_think_llm": DEFAULT_DEEP_THINK_LLM,
+    "quick_think_llm": DEFAULT_QUICK_THINK_LLM,
+    "backend_url": _CONFIGURED_BACKEND_URL,
     "openrouter_api_key": os.getenv("OPENROUTER_API_KEY", None),
     "openrouter_base_url": "https://openrouter.ai/api/v1",
     "max_recur_limit": 100,
@@ -48,6 +87,34 @@ DEFAULT_CONFIG = {
     "automated_analysis_workers": max(
         1,
         _env_int("TENNISAGENTS_AUTOMATED_ANALYSIS_WORKERS", 2),
+    ),
+    "analysis_retry_delay_sec": max(
+        5,
+        _env_int("TENNISAGENTS_ANALYSIS_RETRY_DELAY_SEC", 60),
+    ),
+    "analysis_snapshot_max_age_sec": max(
+        60,
+        _env_int("TENNISAGENTS_ANALYSIS_SNAPSHOT_MAX_AGE_SEC", 300),
+    ),
+    "provider_circuit_breaker_sec": max(
+        60,
+        _env_int("TENNISAGENTS_PROVIDER_CIRCUIT_BREAKER_SEC", 900),
+    ),
+    "analysis_max_failures_per_snapshot": max(
+        1,
+        _env_int("TENNISAGENTS_ANALYSIS_MAX_FAILURES_PER_SNAPSHOT", 12),
+    ),
+    "analyst_report_min_chars": max(
+        200,
+        _env_int("TENNISAGENTS_ANALYST_REPORT_MIN_CHARS", 1000),
+    ),
+    "minimum_bet_edge": max(
+        0.0,
+        _env_float("TENNISAGENTS_MINIMUM_BET_EDGE", 0.02),
+    ),
+    "void_unresolved_markets_on_finish": _env_bool(
+        "TENNISAGENTS_VOID_UNRESOLVED_MARKETS_ON_FINISH",
+        True,
     ),
     "audit_log_max_bytes": max(
         1024 * 1024,

@@ -4,9 +4,14 @@ from __future__ import annotations
 
 import json
 import os
+import signal
 import subprocess
 import sys
+import threading
+import time
 from datetime import datetime, timedelta, timezone
+from contextlib import contextmanager
+from functools import wraps
 from pathlib import Path
 
 from collector.anti_block import cycle_interval
@@ -17,29 +22,129 @@ from collector.storage import _atomic_write_text, clear_dataset, load_index
 PID_FILE = RUN_DIR / "collector.pid"
 LOG_FILE = RUN_DIR / "collector.log"
 LAST_CYCLE_FILE = RUN_DIR / "collector.last_cycle"
+STOP_FILE = RUN_DIR / "collector.stop"
+CONTROL_LOCK_FILE = RUN_DIR / "collector.control.lock"
 RUNNER = ROOT / "collector" / "runner.py"
 
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+CREATE_NEW_PROCESS_GROUP = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+_PROCESS_CONTROL_LOCK = threading.RLock()
+
+
+@contextmanager
+def _interprocess_control_lock():
+    RUN_DIR.mkdir(parents=True, exist_ok=True)
+    with CONTROL_LOCK_FILE.open("a+b") as lock_file:
+        if lock_file.tell() == 0:
+            lock_file.write(b"\0")
+            lock_file.flush()
+        lock_file.seek(0)
+        if sys.platform == "win32":
+            import msvcrt
+
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
+def _synchronized(func):
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        with _PROCESS_CONTROL_LOCK:
+            with _interprocess_control_lock():
+                return func(*args, **kwargs)
+
+    return wrapped
 
 
 def _read_pid() -> int | None:
     if not PID_FILE.exists():
         return None
     try:
-        return int(PID_FILE.read_text(encoding="utf-8").strip())
-    except ValueError:
+        raw = PID_FILE.read_text(encoding="utf-8").strip()
+        try:
+            payload = json.loads(raw)
+        except json.JSONDecodeError:
+            return int(raw)
+        if isinstance(payload, dict):
+            return int(payload.get("pid"))
+        return int(payload)
+    except (TypeError, ValueError):
         return None
 
 
 def _pid_alive(pid: int) -> bool:
+    if not _pid_exists(pid):
+        return False
     if sys.platform == "win32":
-        result = subprocess.run(
-            ["tasklist", "/FI", f"PID eq {pid}"],
-            capture_output=True,
-            text=True,
-            creationflags=CREATE_NO_WINDOW,
+        try:
+            result = subprocess.run(
+                [
+                    "powershell",
+                    "-NoProfile",
+                    "-Command",
+                    (
+                        f"$p=Get-CimInstance Win32_Process -Filter \"ProcessId={pid}\" "
+                        "-ErrorAction SilentlyContinue; if($p){$p.CommandLine}"
+                    ),
+                ],
+                capture_output=True,
+                text=True,
+                creationflags=CREATE_NO_WINDOW,
+                timeout=10,
+            )
+        except (OSError, subprocess.TimeoutExpired):
+            return False
+        command_line = result.stdout.strip().lower().replace("/", "\\")
+        return bool(
+            command_line
+            and "collector\\runner.py" in command_line
         )
-        return str(pid) in result.stdout
+    proc_cmdline = Path(f"/proc/{pid}/cmdline")
+    if proc_cmdline.exists():
+        try:
+            command_line = proc_cmdline.read_bytes().decode(
+                "utf-8",
+                errors="replace",
+            )
+            return "collector/runner.py" in command_line.replace("\\", "/")
+        except OSError:
+            return False
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def _pid_exists(pid: int) -> bool:
+    if sys.platform == "win32":
+        import ctypes
+
+        process = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)
+        if not process:
+            return False
+        try:
+            exit_code = ctypes.c_ulong()
+            if not ctypes.windll.kernel32.GetExitCodeProcess(
+                process,
+                ctypes.byref(exit_code),
+            ):
+                return False
+            return exit_code.value == 259
+        finally:
+            ctypes.windll.kernel32.CloseHandle(process)
     try:
         os.kill(pid, 0)
         return True
@@ -67,6 +172,13 @@ def _cycle_timing() -> dict:
         "progress": None,
         "interval_sec_min": low,
         "interval_sec_max": high,
+        "cycle_state": None,
+        "cycle_started_at": None,
+        "heartbeat_at": None,
+        "cycle_duration_sec": None,
+        "cycle_snapshots": None,
+        "cycle_errors": None,
+        "cycle_message": None,
     }
     if not LAST_CYCLE_FILE.exists():
         return empty
@@ -78,8 +190,17 @@ def _cycle_timing() -> dict:
     last_s = raw.get("last_cycle_at")
     next_s = raw.get("next_cycle_at")
     interval = raw.get("interval_sec")
+    health = {
+        "cycle_state": raw.get("cycle_state"),
+        "cycle_started_at": raw.get("cycle_started_at"),
+        "heartbeat_at": raw.get("heartbeat_at"),
+        "cycle_duration_sec": raw.get("cycle_duration_sec"),
+        "cycle_snapshots": raw.get("snapshots"),
+        "cycle_errors": raw.get("errors"),
+        "cycle_message": raw.get("message"),
+    }
     if not last_s:
-        return empty
+        return {**empty, **health}
 
     now = datetime.now(timezone.utc)
     try:
@@ -121,6 +242,7 @@ def _cycle_timing() -> dict:
         "interval_sec": interval_value,
         "interval_sec_min": low,
         "interval_sec_max": high,
+        **health,
     }
 
 
@@ -138,6 +260,7 @@ def collector_status() -> dict:
     return status
 
 
+@_synchronized
 def start_collector() -> dict:
     _cleanup_stale_pid()
     pid = _read_pid()
@@ -149,6 +272,7 @@ def start_collector() -> dict:
         }
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)
+    STOP_FILE.unlink(missing_ok=True)
     proc = subprocess.Popen(
         [sys.executable, str(RUNNER)],
         cwd=str(ROOT),
@@ -157,9 +281,22 @@ def start_collector() -> dict:
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
         env={**os.environ, "PYTHONPATH": str(ROOT)},
-        creationflags=CREATE_NO_WINDOW if sys.platform == "win32" else 0,
+        creationflags=(
+            CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP
+            if sys.platform == "win32"
+            else 0
+        ),
     )
-    _atomic_write_text(PID_FILE, str(proc.pid))
+    _atomic_write_text(
+        PID_FILE,
+        json.dumps(
+            {
+                "pid": proc.pid,
+                "started_at": datetime.now(timezone.utc).isoformat(),
+                "runner": str(RUNNER),
+            }
+        ),
+    )
     return {
         **collector_status(),
         "message": "Colector iniciado",
@@ -167,44 +304,59 @@ def start_collector() -> dict:
     }
 
 
+@_synchronized
 def stop_collector() -> dict:
     _cleanup_stale_pid()
     pid = _read_pid()
     if pid is None or not _pid_alive(pid):
         PID_FILE.unlink(missing_ok=True)
+        STOP_FILE.unlink(missing_ok=True)
         return {
             **collector_status(),
             "message": "El colector no estaba en ejecución",
             "was_running": False,
         }
 
+    graceful = False
+    _atomic_write_text(STOP_FILE, datetime.now(timezone.utc).isoformat())
     if sys.platform == "win32":
-        subprocess.run(
-            ["taskkill", "/PID", str(pid), "/T", "/F"],
-            capture_output=True,
-            creationflags=CREATE_NO_WINDOW,
-        )
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if not _pid_exists(pid):
+                graceful = True
+                break
+            time.sleep(0.5)
+        if not graceful and _pid_exists(pid):
+            subprocess.run(
+                ["taskkill", "/PID", str(pid), "/T", "/F"],
+                capture_output=True,
+                creationflags=CREATE_NO_WINDOW,
+            )
     else:
         try:
-            os.kill(pid, 15)
+            os.kill(pid, signal.SIGTERM)
         except OSError:
             pass
 
     PID_FILE.unlink(missing_ok=True)
+    if graceful:
+        STOP_FILE.unlink(missing_ok=True)
     return {
         **collector_status(),
         "message": "Colector detenido",
         "was_running": True,
         "stopped_pid": pid,
+        "graceful": graceful,
     }
 
 
+@_synchronized
 def clear_collector_data() -> dict:
     """Detiene el colector si hace falta y borra todo el dataset recolectado."""
     was_running = False
     status = collector_status()
     if status.get("running"):
-        stop_collector()
+        stop_collector.__wrapped__()
         was_running = True
 
     cleared = clear_dataset()

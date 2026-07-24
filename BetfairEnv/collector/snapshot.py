@@ -9,7 +9,12 @@ from typing import Any, Callable
 import collector.paths  # noqa: F401
 
 from collector.anti_block import pause_between_requests, pause_between_sources
-from collector.config import DEFAULT_LOCALE, DEFAULT_SPORT, TRACK_GRACE_MINUTES
+from collector.config import (
+    DEFAULT_LOCALE,
+    DEFAULT_SPORT,
+    TRACK_GRACE_MINUTES,
+    UNREACHABLE_STALE_MINUTES,
+)
 from collector.filters import filter_betfair_matches, filter_flashscore_matches
 from collector.matcher import find_flashscore_match
 from collector.match_status import (
@@ -17,6 +22,12 @@ from collector.match_status import (
     entry_is_closed,
     should_mark_finished,
     status_is_finished,
+)
+
+from collector.score_merge import (
+    build_flashscore_section,
+    parse_sets_detail as _parse_sets_detail,
+    score_label as _score_label,
 )
 from collector.storage import (
     _parse_iso,
@@ -35,29 +46,9 @@ from betfair_scraper.scraper import get_event_markets, get_live_matches
 from flashscore_scraper import get_live_matches as fs_get_live_matches
 from flashscore_scraper import get_match_statistics, get_matches as fs_get_matches
 from flashscore_scraper.client import FlashscoreClient, FlashscoreError
-from flashscore_scraper.parser import (
-    AWAY_SETS_WON,
-    HOME_SETS_WON,
-    _format_score,
-    parse_scoreboard_feed,
-)
+from flashscore_scraper.parser import parse_scoreboard_feed
 
 log = logging.getLogger("collector.snapshot")
-
-
-def _parse_sets_detail(score: str | None) -> list[dict[str, int]]:
-    if not score:
-        return []
-    sets: list[dict[str, int]] = []
-    for part in score.split():
-        if "-" not in part:
-            continue
-        left, _, right = part.partition("-")
-        try:
-            sets.append({"player1": int(left), "player2": int(right)})
-        except ValueError:
-            continue
-    return sets
 
 
 def _side_from_winner(winner_name: str | None, player1: str, player2: str) -> str | None:
@@ -71,86 +62,6 @@ def _side_from_winner(winner_name: str | None, player1: str, player2: str) -> st
     if winner == normalize_name(player2):
         return "player2"
     return None
-
-
-def _apply_scoreboard_raw(section: dict[str, Any], raw: dict[str, str]) -> None:
-    score = _format_score(raw)
-    if score:
-        section["score"] = score
-        section["sets_detail"] = _parse_sets_detail(score)
-    if HOME_SETS_WON in raw or AWAY_SETS_WON in raw:
-        section["sets_won"] = {
-            "player1": int(raw.get(HOME_SETS_WON, "0") or "0"),
-            "player2": int(raw.get(AWAY_SETS_WON, "0") or "0"),
-        }
-
-
-def _merge_betfair_live_score(section: dict[str, Any], live_score: dict[str, Any] | None) -> None:
-    """Prioriza el marcador en vivo de Betfair sobre el feed diario de Flashscore."""
-    if not live_score:
-        return
-
-    sets_won = live_score.get("sets_won")
-    if sets_won:
-        section["sets_won"] = sets_won
-        p1 = sets_won.get("player1")
-        p2 = sets_won.get("player2")
-        if p1 is not None and p2 is not None and p1 != p2:
-            section["leading"] = "player1" if p1 > p2 else "player2"
-
-    current_set = live_score.get("current_set")
-    if current_set and current_set.get("player1") is not None and current_set.get("player2") is not None:
-        section["current_game"] = {
-            "player1": int(current_set["player1"]),
-            "player2": int(current_set["player2"]),
-        }
-        sets_detail = list(section.get("sets_detail") or [])
-        p1_sets = int((sets_won or section.get("sets_won") or {}).get("player1") or 0)
-        p2_sets = int((sets_won or section.get("sets_won") or {}).get("player2") or 0)
-        set_index = p1_sets + p2_sets
-        entry = {
-            "player1": int(current_set["player1"]),
-            "player2": int(current_set["player2"]),
-        }
-        if set_index < len(sets_detail):
-            sets_detail[set_index] = entry
-        elif set_index == len(sets_detail):
-            sets_detail.append(entry)
-        else:
-            while len(sets_detail) < set_index:
-                sets_detail.append({"player1": 0, "player2": 0})
-            sets_detail.append(entry)
-        section["sets_detail"] = sets_detail
-        section["score"] = " ".join(f"{s['player1']}-{s['player2']}" for s in sets_detail)
-
-    current_game = live_score.get("current_game")
-    if current_game:
-        section["current_points"] = {
-            "player1": str(current_game.get("player1", "")),
-            "player2": str(current_game.get("player2", "")),
-        }
-    if live_score.get("serving"):
-        section["serving"] = live_score["serving"]
-
-
-def _score_label(entry: dict[str, Any]) -> str | None:
-    live = entry.get("live_score") or {}
-    sets_won = live.get("sets_won") or {}
-    current = live.get("current_set")
-    if current and current.get("player1") is not None and current.get("player2") is not None:
-        prefix = entry.get("score") or ""
-        parts = prefix.split() if prefix else []
-        p1_sets = int(sets_won.get("player1") or 0)
-        p2_sets = int(sets_won.get("player2") or 0)
-        set_index = p1_sets + p2_sets
-        current_part = f"{current['player1']}-{current['player2']}"
-        if set_index < len(parts):
-            parts[set_index] = current_part
-        elif set_index == len(parts):
-            parts.append(current_part)
-        if parts:
-            return " ".join(parts)
-    return entry.get("score")
 
 
 def _build_betfair_section(event_data: dict[str, Any], betfair_match: dict[str, Any]) -> dict[str, Any]:
@@ -179,58 +90,34 @@ def _build_flashscore_section(
     *,
     live_score: dict[str, Any] | None = None,
     stats_error: str | None = None,
+    scoreboard_error: str | None = None,
 ) -> dict[str, Any]:
     player1 = fs_match.get("player1", "")
     player2 = fs_match.get("player2", "")
-    sets_won = fs_match.get("sets_won") or {}
-    winner_name = fs_match.get("winner")
-    leading = None
-    p1 = sets_won.get("player1")
-    p2 = sets_won.get("player2")
-    if p1 is not None and p2 is not None and p1 != p2:
-        leading = "player1" if p1 > p2 else "player2"
-
-    section: dict[str, Any] = {
-        "score": fs_match.get("score"),
-        "sets_won": sets_won or None,
-        "sets_detail": _parse_sets_detail(fs_match.get("score")),
-        "leading": leading,
-        "winner": _side_from_winner(winner_name, player1, player2),
-        "match": {
-            "id": fs_match.get("id"),
-            "status": fs_match.get("status"),
-            "tournament": fs_match.get("tournament"),
-        },
-    }
-    if scoreboard_raw:
-        section["scoreboard_raw"] = scoreboard_raw
-        _apply_scoreboard_raw(section, scoreboard_raw)
-    _merge_betfair_live_score(section, live_score)
-    if stats:
-        section["statistics"] = {
-            "overall": stats.get("overall") or {},
-            "periods": stats.get("periods") or [],
-        }
-    if stats_error:
-        section["statistics_error"] = stats_error
-    return section
+    return build_flashscore_section(
+        fs_match,
+        stats,
+        scoreboard_raw,
+        live_score=live_score,
+        stats_error=stats_error,
+        scoreboard_error=scoreboard_error,
+        winner_side=_side_from_winner(fs_match.get("winner"), player1, player2),
+    )
 
 
-def _fresh_flashscore_match(match_id: str, *, sport: str, locale: str) -> dict[str, Any] | None:
-    try:
-        live = filter_flashscore_matches(fs_get_live_matches(sport, locale=locale))
-    except FlashscoreError:
-        return None
-    for match in live:
-        if str(match.get("id")) == str(match_id):
-            return match
-    return None
-
-
-def _fetch_flashscore_enrichment(match_id: str, locale: str) -> tuple[dict[str, Any] | None, dict[str, str] | None, str | None]:
+def _fetch_flashscore_enrichment(
+    match_id: str,
+    locale: str,
+) -> tuple[
+    dict[str, Any] | None,
+    dict[str, str] | None,
+    str | None,
+    str | None,
+]:
     stats: dict[str, Any] | None = None
     scoreboard_raw: dict[str, str] | None = None
     stats_error: str | None = None
+    scoreboard_error: str | None = None
 
     try:
         stats = get_match_statistics(match_id, locale=locale)
@@ -241,10 +128,10 @@ def _fetch_flashscore_enrichment(match_id: str, locale: str) -> tuple[dict[str, 
         client = FlashscoreClient(locale=locale)
         raw = client.get_match_scoreboard(match_id)
         scoreboard_raw = parse_scoreboard_feed(raw)
-    except FlashscoreError:
-        pass
+    except FlashscoreError as exc:
+        scoreboard_error = str(exc)
 
-    return stats, scoreboard_raw, stats_error
+    return stats, scoreboard_raw, stats_error, scoreboard_error
 
 
 def _capture_snapshot(
@@ -274,18 +161,16 @@ def _capture_snapshot(
     stats = None
     scoreboard_raw = None
     stats_error = None
+    scoreboard_error = None
     if fs_data and fs_data.get("id"):
         pause_between_sources()
-        stats, scoreboard_raw, stats_error = _fetch_flashscore_enrichment(str(fs_data["id"]), locale)
+        stats, scoreboard_raw, stats_error, scoreboard_error = (
+            _fetch_flashscore_enrichment(str(fs_data["id"]), locale)
+        )
 
     bf_match = betfair_match or {"player1": entry.get("player1"), "player2": entry.get("player2")}
     betfair_section = _build_betfair_section(event_data, bf_match)
     live_score = betfair_section.get("live_score")
-
-    if fs_data and fs_data.get("id"):
-        fresh = _fresh_flashscore_match(str(fs_data["id"]), sport=sport, locale=locale)
-        if fresh:
-            fs_data = fresh
 
     timestamp = _utc_now_iso()
     return {
@@ -299,6 +184,7 @@ def _capture_snapshot(
             scoreboard_raw,
             live_score=live_score,
             stats_error=stats_error,
+            scoreboard_error=scoreboard_error,
         ),
     }
 
@@ -358,6 +244,31 @@ def _reconcile_tracked_match(
     ):
         apply_finished_state(entry, now_iso=now_iso, fs_match=fs_match, betfair_fixture=betfair_fixture)
         log.info("Partido finalizado event_id=%s (%s vs %s)", event_id, entry.get("player1"), entry.get("player2"))
+        return
+
+    last_source_seen = _parse_iso(
+        entry.get("last_source_seen_at")
+        or entry.get("last_snapshot_at")
+        or entry.get("first_seen")
+    )
+    now = _parse_iso(now_iso)
+    if (
+        betfair_unreachable
+        and not in_betfair_live
+        and not in_flashscore_live
+        and fs_match is None
+        and last_source_seen is not None
+        and now is not None
+        and now - last_source_seen
+        > timedelta(minutes=UNREACHABLE_STALE_MINUTES)
+    ):
+        entry["is_live"] = False
+        entry["is_stale"] = True
+        entry["stale_at"] = now_iso
+        entry["status"] = "No disponible"
+        entry.pop("next_snapshot_at", None)
+        entry.pop("queued_for_snapshot", None)
+        log.warning("Partido obsoleto eliminado de captura event_id=%s", event_id)
 
 
 def _update_entry_from_sources(
@@ -374,6 +285,11 @@ def _update_entry_from_sources(
             entry["sets_won"] = fs_match["sets_won"]
         entry["last_seen"] = now_iso
         return
+
+    if betfair_match or fs_match:
+        entry["last_source_seen_at"] = now_iso
+        entry.pop("is_stale", None)
+        entry.pop("stale_at", None)
 
     if betfair_match:
         entry["betfair_event_id"] = betfair_match.get("id", entry.get("betfair_event_id"))
@@ -406,7 +322,7 @@ def _update_entry_from_sources(
 
 
 def _should_drop_entry(entry: dict[str, Any], now: datetime) -> bool:
-    finished_at = _parse_iso(entry.get("finished_at"))
+    finished_at = _parse_iso(entry.get("finished_at") or entry.get("stale_at"))
     if not finished_at:
         return False
     if effective_is_live(entry):

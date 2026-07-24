@@ -14,20 +14,35 @@ from tennisAgents.dataflows.config import get_config
 ModelKey = Literal["quick_think_llm", "deep_think_llm"]
 
 
+def _openrouter_api_key(config: dict) -> str:
+    api_key = config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
+    if not api_key:
+        raise ValueError("OPENROUTER_API_KEY no configurada")
+    return api_key
+
+
+def _provider_backend_url(config: dict, provider: str) -> str:
+    """Evita mezclar proveedor y base_url (p. ej. openrouter + api.openai.com)."""
+    if provider == "openrouter":
+        return (
+            config.get("openrouter_base_url")
+            or "https://openrouter.ai/api/v1"
+        )
+    return config.get("backend_url") or "https://api.openai.com/v1"
+
+
 def get_llm_client() -> OpenAI:
     """Cliente OpenAI-compatible para embeddings y APIs legacy."""
     config = get_config()
-    kwargs = {"base_url": config["backend_url"]}
     provider = config.get("llm_provider", "openai").lower()
+    kwargs = {"base_url": _provider_backend_url(config, provider)}
 
     if provider == "openrouter":
-        api_key = config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
-        if api_key:
-            kwargs["api_key"] = api_key
-            kwargs["default_headers"] = {
-                "HTTP-Referer": "https://github.com/tennisAgents",
-                "X-Title": "Tennis Agents",
-            }
+        kwargs["api_key"] = _openrouter_api_key(config)
+        kwargs["default_headers"] = {
+            "HTTP-Referer": "https://github.com/tennisAgents",
+            "X-Title": "Tennis Agents",
+        }
 
     return OpenAI(**kwargs)
 
@@ -41,19 +56,21 @@ def get_chat_llm(model_key: ModelKey = "quick_think_llm", **overrides) -> BaseCh
     max_retries = config.get("llm_max_retries")
 
     if provider in ("openai", "ollama", "openrouter"):
-        kwargs = {"model": model, "base_url": config["backend_url"], **overrides}
+        kwargs = {
+            "model": model,
+            "base_url": _provider_backend_url(config, provider),
+            **overrides,
+        }
         if timeout is not None:
             kwargs.setdefault("timeout", timeout)
         if max_retries is not None:
             kwargs.setdefault("max_retries", max_retries)
         if provider == "openrouter":
-            api_key = config.get("openrouter_api_key") or os.getenv("OPENROUTER_API_KEY")
-            if api_key:
-                kwargs["api_key"] = api_key
-                kwargs["default_headers"] = {
-                    "HTTP-Referer": "https://github.com/tennisAgents",
-                    "X-Title": "Tennis Agents",
-                }
+            kwargs["api_key"] = _openrouter_api_key(config)
+            kwargs["default_headers"] = {
+                "HTTP-Referer": "https://github.com/tennisAgents",
+                "X-Title": "Tennis Agents",
+            }
         return ChatOpenAI(**kwargs)
 
     if provider == "anthropic":

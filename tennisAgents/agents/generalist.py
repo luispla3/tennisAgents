@@ -11,6 +11,7 @@ from langchain_core.tools import tool
 
 from tennisAgents.dataflows import interface
 from tennisAgents.dataflows.config import get_config
+from tennisAgents.dataflows.market_resolve import resolve_market_selection
 from tennisAgents.utils.enumerations import REPORTS, STATE
 
 GENERALIST_NODE = "generalist_llm"
@@ -23,11 +24,18 @@ def _tool_log(action: str, **data) -> str:
 @tool
 def Bet(
     match_id: Annotated[str, "Identificador del partido"],
-    market: Annotated[str, "Mercado de la apuesta, por ejemplo match_winner"],
+    market: Annotated[
+        str,
+        "market_type exacto del snapshot (p.ej. MATCH_ODDS) o name visible del mercado",
+    ],
     selection: Annotated[str, "Selección apostada"],
     stake: Annotated[float, "Importe de la apuesta"],
     rationale: Annotated[str, "Motivo breve de la apuesta"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
+    estimated_probability: Annotated[
+        float,
+        "Probabilidad estimada de la selección, entre 0 y 1",
+    ],
     notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
 ) -> str:
     """Registra una apuesta."""
@@ -39,6 +47,7 @@ def Bet(
         stake=stake,
         rationale=rationale,
         confidence=confidence,
+        estimated_probability=estimated_probability,
         notes=notes,
     )
 
@@ -69,6 +78,7 @@ def Close(
     rationale: Annotated[str, "Motivo breve del cierre"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
     notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
+    position_id: Annotated[str, "ID exacto de la posición abierta que se cerrará"] = "",
 ) -> str:
     """Registra el cierre de una apuesta."""
     return _tool_log(
@@ -78,6 +88,7 @@ def Close(
         rationale=rationale,
         confidence=confidence,
         notes=notes,
+        position_id=position_id,
     )
 
 
@@ -153,6 +164,20 @@ def _market_snapshot(state: dict, captured_at: str) -> dict:
     }
 
 
+def _market_selection(
+    snapshot: dict,
+    market_type: str,
+    option: str,
+) -> tuple[dict, dict] | tuple[None, None]:
+    """Resuelve una selección contra el snapshot real, sin confiar en el LLM."""
+    return resolve_market_selection(
+        list(snapshot.get("markets") or []),
+        market_type,
+        option,
+        primary_market=snapshot.get("primary_market") or {},
+    )
+
+
 def _match_live_state(state: dict) -> dict:
     """Extrae el estado en vivo disponible directamente en el state del grafo."""
     return {
@@ -172,23 +197,32 @@ def _target_call(tool_call, snapshot: dict) -> dict:
     reason = args.get("reason") or args.get("rationale") or ""
     if name == "bet":
         option, market = args.get("option") or args.get("selection", ""), args.get("market", "")
+        matched_market, runner = _market_selection(snapshot, market, option)
         return {
             "name": "bet",
+            "technical_fallback": False,
             "arguments": {
                 "market": market,
                 "option": option,
                 "stake": _num(args.get("stake"), 0.0),
-                "odds": _num(args.get("odds")),
+                "odds": _num((runner or {}).get("odds_decimal")),
+                "market_id": (matched_market or {}).get("market_id"),
+                "selection_id": (runner or {}).get("selection_id"),
                 "reason": reason,
                 "confidence": _num(args.get("confidence")),
+                "estimated_probability": _num(
+                    args.get("estimated_probability")
+                ),
                 "notes": args.get("notes") or "",
             },
         }
     if name == "close":
         return {
             "name": "close",
+            "technical_fallback": False,
             "arguments": {
-                "position_id": args.get("position_id") or args.get("match_id", ""),
+                "position_id": args.get("position_id") or "",
+                "match_id": args.get("match_id") or "",
                 "close_percentage": _num(args.get("close_percentage"), 1.0),
                 "reason": reason,
                 "confidence": _num(args.get("confidence")),
@@ -197,6 +231,7 @@ def _target_call(tool_call, snapshot: dict) -> dict:
         }
     return {
         "name": "wait",
+        "technical_fallback": call.get("id") == "fallback_wait",
         "arguments": {
             "reason": reason,
             "confidence": _num(args.get("confidence")),
@@ -214,6 +249,8 @@ def _turn_log(state: dict, tool_call) -> dict:
     trajectory_id = f"match_{date}_{_slug(player)}_vs_{_slug(opponent)}"
     wallet = _num(state.get(STATE.wallet_balance), 0.0)
     snapshot = _market_snapshot(state, ts)
+    target_call = _target_call(tool_call, snapshot)
+    technical_fallback = bool(target_call.get("technical_fallback"))
     return {
         "schema_version": "tennis_generalist_turn_v1",
         "trajectory_id": trajectory_id,
@@ -223,27 +260,61 @@ def _turn_log(state: dict, tool_call) -> dict:
         "match": {"player_a": player, "player_b": opponent, "tournament": state.get(STATE.tournament, ""), "match_date": date},
         "state": {**_match_live_state(state), "wallet_balance": wallet, "available_balance": _num(state.get("available_balance"), wallet), "previous_actions": previous, "open_positions": positions},
         "input": {"reports": {key: state.get(key, "") for key in REPORT_ORDER}, "market_snapshot": snapshot},
-        "target": {"tool_call": _target_call(tool_call, snapshot)},
-        "outcome": {"accepted_for_training": True, "label_source": "teacher_model", "eventual_match_winner": state.get("eventual_match_winner"), "pnl_after_match": state.get("pnl_after_match")},
+        "target": {"tool_call": target_call},
+        "outcome": {
+            "accepted_for_training": False,
+            "label_source": "technical_fallback" if technical_fallback else "pending_validation",
+            "eventual_match_winner": state.get("eventual_match_winner"),
+            "pnl_after_match": state.get("pnl_after_match"),
+        },
     }
 
 
 def _save_turn_log(record: dict, path: str | None = None) -> None:
     path = path or get_config().get("generalist_turns_log")
-    if path:
+    if not path:
+        return
+
+    log_path = Path(path)
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    max_bytes = int(
+        get_config().get("audit_log_max_bytes", 100 * 1024 * 1024)
+    )
+    if log_path.exists() and log_path.stat().st_size >= max_bytes:
+        rotated = Path(f"{path}.1")
+        rotated.unlink(missing_ok=True)
+        os.replace(log_path, rotated)
+
+    # Un retry del mismo snapshot no debe duplicar el último turno.
+    if log_path.exists() and log_path.stat().st_size:
+        with log_path.open("rb") as existing:
+            existing.seek(0, os.SEEK_END)
+            position = existing.tell()
+            buffer = b""
+            last_line_bytes = b""
+            while position > 0:
+                block_size = min(64 * 1024, position)
+                position -= block_size
+                existing.seek(position)
+                buffer = existing.read(block_size) + buffer
+                stripped = buffer.rstrip(b"\r\n\t ")
+                if b"\n" in stripped:
+                    last_line_bytes = stripped.rsplit(b"\n", 1)[-1]
+                    break
+                if position == 0:
+                    last_line_bytes = stripped
+            last_line = last_line_bytes.decode("utf-8")
         try:
-            Path(path).parent.mkdir(parents=True, exist_ok=True)
-            max_bytes = int(
-                get_config().get("audit_log_max_bytes", 100 * 1024 * 1024)
-            )
-            if Path(path).exists() and Path(path).stat().st_size >= max_bytes:
-                rotated = Path(f"{path}.1")
-                rotated.unlink(missing_ok=True)
-                os.replace(path, rotated)
-            with open(path, "a", encoding="utf-8") as f:
-                f.write(json.dumps(record, ensure_ascii=False) + "\n")
-        except Exception:
-            pass
+            last_record = json.loads(last_line)
+        except json.JSONDecodeError:
+            last_record = {}
+        if last_record.get("turn_id") == record.get("turn_id"):
+            return
+
+    with log_path.open("a", encoding="utf-8") as output:
+        output.write(json.dumps(record, ensure_ascii=False) + "\n")
+        output.flush()
+        os.fsync(output.fileno())
 
 
 def _read_context_file(state: dict) -> tuple[str, str | None]:
@@ -340,7 +411,7 @@ def _write_context_file(
             temporary_path = Path(temporary.name)
         os.replace(temporary_path, context_path)
     except OSError:
-        pass
+        raise
     finally:
         if temporary_path and temporary_path.exists():
             temporary_path.unlink(missing_ok=True)
@@ -389,6 +460,9 @@ def format_decision_display(record: dict) -> str:
                 f"- **Selección:** {args.get('option') or 'N/A'}",
                 f"- **Stake:** {args.get('stake') if args.get('stake') is not None else 'N/A'}",
                 f"- **Cuota:** {args.get('odds') if args.get('odds') is not None else 'N/A'}",
+                f"- **Probabilidad estimada:** {args.get('estimated_probability') if args.get('estimated_probability') is not None else 'N/A'}",
+                f"- **Probabilidad implícita:** {args.get('implied_probability') if args.get('implied_probability') is not None else 'N/A'}",
+                f"- **Edge:** {args.get('edge') if args.get('edge') is not None else 'N/A'}",
                 f"- **Motivo:** {args.get('reason') or 'N/A'}",
                 f"- **Confianza:** {args.get('confidence') if args.get('confidence') is not None else 'N/A'}",
                 f"- **Notas:** {args.get('notes') or 'N/A'}",
@@ -434,7 +508,10 @@ def create_generalist_llm(deep_thinking_llm):
         opponent = state.get(STATE.opponent, "")
         tournament = state.get(STATE.tournament, "")
         match_date = state.get(STATE.match_date, "")
-        wallet_balance = state.get(STATE.wallet_balance, 0)
+        wallet_balance = state.get(
+            "available_balance",
+            state.get(STATE.wallet_balance, 0),
+        )
         analyst_reports = _collect_analyst_reports(state)
         match_id = f"{player} vs {opponent} | {tournament} | {match_date}"
         context_text, context_path = _read_context_file(state)
@@ -468,7 +545,15 @@ def create_generalist_llm(deep_thinking_llm):
             "La tool call debe contener una justificación factual en 'rationale' y notas accionables "
             "para el siguiente timestep en 'notes' (Wait también puede usar 'next_trigger').\n"
             "No escribas texto fuera de la tool call. Si no hay valor claro o faltan cuotas fiables, usa Wait.\n"
-            "No inventes marcador, cuotas, estadísticas ni eventos que no aparezcan en los datos.\n\n"
+            "No inventes marcador, cuotas, estadísticas ni eventos que no aparezcan en los datos.\n"
+            "Nunca uses Bet con stake <= 0 o superior al saldo disponible.\n"
+            "Bet debe incluir estimated_probability entre 0 y 1; comprueba que sea "
+            "mayor que 1/cuota y explica el edge sin errores aritméticos.\n"
+            "En Bet.market usa el market_type exacto del snapshot (p.ej. MATCH_ODDS, "
+            "SET_2_GAME_3_WINNER) o el name visible del mercado; en selection/option "
+            "usa el name exacto del runner.\n"
+            "Para Close usa el position_id exacto mostrado en Posiciones abiertas.\n"
+            "Si marcador, set, servidor o mercado no son coherentes entre fuentes, usa Wait.\n\n"
             f"match_id: {match_id}\n"
             f"Partido: {player} vs {opponent}\n"
             f"Torneo: {tournament}\n"
@@ -484,6 +569,8 @@ def create_generalist_llm(deep_thinking_llm):
             f"{context_text}\n"
         )
 
+        generalist_error = None
+        technical_fallback = False
         try:
             try:
                 response = deep_thinking_llm.bind_tools(GENERALIST_TOOLS, tool_choice="any").invoke(prompt)
@@ -491,6 +578,15 @@ def create_generalist_llm(deep_thinking_llm):
                 response = deep_thinking_llm.bind_tools(GENERALIST_TOOLS).invoke(prompt)
             if not getattr(response, "tool_calls", None):
                 response = _fallback_wait(match_id)
+                generalist_error = "El modelo no devolvió una tool call."
+                technical_fallback = True
+            elif len(response.tool_calls) != 1:
+                response = _fallback_wait(match_id)
+                generalist_error = (
+                    f"El modelo devolvió {len(response.tool_calls)} tool calls; "
+                    "se requiere exactamente una."
+                )
+                technical_fallback = True
             tool_call = response.tool_calls[0]
             response = AIMessage(content="", tool_calls=[tool_call])
             _execute_tool_call(tool_call)
@@ -498,22 +594,28 @@ def create_generalist_llm(deep_thinking_llm):
             response = _fallback_wait(match_id)
             tool_call = response.tool_calls[0]
             _execute_tool_call(tool_call)
+            generalist_error = f"{type(exc).__name__}: {exc}"
+            technical_fallback = True
             print(f"ERROR en generalist_llm: {exc}", flush=True)
 
         print("Decision final generada por generalist_llm", flush=True)
         record = _turn_log(state, tool_call)
-        _save_turn_log(record, state.get("generalist_turns_log"))
-        _write_context_file(
-            context_path,
-            record=record,
-            scraper_snapshot=scraper_snapshot,
-        )
+        if not state.get("defer_generalist_persistence", False):
+            _save_turn_log(record, state.get("generalist_turns_log"))
+            _write_context_file(
+                context_path,
+                record=record,
+                scraper_snapshot=scraper_snapshot,
+            )
         decision = format_decision_display(record)
         _emit_progress({"type": "generalist_complete", "decision": decision})
 
         return {
             STATE.messages: [response],
             STATE.final_bet_decision: decision,
+            "generalist_record": record,
+            "generalist_error": generalist_error,
+            "technical_fallback": technical_fallback,
         }
 
     return generalist_llm_node

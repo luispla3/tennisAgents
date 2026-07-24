@@ -154,6 +154,7 @@ def select_shallow_thinking_agent(provider) -> str:
             ("Gemini 2.5 Flash - Adaptive thinking, cost efficiency", "gemini-2.5-flash-preview-05-20"),
         ],
         "openrouter": [
+            ("DeepSeek V4 Flash - Fast agentic model (RECOMMENDED)", "deepseek/deepseek-v4-flash"),
             ("Nex AGI: Nex N2 Pro (free)", "nex-agi/nex-n2-pro:free"),
             ("Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
             ("Meta: Llama 4 Scout", "meta-llama/llama-4-scout:free"),
@@ -221,6 +222,7 @@ def select_deep_thinking_agent(provider) -> str:
             ("Gemini 2.5 Pro", "gemini-2.5-pro-preview-06-05"),
         ],
         "openrouter": [
+            ("DeepSeek V4 Flash - Fast reasoning model (RECOMMENDED)", "deepseek/deepseek-v4-flash"),
             ("Nex AGI: Nex N2 Pro (free)", "nex-agi/nex-n2-pro:free"),
             ("Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
             ("DeepSeek V3 - a 685B-parameter, mixture-of-experts model", "deepseek/deepseek-chat-v3-0324:free"),
@@ -259,10 +261,10 @@ def select_llm_provider() -> tuple[str, str]:
     """Select the OpenAI api url using interactive selection."""
     # Define OpenAI api options with their corresponding endpoints
     BASE_URLS = [
+        ("Openrouter", "https://openrouter.ai/api/v1"),
         ("OpenAI", "https://api.openai.com/v1"),
         ("Anthropic", "https://api.anthropic.com/"),
         ("Google", "https://generativelanguage.googleapis.com/v1"),
-        ("Openrouter", "https://openrouter.ai/api/v1"),
         ("Ollama", "http://localhost:11434/v1"),        
     ]
     

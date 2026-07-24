@@ -107,6 +107,29 @@ export function CollectorControls({ onChange, onStatusChange }: Props) {
           Colector {running ? "activo" : "parado"}
           {running && status?.pid ? ` · PID ${status.pid}` : ""}
         </Badge>
+        {status?.cycle_state && status.cycle_state !== "ok" && (
+          <Badge
+            variant={
+              status.cycle_state === "degraded" || status.cycle_state === "failed"
+                ? "destructive"
+                : "outline"
+            }
+            title={status.cycle_message ?? undefined}
+          >
+            Ciclo {status.cycle_state}
+            {status.cycle_errors ? ` · ${status.cycle_errors} errores` : ""}
+          </Badge>
+        )}
+        {status?.analysis_health?.status === "degraded" && (
+          <Badge
+            variant="destructive"
+            title={status.analysis_health.details
+              .map((item) => `${item.event_id}: ${item.error ?? item.status ?? "degradado"}`)
+              .join("\n")}
+          >
+            Análisis degradado · {status.analysis_health.events_unhealthy}
+          </Badge>
+        )}
         <Button size="sm" onClick={() => void handleStart()} disabled={busy || running}>
           <Play className="mr-1 size-4" />
           Iniciar

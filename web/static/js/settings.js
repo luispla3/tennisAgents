@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { display: "Gemini 2.5 Flash - Adaptive thinking, cost efficiency", value: "gemini-2.5-flash-preview-05-20" }
         ],
         openrouter: [
+            { display: "DeepSeek V4 Flash - Fast agentic model (RECOMMENDED)", value: "deepseek/deepseek-v4-flash" },
             { display: "Nex AGI: Nex N2 Pro (free)", value: "nex-agi/nex-n2-pro:free" },
             { display: "Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", value: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" },
             { display: "Meta: Llama 4 Scout", value: "meta-llama/llama-4-scout:free" },
@@ -99,6 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
             { display: "Gemini 2.5 Pro", value: "gemini-2.5-pro-preview-06-05" }
         ],
         openrouter: [
+            { display: "DeepSeek V4 Flash - Fast reasoning model (RECOMMENDED)", value: "deepseek/deepseek-v4-flash" },
             { display: "Nex AGI: Nex N2 Pro (free)", value: "nex-agi/nex-n2-pro:free" },
             { display: "Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", value: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free" },
             { display: "DeepSeek V3 - a 685B-parameter, mixture-of-experts model", value: "deepseek/deepseek-chat-v3-0324:free" },

@@ -22,6 +22,16 @@ class AgentState(MessagesState):
     open_positions: Annotated[list[dict[str, Any]], "Posiciones abiertas"]
     available_balance: Annotated[float, "Saldo disponible tras posiciones"]
     generalist_turns_log: Annotated[Optional[str], "Archivo de historial de decisiones del partido"]
+    analyst_errors: Annotated[dict[str, str], "Errores de los analistas por tipo"]
+    analysts_completed_count: Annotated[int, "Número de informes completados"]
+    analysts_expected_count: Annotated[int, "Número de informes esperados"]
+    generalist_record: Annotated[Optional[dict[str, Any]], "Registro estructurado de la decisión"]
+    generalist_error: Annotated[Optional[str], "Error técnico del generalista"]
+    technical_fallback: Annotated[bool, "Indica que Wait fue generado por seguridad"]
+    defer_generalist_persistence: Annotated[
+        bool,
+        "El collector persiste después de validar y confirmar el journal",
+    ]
 
     news_report: Annotated[Optional[str], "Informe de noticias"]
     players_report: Annotated[Optional[str], "Informe de jugadores"]

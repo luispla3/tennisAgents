@@ -13,6 +13,7 @@ from api.collector_control import clear_collector_data, collector_status, start_
 from collector.config import API_PORT
 from collector.paths import ROOT
 from collector.storage import (
+    analysis_health_summary,
     list_all_matches,
     list_snapshots,
     load_index,
@@ -116,6 +117,7 @@ class Handler(SimpleHTTPRequestHandler):
             status = collector_status()
             index = load_index()
             status["last_index_update"] = index.get("updated_at")
+            status["analysis_health"] = analysis_health_summary()
             _json(self, status)
             return
 
@@ -178,6 +180,31 @@ class Handler(SimpleHTTPRequestHandler):
                         }
                     )
                 _json(self, {"event_id": event_id, "timeline": timeline})
+                return
+
+            if len(parts) == 4 and parts[3] == "artifacts":
+                event_dir = ROOT / "data" / event_id
+                artifacts: dict[str, str] = {}
+                artifact_paths = {
+                    "context": event_dir / "context.md",
+                    "decision": event_dir / "decision.md",
+                    "news_report": event_dir / "reports" / "news_report.md",
+                    "players_report": event_dir / "reports" / "players_report.md",
+                    "tournament_report": event_dir / "reports" / "tournament_report.md",
+                    "weather_report": event_dir / "reports" / "weather_report.md",
+                }
+                for name, artifact_path in artifact_paths.items():
+                    if artifact_path.exists():
+                        artifacts[name] = artifact_path.read_text(
+                            encoding="utf-8"
+                        )
+                _json(
+                    self,
+                    {
+                        "event_id": event_id,
+                        "artifacts": artifacts,
+                    },
+                )
                 return
 
         _error(self, "Ruta no encontrada", HTTPStatus.NOT_FOUND)

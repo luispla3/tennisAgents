@@ -128,6 +128,17 @@ export function MatchList({ matches, selectedId, collectorRunning = false, onSel
                 <span>{match.snapshots_count ?? 0} snaps</span>
                 <span>{match.competition ?? "—"}</span>
               </div>
+              {(match.analysis_error ||
+                match.analysis_status === "error" ||
+                match.analysis_status === "degraded") && (
+                <p
+                  className="mt-2 text-[11px] text-destructive"
+                  title={match.analysis_error}
+                >
+                  Análisis {match.analysis_status ?? "degradado"}
+                  {match.analysis_error ? `: ${match.analysis_error}` : ""}
+                </p>
+              )}
               <MatchSnapshotProgress
                 match={match}
                 collectorRunning={collectorRunning}

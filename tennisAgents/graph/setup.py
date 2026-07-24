@@ -135,18 +135,19 @@ class GraphSetup:
                             "reports": reports,
                         }
                     )
-                    return analyst_type, result
+                    return analyst_type, result, None
                 except Exception as exc:
                     print(f"[ERROR] Analista '{analyst_type}': {exc}", flush=True)
                     _emit_progress(
                         {"type": "analyst_error", "analyst": analyst_type, "error": str(exc)}
                     )
-                    return analyst_type, {}
+                    return analyst_type, {}, str(exc)
                 finally:
                     with running_lock:
                         running.discard(analyst_type)
 
             merged = {}
+            analyst_errors = {}
             try:
                 with ThreadPoolExecutor(max_workers=len(selected_analysts)) as executor:
                     futures = {
@@ -156,12 +157,15 @@ class GraphSetup:
                     for future in as_completed(futures):
                         analyst_type = futures[future]
                         try:
-                            completed_type, result = future.result(timeout=900)
+                            completed_type, result, analyst_error = future.result(timeout=900)
                         except Exception as exc:
                             print(f"[ERROR] Timeout/error esperando '{analyst_type}': {exc}", flush=True)
+                            analyst_errors[analyst_type] = str(exc)
                             with running_lock:
                                 running.discard(analyst_type)
                             continue
+                        if analyst_error:
+                            analyst_errors[completed_type] = analyst_error
                         for key in REPORT_KEYS:
                             value = result.get(key)
                             if value:
@@ -184,6 +188,11 @@ class GraphSetup:
                 }
             )
 
+            merged["analyst_errors"] = analyst_errors
+            merged["analysts_completed_count"] = sum(
+                1 for key in REPORT_KEYS if merged.get(key)
+            )
+            merged["analysts_expected_count"] = len(selected_analysts)
             merged[STATE.messages] = [HumanMessage(content="Continue")]
             return merged
 
