@@ -5,7 +5,8 @@ from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalys
 from tennisAgents.agents.utils.agent_utils import _record_tool_output
 from tennisAgents.dataflows.config import get_config
 from tennisAgents.dataflows.interface import get_tournament_data
-from tennisAgents.dataflows.tournament_utils import normalize_tournament
+from tennisAgents.dataflows.tournament_utils import merge_analyst_tournament_context, normalize_tournament
+from tennisAgents.agents.utils.report_utils import sanitize_analyst_report
 
 
 def _emit_activity(message: str) -> None:
@@ -41,7 +42,9 @@ def create_tournament_analyst(llm, toolkit):
 
         anatomy = TennisAnalystAnatomies.tournament_analyst()
 
-        additional_context = (
+        additional_context = merge_analyst_tournament_context(
+            state,
+            (
             "FACTORES A EVALUAR:\n"
             "• Tipo de superficie y condiciones físicas del entorno (altitud, clima habitual, velocidad de la pista)\n"
             "• Categoría del torneo y su importancia en el calendario\n"
@@ -56,7 +59,9 @@ def create_tournament_analyst(llm, toolkit):
             "OBJETIVO: Ayudar al equipo de predicción a entender el impacto del torneo sobre el rendimiento de los jugadores.\n\n"
             "Usa EXCLUSIVAMENTE los datos del torneo proporcionados en el mensaje del usuario.\n"
             "No inventes datos históricos ni condiciones concretas que no aparezcan en esos datos.\n"
+            "PROHIBIDO usar tablas markdown en el informe final.\n"
             "No pidas más búsquedas ni repitas get_tournament_info."
+            ),
         )
 
         prompt = PromptBuilder.create_structured_prompt(
@@ -83,7 +88,9 @@ def create_tournament_analyst(llm, toolkit):
             }
         )
 
-        report = result.content if hasattr(result, "content") else str(result)
+        report = sanitize_analyst_report(
+            result.content if hasattr(result, "content") else str(result)
+        )
 
         return {
             STATE.messages: [AIMessage(content=report)],

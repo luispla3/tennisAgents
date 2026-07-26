@@ -3,7 +3,7 @@ from .match_live_utils import fetch_match_live_data, format_match_live_report
 from .news_utils import fetch_news
 from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
 from .weather_utils import fetch_weather_forecast, format_weather_report
-from .tournament_utils import get_tournament_info_openai, normalize_tournament
+from .tournament_utils import get_tournament_info_openai, normalize_tournament, resolve_weather_location
 
 
 
@@ -206,11 +206,15 @@ def get_weather_forecast(tournament: str, fecha_hora: str, location: str) -> str
         str: Reporte meteorológico formateado
     """
     identity = normalize_tournament(tournament or location)
-    resolved_location = location or identity.location or identity.search_name
-    if resolved_location == tournament and identity.location:
-        resolved_location = identity.location
-    elif _looks_like_tournament_label(resolved_location):
-        resolved_location = identity.location or identity.search_name
+    resolved_location, _, _note = resolve_weather_location(tournament, location)
+    resolved_location = (
+        resolved_location
+        or identity.location
+        or identity.search_name
+        or location
+    )
+    if _looks_like_tournament_label(resolved_location):
+        resolved_location = identity.location or identity.search_name or location
 
     weather_data = fetch_weather_forecast(
         resolved_location,

@@ -3,6 +3,8 @@ from langchain_core.messages import AIMessage
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 from tennisAgents.dataflows.config import get_config
 from tennisAgents.dataflows.news_utils import fetch_news_for_match
+from tennisAgents.dataflows.tournament_utils import merge_analyst_tournament_context
+from tennisAgents.agents.utils.report_utils import sanitize_analyst_report
 from tennisAgents.utils.enumerations import *
 
 
@@ -36,11 +38,15 @@ def create_news_analyst(llm, toolkit):
         _emit_activity("news", "Sintetizando informe con LLM...")
 
         anatomy = TennisAnalystAnatomies.news_analyst()
-        additional_context = (
+        additional_context = merge_analyst_tournament_context(
+            state,
+            (
             "OBJETIVO: Identificar información crítica que pueda influir en el rendimiento de los jugadores.\n"
             "Usa EXCLUSIVAMENTE las noticias proporcionadas en el mensaje del usuario.\n"
-            "No inventes noticias ni pidas más búsquedas.\n\n"
+            "No inventes noticias ni pidas más búsquedas.\n"
+            "PROHIBIDO usar tablas markdown en el informe final.\n\n"
             f"Fecha del partido: {current_date}. Jugadores: {player} vs {opponent}. Torneo: {tournament}."
+            ),
         )
 
         prompt = PromptBuilder.create_structured_prompt(
@@ -61,7 +67,9 @@ def create_news_analyst(llm, toolkit):
             }
         )
 
-        report = result.content if hasattr(result, "content") else str(result)
+        report = sanitize_analyst_report(
+            result.content if hasattr(result, "content") else str(result)
+        )
         print("[OK] Reporte de noticias generado", flush=True)
 
         return {

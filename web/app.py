@@ -155,7 +155,7 @@ async def run_analysis(
                 }, f)
             
             # Determinar el nombre del modelo para etiquetar informes de analistas
-            # Analistas locales (News, Social, Tournament, Weather) pueden usar un LLM distinto
+            # Analistas locales (News, Tournament, Weather) pueden usar un LLM distinto
             if config.get("use_local_analysts", False):
                 analyst_model_name = config.get(
                     "local_model_name",
@@ -589,31 +589,31 @@ templates = Jinja2Templates(directory=str(TEMPLATES_DIR))
 @app.get("/", response_class=HTMLResponse)
 async def home(request: Request):
     """Home page"""
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse(request, "index.html")
 
 
 @app.get("/predict", response_class=HTMLResponse)
 async def predict(request: Request):
     """Predict page"""
-    return templates.TemplateResponse("predict.html", {"request": request})
+    return templates.TemplateResponse(request, "predict.html")
 
 
 @app.get("/daily-summaries", response_class=HTMLResponse)
 async def daily_summaries(request: Request):
     """Daily summaries page"""
-    return templates.TemplateResponse("daily-summaries.html", {"request": request})
+    return templates.TemplateResponse(request, "daily-summaries.html")
 
 
 @app.get("/predicted", response_class=HTMLResponse)
 async def predicted(request: Request):
     """Predicted matches page"""
-    return templates.TemplateResponse("predicted.html", {"request": request})
+    return templates.TemplateResponse(request, "predicted.html")
 
 
 @app.get("/ganancias", response_class=HTMLResponse)
 async def ganancias(request: Request):
     """Earnings / profit history page"""
-    return templates.TemplateResponse("ganancias.html", {"request": request})
+    return templates.TemplateResponse(request, "ganancias.html")
 
 
 def fetch_competitor_profile(competitor_id: str) -> Dict[str, Any]:
@@ -948,7 +948,6 @@ def _scan_results_root(root: Path, storage: str, max_matches: int = 30) -> List[
 REPORT_AGENT_ORDER = (
     ("news_report", "News Analyst"),
     ("players_report", "Players Analyst"),
-    ("sentiment_report", "Social Analyst"),
     ("tournament_report", "Tournament Analyst"),
     ("weather_report", "Weather Analyst"),
     ("final_bet_decision", "Generalist LLM"),

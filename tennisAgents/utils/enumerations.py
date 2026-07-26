@@ -28,6 +28,7 @@ class STATE:
     player_of_interest = "player_of_interest"
     opponent = "opponent"
     tournament = "tournament"
+    tournament_context = "tournament_context"
     wallet_balance = "wallet_balance"
     messages = "messages"
     final_bet_decision = "final_bet_decision"

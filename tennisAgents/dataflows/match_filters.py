@@ -1,4 +1,4 @@
-"""Filtros de partidos de tenis (singles masculino)."""
+"""Filtros de partidos de tenis (singles masculino, ATP Challenger+)."""
 
 from __future__ import annotations
 
@@ -67,5 +67,16 @@ def is_singles_male_tennis_match(match: dict[str, Any]) -> bool:
     return True
 
 
+def is_tracked_tennis_match(match: dict[str, Any]) -> bool:
+    """True si el partido es singles masculino de ATP Challenger o superior."""
+    from tennisAgents.dataflows.tournament_tier import is_atp_challenger_or_higher_match
+
+    return is_singles_male_tennis_match(match) and is_atp_challenger_or_higher_match(match)
+
+
 def filter_singles_male_matches(matches: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [m for m in matches if is_singles_male_tennis_match(m)]
+    return [m for m in matches if is_tracked_tennis_match(m)]
+
+
+def filter_tracked_tennis_matches(matches: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return filter_singles_male_matches(matches)

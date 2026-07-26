@@ -116,6 +116,15 @@ DEFAULT_CONFIG = {
         "TENNISAGENTS_VOID_UNRESOLVED_MARKETS_ON_FINISH",
         True,
     ),
+    "void_unresolved_on_indecisive_finish": _env_bool(
+        "TENNISAGENTS_VOID_UNRESOLVED_ON_INDECISIVE_FINISH",
+        True,
+    ),
+    "void_open_positions_on_shutdown": _env_bool(
+        "TENNISAGENTS_VOID_OPEN_POSITIONS_ON_SHUTDOWN",
+        True,
+    ),
+    "default_match_start_time": os.getenv("TENNISAGENTS_DEFAULT_MATCH_START_TIME", "14:00").strip() or "14:00",
     "audit_log_max_bytes": max(
         1024 * 1024,
         _env_int("TENNISAGENTS_AUDIT_LOG_MAX_BYTES", 100 * 1024 * 1024),

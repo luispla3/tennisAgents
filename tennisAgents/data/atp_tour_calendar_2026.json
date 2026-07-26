@@ -1,0 +1,826 @@
+{
+  "year": 2026,
+  "source": "2026 ATP Tour Calendar (December 2025 edition)",
+  "tournament_count": 65,
+  "tournaments": [
+    {
+      "name": "United Cup",
+      "category": "united_cup",
+      "category_label": "United Cup",
+      "month": "JAN",
+      "location": "Perth, Australia",
+      "surface": null,
+      "search_keys": [
+        "perth",
+        "sydney",
+        "united cup"
+      ]
+    },
+    {
+      "name": "Brisbane International",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JAN",
+      "location": "Brisbane, Australia",
+      "surface": null,
+      "search_keys": [
+        "brisbane",
+        "brisbane international"
+      ]
+    },
+    {
+      "name": "Hong Kong Tennis Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JAN",
+      "location": "Hong Kong, China",
+      "surface": null,
+      "search_keys": [
+        "hong kong",
+        "hong kong tennis",
+        "hong kong tennis open"
+      ]
+    },
+    {
+      "name": "ASB Classic",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JAN",
+      "location": "Auckland, New Zealand",
+      "surface": null,
+      "search_keys": [
+        "asb classic",
+        "auckland"
+      ]
+    },
+    {
+      "name": "Adelaide International",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JAN",
+      "location": "Adelaide, Australia",
+      "surface": null,
+      "search_keys": [
+        "adelaide",
+        "adelaide international"
+      ]
+    },
+    {
+      "name": "Australian Open",
+      "category": "grand_slam",
+      "category_label": "Grand Slam",
+      "month": "JAN",
+      "location": "Melbourne, Australia",
+      "surface": "hard",
+      "search_keys": [
+        "australian open",
+        "melbourne"
+      ]
+    },
+    {
+      "name": "Davis Cup Qualifiers 1st Round",
+      "category": "davis_cup",
+      "category_label": "Davis Cup",
+      "month": "FEB",
+      "location": null,
+      "surface": null,
+      "search_keys": [
+        "davis cup 1st",
+        "davis cup qualifiers",
+        "davis cup qualifiers 1st round"
+      ]
+    },
+    {
+      "name": "Open Occitanie Montpellier",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "FEB",
+      "location": "Montpellier, France",
+      "surface": null,
+      "search_keys": [
+        "montpellier",
+        "occitanie",
+        "open occitanie montpellier"
+      ]
+    },
+    {
+      "name": "ABN AMRO Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "FEB",
+      "location": "Rotterdam, Netherlands",
+      "surface": null,
+      "search_keys": [
+        "abn amro",
+        "abn amro open",
+        "rotterdam"
+      ]
+    },
+    {
+      "name": "Dallas Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "FEB",
+      "location": "Dallas, United States",
+      "surface": null,
+      "search_keys": [
+        "dallas",
+        "dallas open"
+      ]
+    },
+    {
+      "name": "Qatar ExxonMobil Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "FEB",
+      "location": "Doha, Qatar",
+      "surface": null,
+      "search_keys": [
+        "doha",
+        "qatar exxonmobil",
+        "qatar exxonmobil open"
+      ]
+    },
+    {
+      "name": "Argentina Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "FEB",
+      "location": "Buenos Aires, Argentina",
+      "surface": null,
+      "search_keys": [
+        "argentina open",
+        "buenos aires"
+      ]
+    },
+    {
+      "name": "Rio Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "FEB",
+      "location": "Rio de Janeiro, Brazil",
+      "surface": null,
+      "search_keys": [
+        "rio de janeiro",
+        "rio open"
+      ]
+    },
+    {
+      "name": "Delray Beach Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "FEB",
+      "location": "Delray Beach, United States",
+      "surface": null,
+      "search_keys": [
+        "delray beach",
+        "delray beach open"
+      ]
+    },
+    {
+      "name": "Dubai Duty Free Tennis Championships",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "FEB",
+      "location": "Dubai, United Arab Emirates",
+      "surface": null,
+      "search_keys": [
+        "dubai",
+        "dubai duty free",
+        "dubai duty free tennis championships"
+      ]
+    },
+    {
+      "name": "Chile Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "FEB",
+      "location": "Santiago, Chile",
+      "surface": null,
+      "search_keys": [
+        "bci seguros",
+        "chile open",
+        "santiago"
+      ]
+    },
+    {
+      "name": "Abierto Mexicano Telcel",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "FEB",
+      "location": "Acapulco, Mexico",
+      "surface": null,
+      "search_keys": [
+        "abierto mexicano telcel",
+        "acapulco",
+        "mexicano telcel"
+      ]
+    },
+    {
+      "name": "BNP Paribas Open",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "MAR",
+      "location": "Indian Wells, United States",
+      "surface": "hard",
+      "search_keys": [
+        "bnp paribas open",
+        "indian wells"
+      ]
+    },
+    {
+      "name": "Miami Open",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "MAR",
+      "location": "Miami, United States",
+      "surface": "hard",
+      "search_keys": [
+        "miami",
+        "miami open"
+      ]
+    },
+    {
+      "name": "U.S. Men's Clay Court Championship",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "MAR",
+      "location": "Houston, United States",
+      "surface": "clay",
+      "search_keys": [
+        "clay court championship",
+        "houston",
+        "u s men s clay court championship"
+      ]
+    },
+    {
+      "name": "Tiriac Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "MAR",
+      "location": "Bucharest, Romania",
+      "surface": "clay",
+      "search_keys": [
+        "bucharest",
+        "tiriac open"
+      ]
+    },
+    {
+      "name": "Grand Prix Hassan II",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "MAR",
+      "location": "Marrakech, Morocco",
+      "surface": "clay",
+      "search_keys": [
+        "grand prix hassan ii",
+        "hassan ii",
+        "marrakech"
+      ]
+    },
+    {
+      "name": "Rolex Monte-Carlo Masters",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "APR",
+      "location": "Monte Carlo, Monaco",
+      "surface": "clay",
+      "search_keys": [
+        "monte carlo",
+        "rolex monte carlo masters"
+      ]
+    },
+    {
+      "name": "Barcelona Open Banc Sabadell",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "APR",
+      "location": "Barcelona, Spain",
+      "surface": "clay",
+      "search_keys": [
+        "banc sabadell",
+        "barcelona open",
+        "barcelona open banc sabadell"
+      ]
+    },
+    {
+      "name": "BMW Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "APR",
+      "location": "Munich, Germany",
+      "surface": "clay",
+      "search_keys": [
+        "bmw open",
+        "munich"
+      ]
+    },
+    {
+      "name": "Mutua Madrid Open",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "APR",
+      "location": "Madrid, Spain",
+      "surface": "clay",
+      "search_keys": [
+        "madrid open",
+        "mutua madrid",
+        "mutua madrid open"
+      ]
+    },
+    {
+      "name": "Internazionali BNL d'Italia",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "MAY",
+      "location": "Rome, Italy",
+      "surface": "clay",
+      "search_keys": [
+        "internazionali bnl",
+        "internazionali bnl d italia",
+        "italia",
+        "rome"
+      ]
+    },
+    {
+      "name": "Gonet Geneva Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "MAY",
+      "location": "Geneva, Switzerland",
+      "surface": "clay",
+      "search_keys": [
+        "geneva",
+        "geneva open",
+        "gonet geneva open"
+      ]
+    },
+    {
+      "name": "Bitpanda Hamburg Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "MAY",
+      "location": "Hamburg, Germany",
+      "surface": "clay",
+      "search_keys": [
+        "bitpanda hamburg open",
+        "hamburg",
+        "hamburg open"
+      ]
+    },
+    {
+      "name": "Roland Garros",
+      "category": "grand_slam",
+      "category_label": "Grand Slam",
+      "month": "MAY",
+      "location": "Paris, France",
+      "surface": "clay",
+      "search_keys": [
+        "french open",
+        "paris",
+        "roland garros"
+      ]
+    },
+    {
+      "name": "Boss Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUN",
+      "location": "Stuttgart, Germany",
+      "surface": "grass",
+      "search_keys": [
+        "boss open",
+        "stuttgart"
+      ]
+    },
+    {
+      "name": "Libema Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUN",
+      "location": "'s-Hertogenbosch, Netherlands",
+      "surface": "grass",
+      "search_keys": [
+        "hertogenbosch",
+        "libema open",
+        "s hertogenbosch"
+      ]
+    },
+    {
+      "name": "HSBC Championships",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "JUN",
+      "location": "London, United Kingdom",
+      "surface": "grass",
+      "search_keys": [
+        "hsbc championships",
+        "queen s",
+        "queens"
+      ]
+    },
+    {
+      "name": "Terra Wortmann Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "JUN",
+      "location": "Halle, Germany",
+      "surface": "grass",
+      "search_keys": [
+        "halle",
+        "terra wortmann",
+        "terra wortmann open"
+      ]
+    },
+    {
+      "name": "Lexus Eastbourne Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUN",
+      "location": "Eastbourne, United Kingdom",
+      "surface": "grass",
+      "search_keys": [
+        "eastbourne",
+        "lexus eastbourne open"
+      ]
+    },
+    {
+      "name": "Mallorca Championships",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUN",
+      "location": "Mallorca, Spain",
+      "surface": "grass",
+      "search_keys": [
+        "mallorca",
+        "mallorca championships"
+      ]
+    },
+    {
+      "name": "The Championships Wimbledon",
+      "category": "grand_slam",
+      "category_label": "Grand Slam",
+      "month": "JUN",
+      "location": "London, United Kingdom",
+      "surface": "grass",
+      "search_keys": [
+        "championships wimbledon",
+        "the championships wimbledon",
+        "wimbledon"
+      ]
+    },
+    {
+      "name": "Nordea Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Bastad, Sweden",
+      "surface": "clay",
+      "search_keys": [
+        "bastad",
+        "nordea open"
+      ]
+    },
+    {
+      "name": "Swiss Open Gstaad",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Gstaad, Switzerland",
+      "surface": "clay",
+      "search_keys": [
+        "gstaad",
+        "swiss open",
+        "swiss open gstaad"
+      ]
+    },
+    {
+      "name": "Millennium Estoril Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Estoril, Portugal",
+      "surface": "clay",
+      "search_keys": [
+        "estoril",
+        "estoril open",
+        "millennium estoril open"
+      ]
+    },
+    {
+      "name": "Plava Laguna Croatia Open Umag",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Umag, Croatia",
+      "surface": "clay",
+      "search_keys": [
+        "croatia open",
+        "plava laguna croatia open umag",
+        "umag"
+      ]
+    },
+    {
+      "name": "Generali Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Kitzbuhel, Austria",
+      "surface": "clay",
+      "search_keys": [
+        "generali open",
+        "kitzbuhel"
+      ]
+    },
+    {
+      "name": "Mubadala Citi DC Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "JUL",
+      "location": "Washington, D.C., United States",
+      "surface": null,
+      "search_keys": [
+        "citi dc open",
+        "mubadala citi dc open",
+        "washington"
+      ]
+    },
+    {
+      "name": "Los Cabos Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Los Cabos, Mexico",
+      "surface": null,
+      "search_keys": [
+        "los cabos",
+        "los cabos open"
+      ]
+    },
+    {
+      "name": "Mifel Tennis Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "JUL",
+      "location": "Los Cabos, Mexico",
+      "surface": null,
+      "search_keys": [
+        "mifel tennis",
+        "mifel tennis open"
+      ]
+    },
+    {
+      "name": "National Bank Open",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "AUG",
+      "location": "Montreal, Canada",
+      "surface": null,
+      "search_keys": [
+        "montreal",
+        "national bank open",
+        "rogers"
+      ]
+    },
+    {
+      "name": "Cincinnati Open",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "AUG",
+      "location": "Cincinnati, United States",
+      "surface": null,
+      "search_keys": [
+        "cincinnati",
+        "cincinnati open"
+      ]
+    },
+    {
+      "name": "Winston-Salem Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "AUG",
+      "location": "Winston-Salem, United States",
+      "surface": null,
+      "search_keys": [
+        "winston salem",
+        "winston salem open"
+      ]
+    },
+    {
+      "name": "US Open",
+      "category": "grand_slam",
+      "category_label": "Grand Slam",
+      "month": "AUG",
+      "location": "New York, United States",
+      "surface": "hard",
+      "search_keys": [
+        "flushing",
+        "new york",
+        "us open"
+      ]
+    },
+    {
+      "name": "Chengdu Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "SEP",
+      "location": "Chengdu, China",
+      "surface": null,
+      "search_keys": [
+        "chengdu",
+        "chengdu open"
+      ]
+    },
+    {
+      "name": "Hangzhou Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "SEP",
+      "location": "Hangzhou, China",
+      "surface": null,
+      "search_keys": [
+        "hangzhou",
+        "hangzhou open",
+        "lynk co"
+      ]
+    },
+    {
+      "name": "Davis Cup Qualifiers 2nd Round",
+      "category": "davis_cup",
+      "category_label": "Davis Cup",
+      "month": "SEP",
+      "location": null,
+      "surface": null,
+      "search_keys": [
+        "davis cup qualifiers 2",
+        "davis cup qualifiers 2nd round"
+      ]
+    },
+    {
+      "name": "Laver Cup",
+      "category": "laver_cup",
+      "category_label": "Laver Cup",
+      "month": "SEP",
+      "location": "London, United Kingdom",
+      "surface": null,
+      "search_keys": [
+        "laver cup"
+      ]
+    },
+    {
+      "name": "Japan Open Tennis Championships",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "SEP",
+      "location": "Tokyo, Japan",
+      "surface": null,
+      "search_keys": [
+        "japan open",
+        "japan open tennis championships",
+        "kinoshita",
+        "tokyo"
+      ]
+    },
+    {
+      "name": "China Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "SEP",
+      "location": "Beijing, China",
+      "surface": null,
+      "search_keys": [
+        "beijing",
+        "china open"
+      ]
+    },
+    {
+      "name": "Rolex Shanghai Masters",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "OCT",
+      "location": "Shanghai, China",
+      "surface": null,
+      "search_keys": [
+        "rolex shanghai masters",
+        "shanghai",
+        "shanghai masters"
+      ]
+    },
+    {
+      "name": "European Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "OCT",
+      "location": "Brussels, Belgium",
+      "surface": null,
+      "search_keys": [
+        "bnpp fortis",
+        "brussels",
+        "european open"
+      ]
+    },
+    {
+      "name": "Swiss Indoors Basel",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "OCT",
+      "location": "Basel, Switzerland",
+      "surface": null,
+      "search_keys": [
+        "basel",
+        "swiss indoors",
+        "swiss indoors basel"
+      ]
+    },
+    {
+      "name": "Almaty Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "OCT",
+      "location": "Almaty, Kazakhstan",
+      "surface": null,
+      "search_keys": [
+        "almaty",
+        "almaty open"
+      ]
+    },
+    {
+      "name": "Erste Bank Open",
+      "category": "atp_500",
+      "category_label": "ATP 500",
+      "month": "OCT",
+      "location": "Vienna, Austria",
+      "surface": null,
+      "search_keys": [
+        "erste bank open",
+        "vienna"
+      ]
+    },
+    {
+      "name": "Rolex Paris Masters",
+      "category": "masters_1000",
+      "category_label": "ATP Masters 1000",
+      "month": "NOV",
+      "location": "Paris, France",
+      "surface": null,
+      "search_keys": [
+        "paris masters",
+        "rolex paris",
+        "rolex paris masters"
+      ]
+    },
+    {
+      "name": "BNP Paribas Nordic Open",
+      "category": "atp_250",
+      "category_label": "ATP 250",
+      "month": "NOV",
+      "location": "Stockholm, Sweden",
+      "surface": null,
+      "search_keys": [
+        "bnp paribas nordic open",
+        "nordic open",
+        "stockholm"
+      ]
+    },
+    {
+      "name": "Nitto ATP Finals",
+      "category": "atp_finals",
+      "category_label": "ATP Finals",
+      "month": "NOV",
+      "location": "Turin, Italy",
+      "surface": null,
+      "search_keys": [
+        "atp finals",
+        "nitto atp finals",
+        "turin"
+      ]
+    },
+    {
+      "name": "Davis Cup Finals",
+      "category": "davis_cup",
+      "category_label": "Davis Cup",
+      "month": "NOV",
+      "location": null,
+      "surface": null,
+      "search_keys": [
+        "davis cup finals"
+      ]
+    },
+    {
+      "name": "Next Gen ATP Finals",
+      "category": "next_gen",
+      "category_label": "Next Gen ATP Finals",
+      "month": "DEC",
+      "location": null,
+      "surface": null,
+      "search_keys": [
+        "next gen",
+        "next gen atp finals"
+      ]
+    }
+  ],
+  "pdf_validation_warnings": [
+    "Nombre no localizado claramente en PDF: Delray Beach Open",
+    "Nombre no localizado claramente en PDF: Almaty Open"
+  ]
+}

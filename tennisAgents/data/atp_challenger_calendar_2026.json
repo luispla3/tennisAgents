@@ -1,0 +1,2086 @@
+{
+  "year": 2026,
+  "source": "2026 ATP Challenger Tour Calendar - Perfect Tennis",
+  "tournament_count": 189,
+  "tournaments": [
+    {
+      "name": "Bengaluru Open Challenger",
+      "tier": 125,
+      "location": "Bengaluru, India",
+      "start": "05/01/26",
+      "end": "10/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "bengaluru open"
+      ]
+    },
+    {
+      "name": "Workday Canberra International Challenger",
+      "tier": 125,
+      "location": "Canberra, Australia",
+      "start": "05/01/26",
+      "end": "10/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "workday canberra international"
+      ]
+    },
+    {
+      "name": "BNC TENNIS OPEN Challenger",
+      "tier": 75,
+      "location": "Noumea, New Caledonia",
+      "start": "05/01/26",
+      "end": "10/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "bnc tennis open"
+      ]
+    },
+    {
+      "name": "Bangkok Open 1 Challenger",
+      "tier": 50,
+      "location": "Nonthaburi, Thailand",
+      "start": "05/01/26",
+      "end": "10/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "bangkok open 1"
+      ]
+    },
+    {
+      "name": "Lexus Nottingham Challenger",
+      "tier": 50,
+      "location": "Nottingham, Great Britain",
+      "start": "05/01/26",
+      "end": "10/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "lexus nottingham"
+      ]
+    },
+    {
+      "name": "Bangkok Open 2 Challenger",
+      "tier": 75,
+      "location": "Nonthaburi, Thailand",
+      "start": "12/01/26",
+      "end": "17/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "bangkok open 2"
+      ]
+    },
+    {
+      "name": "AAT Challenger Edicion TCA Challenger",
+      "tier": 50,
+      "location": "Buenos Aires, Argentina",
+      "start": "12/01/26",
+      "end": "17/01/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aat edicion tca"
+      ]
+    },
+    {
+      "name": "Lexus Glasgow Challenger",
+      "tier": 50,
+      "location": "Glasgow, Great Britain",
+      "start": "12/01/26",
+      "end": "17/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "lexus glasgow"
+      ]
+    },
+    {
+      "name": "Indoor Oeiras Open 1 Challenger",
+      "tier": 100,
+      "location": "Oeiras, Portugal",
+      "start": "19/01/26",
+      "end": "25/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "indoor oeiras open 1"
+      ]
+    },
+    {
+      "name": "Itajai Open Challenger",
+      "tier": 75,
+      "location": "Itajai, Brazil",
+      "start": "19/01/26",
+      "end": "25/01/26",
+      "surface": "Clay",
+      "search_keys": [
+        "itajai open"
+      ]
+    },
+    {
+      "name": "Soma Bay Open Challenger",
+      "tier": 75,
+      "location": "Soma Bay, Egypt",
+      "start": "19/01/26",
+      "end": "26/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "soma bay open"
+      ]
+    },
+    {
+      "name": "NovaWorld Phan Thiet Challenger 1 Challenger",
+      "tier": 50,
+      "location": "Phan Thiet, Vietnam",
+      "start": "19/01/26",
+      "end": "25/01/26",
+      "surface": "Hard",
+      "search_keys": [
+        "novaworld phan thiet 1"
+      ]
+    },
+    {
+      "name": "Oeiras Indoor 2 Challenger",
+      "tier": 75,
+      "location": "Oeiras, Portugal",
+      "start": "26/01/26",
+      "end": "01/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "oeiras indoor 2"
+      ]
+    },
+    {
+      "name": "NovaWorld Phan Thiet Challenger 2 Challenger",
+      "tier": 50,
+      "location": "Phan Thiet , Vietnam",
+      "start": "26/01/26",
+      "end": "01/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "novaworld phan thiet 2"
+      ]
+    },
+    {
+      "name": "Bahrain Open Tennis Challenger",
+      "tier": 125,
+      "location": "Manama, Bahrain",
+      "start": "27/01/26",
+      "end": "01/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "bahrain open tennis"
+      ]
+    },
+    {
+      "name": "Open Quimper Bretagne Occidentale Challenger",
+      "tier": 125,
+      "location": "Quimper, France",
+      "start": "27/01/26",
+      "end": "01/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "open quimper bretagne occidentale"
+      ]
+    },
+    {
+      "name": "Better Buzz Coffee San Diego Open Challenger",
+      "tier": 100,
+      "location": "San Diego, United States",
+      "start": "27/01/26",
+      "end": "01/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "better buzz coffee san diego open"
+      ]
+    },
+    {
+      "name": "Dove Men+Care Concepción Challenger",
+      "tier": 100,
+      "location": "Concepcion, Chile",
+      "start": "27/01/26",
+      "end": "01/02/26",
+      "surface": "Clay",
+      "search_keys": [
+        "dove men care concepcion"
+      ]
+    },
+    {
+      "name": "Quini 6 Rosario Challenger presentado por el Gobierno de Santa Fe Challenger",
+      "tier": 125,
+      "location": "Rosario, Argentina",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Clay",
+      "search_keys": [
+        "quini 6 rosario presentado por el gobierno de santa fe"
+      ]
+    },
+    {
+      "name": "Brisbane Tennis International #1 Challenger",
+      "tier": 75,
+      "location": "Brisbane, Australia",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "brisbane tennis international 1"
+      ]
+    },
+    {
+      "name": "Cleveland Open Challenger",
+      "tier": 75,
+      "location": "Cleveland, United States",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cleveland open"
+      ]
+    },
+    {
+      "name": "Tenerife Challenger 1 Challenger",
+      "tier": 75,
+      "location": "Tenerife, Spain",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "tenerife 1"
+      ]
+    },
+    {
+      "name": "Koblenz Tennis Open Challenger",
+      "tier": 50,
+      "location": "Koblenz, Germany",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "koblenz tennis open"
+      ]
+    },
+    {
+      "name": "Start Romagna Cup -1° Trofeo Città di Cesenatico Challenger",
+      "tier": 50,
+      "location": "Cesenatico, Italy",
+      "start": "02/02/26",
+      "end": "08/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "start romagna cup 1 trofeo citta di cesenatico"
+      ]
+    },
+    {
+      "name": "Terega Open Pau Pyrénées Challenger",
+      "tier": 125,
+      "location": "Pau, France",
+      "start": "09/02/26",
+      "end": "15/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "terega open pau pyrenees"
+      ]
+    },
+    {
+      "name": "Brisbane Tennis International #2 Challenger",
+      "tier": 75,
+      "location": "Brisbane, Australia",
+      "start": "09/02/26",
+      "end": "15/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "brisbane tennis international 2"
+      ]
+    },
+    {
+      "name": "Tenerife Challenger 2 Challenger",
+      "tier": 75,
+      "location": "Tenerife, Spain",
+      "start": "09/02/26",
+      "end": "15/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "tenerife 2"
+      ]
+    },
+    {
+      "name": "Coromandel Chennai Open Challenger",
+      "tier": 50,
+      "location": "Chennai, India",
+      "start": "09/02/26",
+      "end": "15/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "coromandel chennai open"
+      ]
+    },
+    {
+      "name": "Steve Carter Baton Rouge Challenger",
+      "tier": 50,
+      "location": "Baton Rouge, United States",
+      "start": "09/02/26",
+      "end": "15/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "steve carter baton rouge"
+      ]
+    },
+    {
+      "name": "Play In Challenger",
+      "tier": 125,
+      "location": "Lille, France",
+      "start": "16/02/26",
+      "end": "22/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "play in"
+      ]
+    },
+    {
+      "name": "Metepec Open 75 Outdoor 32 / Delhi Open 2026 Challenger",
+      "tier": 75,
+      "location": "New Delhi, India",
+      "start": "16/02/26",
+      "end": "22/02/26",
+      "surface": "Hard",
+      "search_keys": [
+        "metepec open 75 outdoor 32 delhi open 2026"
+      ]
+    },
+    {
+      "name": "AAT Challenger IEB+ Edicion Tigre I Challenger",
+      "tier": 50,
+      "location": "Tigre, Argentina",
+      "start": "16/02/26",
+      "end": "22/02/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aat ieb edicion tigre i"
+      ]
+    },
+    {
+      "name": "Open Saint-Brieuc Armor Agglomération Challenger",
+      "tier": 100,
+      "location": "St. Brieuc, France",
+      "start": "23/02/26",
+      "end": "01/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "open saint brieuc armor agglomeration"
+      ]
+    },
+    {
+      "name": "PMR Maha Open Challenger",
+      "tier": 75,
+      "location": "Pune, India",
+      "start": "23/02/26",
+      "end": "01/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "pmr maha open"
+      ]
+    },
+    {
+      "name": "Challenger Città di Lugano Challenger",
+      "tier": 75,
+      "location": "Lugano, Switzerland",
+      "start": "23/02/26",
+      "end": "01/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "citta di lugano"
+      ]
+    },
+    {
+      "name": "AAT Challenger IEB+ Edicion Tigre II Challenger",
+      "tier": 50,
+      "location": "Tigre, Argentina",
+      "start": "23/02/26",
+      "end": "01/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aat ieb edicion tigre ii"
+      ]
+    },
+    {
+      "name": "Thionville Open Challenger",
+      "tier": 100,
+      "location": "Thionville, France",
+      "start": "02/03/26",
+      "end": "08/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "thionville open"
+      ]
+    },
+    {
+      "name": "Brasilia Tennis Open Challenger",
+      "tier": 75,
+      "location": "Brasilia, Brazil",
+      "start": "02/03/26",
+      "end": "08/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "brasilia tennis open"
+      ]
+    },
+    {
+      "name": "Rwanda Challenger",
+      "tier": 75,
+      "location": "Kigali , Rwanda",
+      "start": "02/03/26",
+      "end": "08/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "rwanda"
+      ]
+    },
+    {
+      "name": "Fujairah Open Challenger",
+      "tier": 50,
+      "location": "Fujairah, United Arab Emirates",
+      "start": "02/03/26",
+      "end": "08/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "fujairah open"
+      ]
+    },
+    {
+      "name": "ITC Crete Challenger",
+      "tier": 50,
+      "location": "Hersonissos, Greece",
+      "start": "02/03/26",
+      "end": "08/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "itc crete"
+      ]
+    },
+    {
+      "name": "Rwanda Challenger 2 Challenger",
+      "tier": 100,
+      "location": "Kigali, Rwanda",
+      "start": "09/03/26",
+      "end": "15/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "rwanda 2"
+      ]
+    },
+    {
+      "name": "Challenger de Santiago - Dove Men Care Challenger",
+      "tier": 75,
+      "location": "Santiago, Chile",
+      "start": "09/03/26",
+      "end": "15/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "de santiago dove men care"
+      ]
+    },
+    {
+      "name": "Challenger Cherbourg La Manche Challenger",
+      "tier": 75,
+      "location": "Cherbourg, France",
+      "start": "09/03/26",
+      "end": "15/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cherbourg la manche"
+      ]
+    },
+    {
+      "name": "ITC Crete Challenger",
+      "tier": 50,
+      "location": "Hersonissos , Greece",
+      "start": "09/03/26",
+      "end": "15/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "itc crete"
+      ]
+    },
+    {
+      "name": "Arizona Tennis Classic Challenger",
+      "tier": 175,
+      "location": "Phoenix, United States",
+      "start": "10/03/26",
+      "end": "15/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "arizona tennis classic"
+      ]
+    },
+    {
+      "name": "28 / Republica Dominicana Open - Copa Cap Cana Challenger",
+      "tier": 175,
+      "location": "Cap Cana, Dominican Republic",
+      "start": "10/03/26",
+      "end": "15/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "28 republica dominicana open copa cap cana"
+      ]
+    },
+    {
+      "name": "28 / Morelos Open Challenger",
+      "tier": 75,
+      "location": "Morelos, Mexico",
+      "start": "16/03/26",
+      "end": "22/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "28 morelos open"
+      ]
+    },
+    {
+      "name": "Munich Ultra Paraguay Open Challenger",
+      "tier": 75,
+      "location": "Asuncion, Paraguay",
+      "start": "16/03/26",
+      "end": "22/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "munich ultra paraguay open"
+      ]
+    },
+    {
+      "name": "VII CHALLENGER COSTA CALIDA REGION DE MURCIA Challenger",
+      "tier": 75,
+      "location": "Murcia, Spain",
+      "start": "16/03/26",
+      "end": "22/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "vii costa calida region de murcia"
+      ]
+    },
+    {
+      "name": "Zadar Open Challenger",
+      "tier": 75,
+      "location": "Zadar, Croatia",
+      "start": "16/03/26",
+      "end": "22/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "zadar open"
+      ]
+    },
+    {
+      "name": "Morelia Open Challenger",
+      "tier": 125,
+      "location": "Morelia , Mexico",
+      "start": "23/03/26",
+      "end": "28/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "morelia open"
+      ]
+    },
+    {
+      "name": "Guerri Napoli Tennis Cup Challenger",
+      "tier": 125,
+      "location": "Naples, Italy",
+      "start": "23/03/26",
+      "end": "29/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "guerri napoli tennis cup"
+      ]
+    },
+    {
+      "name": "LA OPEN Challenger",
+      "tier": 100,
+      "location": "Sao Paulo, Brazil",
+      "start": "23/03/26",
+      "end": "29/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "la open"
+      ]
+    },
+    {
+      "name": "Montemar ENE Construccion Challenger",
+      "tier": 100,
+      "location": "Alicante, Spain",
+      "start": "23/03/26",
+      "end": "29/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "montemar ene construccion"
+      ]
+    },
+    {
+      "name": "KIA Open Challenger",
+      "tier": 50,
+      "location": "Bucaramanga, Colombia",
+      "start": "23/03/26",
+      "end": "28/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "kia open"
+      ]
+    },
+    {
+      "name": "Yokkaichi Challenger",
+      "tier": 50,
+      "location": "Yokkaichi, Japan",
+      "start": "23/03/26",
+      "end": "29/03/26",
+      "surface": "Hard",
+      "search_keys": [
+        "yokkaichi"
+      ]
+    },
+    {
+      "name": "Memorijal Mile Moralic - Split Open Jolly Autoline Challenger",
+      "tier": 50,
+      "location": "Split, Croatia",
+      "start": "23/03/26",
+      "end": "29/03/26",
+      "surface": "Clay",
+      "search_keys": [
+        "memorijal mile moralic split open jolly autoline"
+      ]
+    },
+    {
+      "name": "Open Menorca Challenger",
+      "tier": 100,
+      "location": "Menorca, Spain",
+      "start": "30/03/26",
+      "end": "05/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "open menorca"
+      ]
+    },
+    {
+      "name": "Banorte Tennis Open Challenger",
+      "tier": 75,
+      "location": "San Luis Potosi, Mexico",
+      "start": "30/03/26",
+      "end": "05/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "banorte tennis open"
+      ]
+    },
+    {
+      "name": "São Léo Open de Tênis Challenger",
+      "tier": 75,
+      "location": "Sao Leopoldo, Brazil",
+      "start": "30/03/26",
+      "end": "05/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "sao leo open de tenis"
+      ]
+    },
+    {
+      "name": "Open Città della Disfida - Trofeo Lapietra Challenger",
+      "tier": 75,
+      "location": "Barletta, Italy",
+      "start": "30/03/26",
+      "end": "05/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "open citta della disfida trofeo lapietra"
+      ]
+    },
+    {
+      "name": "Koyushokucho Miyazaki Challenger",
+      "tier": 50,
+      "location": "Miyazaki, Japan",
+      "start": "30/03/26",
+      "end": "05/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "koyushokucho miyazaki"
+      ]
+    },
+    {
+      "name": "Mexico City Open presentado por Banco BX+ Challenger",
+      "tier": 125,
+      "location": "Mexico City, Mexico",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "mexico city open presentado por banco bx"
+      ]
+    },
+    {
+      "name": "Atkinsons Monza Open Challenger",
+      "tier": 125,
+      "location": "Monza, Italy",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "atkinsons monza open"
+      ]
+    },
+    {
+      "name": "Copa Internacional de Tenis Challenger",
+      "tier": 75,
+      "location": "Campinas, Brazil",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "copa internacional de tenis"
+      ]
+    },
+    {
+      "name": "Elizabeth Moore Sarasota Open Challenger",
+      "tier": 75,
+      "location": "Sarasota, United States",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "elizabeth moore sarasota open"
+      ]
+    },
+    {
+      "name": "Grand Prix Open Comunidad de Madrid by Silverway Challenger",
+      "tier": 75,
+      "location": "Madrid, Spain",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "grand prix open comunidad de madrid by silverway"
+      ]
+    },
+    {
+      "name": "WUNING OPEN 1 Challenger",
+      "tier": 50,
+      "location": "Wuning, China",
+      "start": "06/04/26",
+      "end": "12/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "wuning open 1"
+      ]
+    },
+    {
+      "name": "Renault Busan Open Tennis Championships Challenger",
+      "tier": 125,
+      "location": "Busan, South Korea",
+      "start": "13/04/26",
+      "end": "19/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "renault busan open tennis championships"
+      ]
+    },
+    {
+      "name": "Oeiras Open 3 Challenger",
+      "tier": 125,
+      "location": "Oeiras, Portugal",
+      "start": "13/04/26",
+      "end": "19/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "oeiras open 3"
+      ]
+    },
+    {
+      "name": "Bolivia Open Challenger",
+      "tier": 75,
+      "location": "Santa Cruz, Bolivia",
+      "start": "13/04/26",
+      "end": "18/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "bolivia open"
+      ]
+    },
+    {
+      "name": "Tallahassee Tennis Challenger",
+      "tier": 75,
+      "location": "Tallahassee, United States",
+      "start": "13/04/26",
+      "end": "19/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "tallahassee tennis"
+      ]
+    },
+    {
+      "name": "WUNING OPEN 2 Challenger",
+      "tier": 50,
+      "location": "Wuning, China",
+      "start": "13/04/26",
+      "end": "19/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "wuning open 2"
+      ]
+    },
+    {
+      "name": "Gwangju Open Challenger",
+      "tier": 75,
+      "location": "Gwangju, South Korea",
+      "start": "20/04/26",
+      "end": "26/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "gwangju open"
+      ]
+    },
+    {
+      "name": "Savannah Challenger",
+      "tier": 75,
+      "location": "Savannah, United States",
+      "start": "20/04/26",
+      "end": "26/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "savannah"
+      ]
+    },
+    {
+      "name": "Garden Open Challenger",
+      "tier": 75,
+      "location": "Rome, Italy",
+      "start": "20/04/26",
+      "end": "26/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "garden open"
+      ]
+    },
+    {
+      "name": "Cote d'Ivoire Open 1 Challenger",
+      "tier": 50,
+      "location": "Abidjan, Ivory Coast",
+      "start": "20/04/26",
+      "end": "26/04/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cote d ivoire open 1"
+      ]
+    },
+    {
+      "name": "Shymkent Challenger 1 Challenger",
+      "tier": 50,
+      "location": "Shymkent, Kazakhstan",
+      "start": "20/04/26",
+      "end": "25/04/26",
+      "surface": "Clay",
+      "search_keys": [
+        "shymkent 1"
+      ]
+    },
+    {
+      "name": "Danube Upper Austria Open powered by SKE Challenger",
+      "tier": 100,
+      "location": "Mauthausen, Austria",
+      "start": "27/04/26",
+      "end": "03/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "danube upper austria open powered by ske"
+      ]
+    },
+    {
+      "name": "Cote d'Ivoire Open 2 Challenger",
+      "tier": 75,
+      "location": "Abidjan, Ivory Coast",
+      "start": "27/04/26",
+      "end": "03/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cote d ivoire open 2"
+      ]
+    },
+    {
+      "name": "Jiangxi Open Challenger",
+      "tier": 75,
+      "location": "Jiujiang, China",
+      "start": "27/04/26",
+      "end": "03/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "jiangxi open"
+      ]
+    },
+    {
+      "name": "Ostra Group Open By Porsche Servisni Centrum Ostrava Challenger",
+      "tier": 75,
+      "location": "Ostrava, Czechia",
+      "start": "27/04/26",
+      "end": "03/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "ostra group open by porsche servisni centrum ostrava"
+      ]
+    },
+    {
+      "name": "Shymkent Challenger 2 Challenger",
+      "tier": 50,
+      "location": "Shymkent , Kazakhstan",
+      "start": "27/04/26",
+      "end": "03/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "shymkent 2"
+      ]
+    },
+    {
+      "name": "Open Aix Provence Crédit Agricole Challenger",
+      "tier": 175,
+      "location": "Aix-en-Provence, France",
+      "start": "28/04/26",
+      "end": "03/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "open aix provence credit agricole"
+      ]
+    },
+    {
+      "name": "28 / Sardegna Open Challenger",
+      "tier": 175,
+      "location": "Cagliari, Italy",
+      "start": "28/04/26",
+      "end": "03/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "28 sardegna open"
+      ]
+    },
+    {
+      "name": "28 / Wuxi Open Challenger",
+      "tier": 100,
+      "location": "Wuxi, China",
+      "start": "04/05/26",
+      "end": "10/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "28 wuxi open"
+      ]
+    },
+    {
+      "name": "Abruzzo Open Francavilla al Mare Challenger",
+      "tier": 75,
+      "location": "Francavilla al Mare, Italy",
+      "start": "04/05/26",
+      "end": "10/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "abruzzo open francavilla al mare"
+      ]
+    },
+    {
+      "name": "Brazzaville Challenger",
+      "tier": 50,
+      "location": "Brazzaville, Republic of Congo",
+      "start": "04/05/26",
+      "end": "10/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "brazzaville"
+      ]
+    },
+    {
+      "name": "Santos Brasil Tennis Cup Challenger",
+      "tier": 50,
+      "location": "Santos, Brazil",
+      "start": "04/05/26",
+      "end": "10/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "santos brasil tennis cup"
+      ]
+    },
+    {
+      "name": "Oeiras Open 4 Challenger",
+      "tier": 100,
+      "location": "Oeiras , Portugal",
+      "start": "11/05/26",
+      "end": "16/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "oeiras open 4"
+      ]
+    },
+    {
+      "name": "KIA Tunis Open Challenger",
+      "tier": 75,
+      "location": "Tunis, Tunisia",
+      "start": "11/05/26",
+      "end": "16/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "kia tunis open"
+      ]
+    },
+    {
+      "name": "Zagreb Open Challenger",
+      "tier": 75,
+      "location": "Zagreb, Croatia",
+      "start": "11/05/26",
+      "end": "16/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "zagreb open"
+      ]
+    },
+    {
+      "name": "AAT Challenger IEB+ Edicion Córdoba Challenger",
+      "tier": 50,
+      "location": "Cordoba, Argentina",
+      "start": "11/05/26",
+      "end": "16/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aat ieb edicion cordoba"
+      ]
+    },
+    {
+      "name": "KARNATAKA OPEN Challenger",
+      "tier": 50,
+      "location": "Bengaluru, India",
+      "start": "11/05/26",
+      "end": "16/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "karnataka open"
+      ]
+    },
+    {
+      "name": "BNP Paribas Primrose Bordeaux Challenger",
+      "tier": 175,
+      "location": "Bordeaux, France",
+      "start": "12/05/26",
+      "end": "17/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "bnp paribas primrose bordeaux"
+      ]
+    },
+    {
+      "name": "28 / Copa Faulconbridge Challenger",
+      "tier": 175,
+      "location": "Valencia, Spain",
+      "start": "12/05/26",
+      "end": "17/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "28 copa faulconbridge"
+      ]
+    },
+    {
+      "name": "28 / Bosphorus Challenger Cup Challenger",
+      "tier": 75,
+      "location": "Istanbul, Turkiye",
+      "start": "18/05/26",
+      "end": "23/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "28 bosphorus cup"
+      ]
+    },
+    {
+      "name": "S M KRISHNA MEMORIAL OPEN Challenger",
+      "tier": 50,
+      "location": "Bengaluru, India",
+      "start": "18/05/26",
+      "end": "23/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "s m krishna memorial open"
+      ]
+    },
+    {
+      "name": "CAME CUP 2026 CITTA' DI CERVIA Challenger",
+      "tier": 50,
+      "location": "Cervia, Italy",
+      "start": "18/05/26",
+      "end": "23/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "came cup 2026 citta di cervia"
+      ]
+    },
+    {
+      "name": "Moldova Open Challenger",
+      "tier": 100,
+      "location": "Chisinau, Moldova",
+      "start": "25/05/26",
+      "end": "31/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "moldova open"
+      ]
+    },
+    {
+      "name": "UAMS Health Little Rock Open Challenger",
+      "tier": 75,
+      "location": "Little Rock, United States",
+      "start": "25/05/26",
+      "end": "31/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "uams health little rock open"
+      ]
+    },
+    {
+      "name": "Internazionali Di Tennis - Citta'Di Vicenza Challenger",
+      "tier": 75,
+      "location": "Vicenza, Italy",
+      "start": "25/05/26",
+      "end": "31/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "internazionali di tennis citta di vicenza"
+      ]
+    },
+    {
+      "name": "RISE IRENE OPEN Challenger",
+      "tier": 50,
+      "location": "Centurion, South Africa",
+      "start": "25/05/26",
+      "end": "31/05/26",
+      "surface": "Hard",
+      "search_keys": [
+        "rise irene open"
+      ]
+    },
+    {
+      "name": "Kosice Open 2026 Challenger",
+      "tier": 50,
+      "location": "Kosice, Slovak Republic",
+      "start": "25/05/26",
+      "end": "31/05/26",
+      "surface": "Clay",
+      "search_keys": [
+        "kosice open 2026"
+      ]
+    },
+    {
+      "name": "Internazionali di Tennis Città di Perugia Challenger",
+      "tier": 125,
+      "location": "Perugia, Italy",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "internazionali di tennis citta di perugia"
+      ]
+    },
+    {
+      "name": "Lexus Birmingham Open Challenger",
+      "tier": 125,
+      "location": "Birmingham, Great Britain",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Grass",
+      "search_keys": [
+        "lexus birmingham open"
+      ]
+    },
+    {
+      "name": "Neckarcup 2.0 Challenger",
+      "tier": 100,
+      "location": "Heilbronn - Bad Rappenau, Germany",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "neckarcup 2 0"
+      ]
+    },
+    {
+      "name": "Unicredit Czech Open Challenger",
+      "tier": 100,
+      "location": "Prostejov, Czechia",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "unicredit czech open"
+      ]
+    },
+    {
+      "name": "Texas Spine and Joint Men's Championship Challenger",
+      "tier": 75,
+      "location": "Tyler, United States",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Hard",
+      "search_keys": [
+        "texas spine and joint men s championship"
+      ]
+    },
+    {
+      "name": "RISE CENTURION OPEN Challenger",
+      "tier": 50,
+      "location": "Centurion, South Africa",
+      "start": "01/06/26",
+      "end": "07/06/26",
+      "surface": "Hard",
+      "search_keys": [
+        "rise centurion open"
+      ]
+    },
+    {
+      "name": "Lexus Ilkley Open Challenger",
+      "tier": 125,
+      "location": "Ilkley, Great Britain",
+      "start": "08/06/26",
+      "end": "14/06/26",
+      "surface": "Grass",
+      "search_keys": [
+        "lexus ilkley open"
+      ]
+    },
+    {
+      "name": "Bratislava Open Challenger",
+      "tier": 100,
+      "location": "Bratislava, Slovak Republic",
+      "start": "08/06/26",
+      "end": "14/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "bratislava open"
+      ]
+    },
+    {
+      "name": "Open Sopra Steria Challenger",
+      "tier": 100,
+      "location": "Lyon, France",
+      "start": "08/06/26",
+      "end": "14/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "open sopra steria"
+      ]
+    },
+    {
+      "name": "Cattolica Challenger",
+      "tier": 75,
+      "location": "Cattolica",
+      "start": "08/06/26",
+      "end": "14/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "cattolica"
+      ]
+    },
+    {
+      "name": "AAT Challenger Santander Tucuman Challenger",
+      "tier": 50,
+      "location": "San Miguel de Tucuman , Argentina",
+      "start": "08/06/26",
+      "end": "14/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aat santander tucuman"
+      ]
+    },
+    {
+      "name": "Lexus Nottingham Open Challenger",
+      "tier": 125,
+      "location": "Nottingham, Great Britain",
+      "start": "13/06/26",
+      "end": "20/06/26",
+      "surface": "Grass",
+      "search_keys": [
+        "lexus nottingham open"
+      ]
+    },
+    {
+      "name": "Parma Challenger",
+      "tier": 125,
+      "location": "Parma, Italy",
+      "start": "15/06/26",
+      "end": "20/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "parma"
+      ]
+    },
+    {
+      "name": "Enea Poznan Open Challenger",
+      "tier": 100,
+      "location": "Poznan, Poland",
+      "start": "15/06/26",
+      "end": "20/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "enea poznan open"
+      ]
+    },
+    {
+      "name": "Dublin Challenger",
+      "tier": 75,
+      "location": "Dublin, Ireland",
+      "start": "15/06/26",
+      "end": "20/06/26",
+      "surface": "Grass",
+      "search_keys": [
+        "dublin"
+      ]
+    },
+    {
+      "name": "Asuncion (CIT) Challenger",
+      "tier": 50,
+      "location": "Asuncion , Paraguay",
+      "start": "15/06/26",
+      "end": "20/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "asuncion cit"
+      ]
+    },
+    {
+      "name": "Royan Atlantique Open Challenger",
+      "tier": 50,
+      "location": "Royan, France",
+      "start": "15/06/26",
+      "end": "20/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "royan atlantique open"
+      ]
+    },
+    {
+      "name": "Intaro Open Challenger",
+      "tier": 75,
+      "location": "Targu Mures, Romania",
+      "start": "22/06/26",
+      "end": "27/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "intaro open"
+      ]
+    },
+    {
+      "name": "Copa Internacional de Tenis Challenger",
+      "tier": 50,
+      "location": "Piracicaba, Brazil",
+      "start": "22/06/26",
+      "end": "28/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "copa internacional de tenis"
+      ]
+    },
+    {
+      "name": "Plovdiv Challenger",
+      "tier": 50,
+      "location": "Plovdiv, Bulgaria",
+      "start": "22/06/26",
+      "end": "27/06/26",
+      "surface": "Clay",
+      "search_keys": [
+        "plovdiv"
+      ]
+    },
+    {
+      "name": "Cary Tennis Classic Challenger",
+      "tier": 75,
+      "location": "Cary, United States",
+      "start": "29/06/26",
+      "end": "05/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cary tennis classic"
+      ]
+    },
+    {
+      "name": "Aspria Tennis Cup trofeo BCS Challenger",
+      "tier": 75,
+      "location": "Milan, Italy",
+      "start": "29/06/26",
+      "end": "05/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "aspria tennis cup trofeo bcs"
+      ]
+    },
+    {
+      "name": "Ion Tiriac Challenger",
+      "tier": 75,
+      "location": "Brasov, Romania",
+      "start": "29/06/26",
+      "end": "05/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "ion tiriac"
+      ]
+    },
+    {
+      "name": "Quito Challenger",
+      "tier": 50,
+      "location": "Quito, Ecuador",
+      "start": "29/06/26",
+      "end": "05/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "quito"
+      ]
+    },
+    {
+      "name": "Internationaux de Tennis de Troyes Challenger",
+      "tier": 50,
+      "location": "Troyes, France",
+      "start": "29/06/26",
+      "end": "05/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "internationaux de tennis de troyes"
+      ]
+    },
+    {
+      "name": "Cerity Partners Hall of Fame Open Challenger",
+      "tier": 125,
+      "location": "Newport, United States",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Grass",
+      "search_keys": [
+        "cerity partners hall of fame open"
+      ]
+    },
+    {
+      "name": "Brawo Open Challenger",
+      "tier": 125,
+      "location": "Braunschweig, Germany",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "brawo open"
+      ]
+    },
+    {
+      "name": "Concord Iasi Open Challenger",
+      "tier": 100,
+      "location": "Iasi, Romania",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "concord iasi open"
+      ]
+    },
+    {
+      "name": "Bogota Challenger",
+      "tier": 75,
+      "location": "Bogota, Colombia",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "bogota"
+      ]
+    },
+    {
+      "name": "Citta' Di Trieste Challenger",
+      "tier": 75,
+      "location": "Trieste, Italy",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "citta di trieste"
+      ]
+    },
+    {
+      "name": "Liege Challenger",
+      "tier": 50,
+      "location": "Liege, Belgium",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "liege"
+      ]
+    },
+    {
+      "name": "Nottingham 3 Challenger",
+      "tier": 50,
+      "location": "Nottingham, Great Britain",
+      "start": "06/07/26",
+      "end": "12/07/26",
+      "surface": "Grass",
+      "search_keys": [
+        "nottingham 3"
+      ]
+    },
+    {
+      "name": "Granby Challenger",
+      "tier": 75,
+      "location": "Granby, Canada",
+      "start": "13/07/26",
+      "end": "19/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "granby"
+      ]
+    },
+    {
+      "name": "Lincoln Challenger",
+      "tier": 75,
+      "location": "Lincoln, United States",
+      "start": "13/07/26",
+      "end": "19/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "lincoln"
+      ]
+    },
+    {
+      "name": "Cordenons Challenger",
+      "tier": 75,
+      "location": "Cordenons, Italy",
+      "start": "13/07/26",
+      "end": "19/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "cordenons"
+      ]
+    },
+    {
+      "name": "Dutch Open Tournament Challenger",
+      "tier": 75,
+      "location": "Bunschoten, Netherlands",
+      "start": "13/07/26",
+      "end": "19/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "dutch open tournament"
+      ]
+    },
+    {
+      "name": "Open Ciudad de Pozoblanco Challenger",
+      "tier": 75,
+      "location": "Pozoblanco, Spain",
+      "start": "13/07/26",
+      "end": "19/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "open ciudad de pozoblanco"
+      ]
+    },
+    {
+      "name": "Zug Open Challenger",
+      "tier": 125,
+      "location": "Zug, Switzerland",
+      "start": "20/07/26",
+      "end": "26/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "zug open"
+      ]
+    },
+    {
+      "name": "Cranbrook Tennis Classic Challenger",
+      "tier": 125,
+      "location": "Bloomfield Hills, United States",
+      "start": "20/07/26",
+      "end": "26/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cranbrook tennis classic"
+      ]
+    },
+    {
+      "name": "Winnipeg Challenger",
+      "tier": 75,
+      "location": "Winnipeg, Canada",
+      "start": "20/07/26",
+      "end": "26/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "winnipeg"
+      ]
+    },
+    {
+      "name": "Open Castilla y Leon Villa de el Espinar Challenger",
+      "tier": 75,
+      "location": "Segovia, Spain",
+      "start": "20/07/26",
+      "end": "26/07/26",
+      "surface": "Hard",
+      "search_keys": [
+        "open castilla y leon villa de el espinar"
+      ]
+    },
+    {
+      "name": "Tampere Open Challenger",
+      "tier": 75,
+      "location": "Tampere, Finland",
+      "start": "20/07/26",
+      "end": "26/07/26",
+      "surface": "Clay",
+      "search_keys": [
+        "tampere open"
+      ]
+    },
+    {
+      "name": "Vancouver Challenger",
+      "tier": 125,
+      "location": "Vancouver, Canada",
+      "start": "27/07/26",
+      "end": "02/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "vancouver"
+      ]
+    },
+    {
+      "name": "Internazionali di Tennis San Marino Open Challenger",
+      "tier": 125,
+      "location": "San Marino, San Marino",
+      "start": "27/07/26",
+      "end": "02/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "internazionali di tennis san marino open"
+      ]
+    },
+    {
+      "name": "Bonn Open Challenger",
+      "tier": 75,
+      "location": "Bonn, Germany",
+      "start": "27/07/26",
+      "end": "02/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "bonn open"
+      ]
+    },
+    {
+      "name": "Svijany Open Challenger",
+      "tier": 75,
+      "location": "Liberec, Czechia",
+      "start": "27/07/26",
+      "end": "02/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "svijany open"
+      ]
+    },
+    {
+      "name": "Centurion 3 Challenger",
+      "tier": 50,
+      "location": "Centurion, South Africa",
+      "start": "27/07/26",
+      "end": "02/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "centurion 3"
+      ]
+    },
+    {
+      "name": "Platzmann Open Challenger",
+      "tier": 100,
+      "location": "Hagen, Germany",
+      "start": "03/08/26",
+      "end": "09/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "platzmann open"
+      ]
+    },
+    {
+      "name": "Centurion 4 Challenger",
+      "tier": 75,
+      "location": "Centurion, South Africa",
+      "start": "03/08/26",
+      "end": "09/08/26",
+      "surface": "SGL",
+      "search_keys": [
+        "centurion 4"
+      ]
+    },
+    {
+      "name": "Lexington Open Challenger",
+      "tier": 75,
+      "location": "Lexington, United States",
+      "start": "03/08/26",
+      "end": "09/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "lexington open"
+      ]
+    },
+    {
+      "name": "Kozerki Open Challenger",
+      "tier": 75,
+      "location": "Grodzisk Mazowiecki, Poland",
+      "start": "03/08/26",
+      "end": "09/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "kozerki open"
+      ]
+    },
+    {
+      "name": "Istanbul (Enka) Challenger",
+      "tier": 50,
+      "location": "Istanbul, Turkiye",
+      "start": "03/08/26",
+      "end": "09/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "istanbul enka"
+      ]
+    },
+    {
+      "name": "Brownsburg, IN Challenger",
+      "tier": 75,
+      "location": "Brownsburg, United States",
+      "start": "10/08/26",
+      "end": "16/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "brownsburg in"
+      ]
+    },
+    {
+      "name": "HAMBURG LADIES & GENTS CUP Challenger",
+      "tier": 75,
+      "location": "Hamburg, Germany",
+      "start": "10/08/26",
+      "end": "16/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "hamburg ladies gents cup"
+      ]
+    },
+    {
+      "name": "Internazionali di Tennis Citta di Todi Challenger",
+      "tier": 75,
+      "location": "Todi, Italy",
+      "start": "10/08/26",
+      "end": "16/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "internazionali di tennis citta di todi"
+      ]
+    },
+    {
+      "name": "President's Cup Challenger",
+      "tier": 50,
+      "location": "Astana, Kazakhstan",
+      "start": "10/08/26",
+      "end": "16/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "president s cup"
+      ]
+    },
+    {
+      "name": "Kingston 1 Challenger",
+      "tier": 75,
+      "location": "Kingston, Jamaica",
+      "start": "17/08/26",
+      "end": "22/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "kingston 1"
+      ]
+    },
+    {
+      "name": "Advantage Cars Prague Open Challenger",
+      "tier": 75,
+      "location": "Prague, Czechia",
+      "start": "17/08/26",
+      "end": "22/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "advantage cars prague open"
+      ]
+    },
+    {
+      "name": "Tashkent Challenger",
+      "tier": 50,
+      "location": "Tashkent, Uzbekistan",
+      "start": "17/08/26",
+      "end": "22/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "tashkent"
+      ]
+    },
+    {
+      "name": "Roehampton 1 Challenger",
+      "tier": 50,
+      "location": "Roehampton, Great Britain",
+      "start": "17/08/26",
+      "end": "22/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "roehampton 1"
+      ]
+    },
+    {
+      "name": "Sion Challenger",
+      "tier": 50,
+      "location": "Sion, Switzerland",
+      "start": "17/08/26",
+      "end": "22/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "sion"
+      ]
+    },
+    {
+      "name": "Europcar Cancun Country Club Challenger",
+      "tier": 125,
+      "location": "Cancun, Mexico",
+      "start": "18/08/26",
+      "end": "23/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "europcar cancun country club"
+      ]
+    },
+    {
+      "name": "28 / Quebec City Challenger",
+      "tier": 125,
+      "location": "Quebec City, Canada",
+      "start": "18/08/26",
+      "end": "23/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "28 quebec city"
+      ]
+    },
+    {
+      "name": "28 / Kingston 2 Challenger",
+      "tier": 75,
+      "location": "Kingston, Jamaica",
+      "start": "24/08/26",
+      "end": "29/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "28 kingston 2"
+      ]
+    },
+    {
+      "name": "Roehampton 2 Challenger",
+      "tier": 50,
+      "location": "Roehampton 2, Great Britain",
+      "start": "24/08/26",
+      "end": "29/08/26",
+      "surface": "Hard",
+      "search_keys": [
+        "roehampton 2"
+      ]
+    },
+    {
+      "name": "Schwaben Open Challenger",
+      "tier": 50,
+      "location": "Augsburg, Germany",
+      "start": "24/08/26",
+      "end": "29/08/26",
+      "surface": "Clay",
+      "search_keys": [
+        "schwaben open"
+      ]
+    },
+    {
+      "name": "International Challenger- Zhangjiagang Challenger",
+      "tier": 75,
+      "location": "Zhangjiagang, China",
+      "start": "31/08/26",
+      "end": "06/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "international zhangjiagang"
+      ]
+    },
+    {
+      "name": "Manta Challenger",
+      "tier": 75,
+      "location": "Manta, Ecuador",
+      "start": "31/08/26",
+      "end": "06/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "manta"
+      ]
+    },
+    {
+      "name": "Como Lake Challenger",
+      "tier": 75,
+      "location": "Como, Italy",
+      "start": "31/08/26",
+      "end": "06/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "como lake"
+      ]
+    },
+    {
+      "name": "CT PORTO CUP Challenger",
+      "tier": 75,
+      "location": "Porto, Portugal",
+      "start": "31/08/26",
+      "end": "06/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "ct porto cup"
+      ]
+    },
+    {
+      "name": "Rafa Nadal Open by Movistar Challenger",
+      "tier": 75,
+      "location": "Manacor, Spain",
+      "start": "01/09/26",
+      "end": "06/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "rafa nadal open by movistar"
+      ]
+    },
+    {
+      "name": "Genoa (Nuova Valletta) Challenger",
+      "tier": 125,
+      "location": "Genoa, Italy",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "genoa nuova valletta"
+      ]
+    },
+    {
+      "name": "Seville Challenger",
+      "tier": 125,
+      "location": "Seville, Spain",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "seville"
+      ]
+    },
+    {
+      "name": "Road to the Rolex Shanghai Masters Challenger",
+      "tier": 100,
+      "location": "Shanghai, China",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "road to the rolex shanghai masters"
+      ]
+    },
+    {
+      "name": "Tulln Challenger",
+      "tier": 100,
+      "location": "Tulln, Austria",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "tulln"
+      ]
+    },
+    {
+      "name": "Istanbul Challenger TED Open Challenger",
+      "tier": 75,
+      "location": "Istanbul, Turkiye",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "istanbul ted open"
+      ]
+    },
+    {
+      "name": "Cassis Challenger",
+      "tier": 75,
+      "location": "Cassis, France",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "cassis"
+      ]
+    },
+    {
+      "name": "Phan Thiet 3 Challenger",
+      "tier": 50,
+      "location": "Phan Thiet, Vietnam",
+      "start": "07/09/26",
+      "end": "13/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "phan thiet 3"
+      ]
+    },
+    {
+      "name": "Tiburon Challenger",
+      "tier": 125,
+      "location": "Tiburon, United States",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "tiburon"
+      ]
+    },
+    {
+      "name": "Szczecin Challenger",
+      "tier": 125,
+      "location": "Szczecin, Poland",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "szczecin"
+      ]
+    },
+    {
+      "name": "Guangzhou Huangpu International Tennis Open Challenger",
+      "tier": 100,
+      "location": "Guangzhou, China",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "guangzhou huangpu international tennis open"
+      ]
+    },
+    {
+      "name": "Rennes Challenger",
+      "tier": 100,
+      "location": "Rennes, France",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "rennes"
+      ]
+    },
+    {
+      "name": "Phan Thiet 4 Challenger",
+      "tier": 50,
+      "location": "Phan Thiet, Vietnam",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Hard",
+      "search_keys": [
+        "phan thiet 4"
+      ]
+    },
+    {
+      "name": "città di Biella Challenger",
+      "tier": 50,
+      "location": "Biella, Italy",
+      "start": "14/09/26",
+      "end": "20/09/26",
+      "surface": "Clay",
+      "search_keys": [
+        "citta di biella"
+      ]
+    }
+  ]
+}

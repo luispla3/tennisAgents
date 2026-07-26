@@ -232,7 +232,20 @@ def save_snapshot(event_id: str | int, snapshot: dict[str, Any]) -> str:
             else ("snapshot_retention_blocked",)
         ),
     )
+    _sync_index_last_snapshot(event_id, snapshot.get("timestamp"))
     return filename
+
+
+def _sync_index_last_snapshot(event_id: str | int, timestamp: str | None) -> None:
+    """Mantiene last_snapshot_at del índice alineado con meta.json."""
+    if not timestamp:
+        return
+    index = load_index()
+    entry = index.get("matches", {}).get(str(event_id))
+    if entry is None:
+        return
+    entry["last_snapshot_at"] = timestamp
+    save_index(index)
 
 
 def list_snapshots(event_id: str | int) -> list[dict[str, Any]]:
@@ -375,12 +388,16 @@ def seconds_until_earliest_due(now: datetime | None = None) -> float | None:
     return earliest
 
 
-def list_all_matches() -> list[dict[str, Any]]:
+def list_all_matches(*, include_inactive: bool = False) -> list[dict[str, Any]]:
     index = load_index()
     matches: list[dict[str, Any]] = []
     for event_id, entry in index.get("matches", {}).items():
         meta = load_meta(event_id)
         merged = {**entry, **meta}
+        is_stale = bool(merged.get("is_stale") or merged.get("stale_at"))
+        is_closed = bool(merged.get("is_finished") or merged.get("finished_at"))
+        if not include_inactive and is_stale and not is_closed:
+            continue
         snaps = list_snapshot_files(event_id)
         timing = snapshot_timing_fields(merged)
         matches.append(

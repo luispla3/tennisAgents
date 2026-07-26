@@ -17,6 +17,7 @@ from pathlib import Path
 from collector.anti_block import cycle_interval
 from collector.config import INTERVAL_BASE_SEC, INTERVAL_JITTER_SEC
 from collector.paths import ROOT, RUN_DIR
+from collector.shutdown_utils import void_open_positions_on_shutdown
 from collector.storage import _atomic_write_text, clear_dataset, load_index
 
 PID_FILE = RUN_DIR / "collector.pid"
@@ -337,6 +338,8 @@ def stop_collector() -> dict:
             os.kill(pid, signal.SIGTERM)
         except OSError:
             pass
+
+    void_open_positions_on_shutdown()
 
     PID_FILE.unlink(missing_ok=True)
     if graceful:

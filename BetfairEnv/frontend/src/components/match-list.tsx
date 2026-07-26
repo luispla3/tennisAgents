@@ -72,9 +72,14 @@ function MatchSnapshotProgress({
 export function MatchList({ matches, selectedId, collectorRunning = false, onSelect }: Props) {
   const [nowMs, setNowMs] = useState(() => Date.now())
 
-  const hasLiveMatches = useMemo(
-    () => matches.some((m) => isMatchLive(m)),
+  const visibleMatches = useMemo(
+    () => matches.filter((m) => !m.is_stale),
     [matches]
+  )
+
+  const hasLiveMatches = useMemo(
+    () => visibleMatches.some((m) => isMatchLive(m)),
+    [visibleMatches]
   )
 
   useEffect(() => {
@@ -83,7 +88,7 @@ export function MatchList({ matches, selectedId, collectorRunning = false, onSel
     return () => clearInterval(tick)
   }, [collectorRunning, hasLiveMatches])
 
-  if (!matches.length) {
+  if (!visibleMatches.length) {
     return (
       <Card>
         <CardContent className="p-6 text-sm text-muted-foreground">
@@ -96,7 +101,7 @@ export function MatchList({ matches, selectedId, collectorRunning = false, onSel
   return (
     <ScrollArea className="h-[calc(100vh-8rem)] pr-3">
       <div className="flex flex-col gap-2">
-        {matches.map((match) => {
+        {visibleMatches.map((match) => {
           const id = String(match.event_id)
           const live = isMatchLive(match)
           return (

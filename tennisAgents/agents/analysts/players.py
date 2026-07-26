@@ -1,7 +1,8 @@
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
 from tennisAgents.dataflows.player_utils import fetch_injury_reports, fetch_surface_winrate
-from tennisAgents.dataflows.tournament_utils import normalize_tournament
+from tennisAgents.dataflows.tournament_utils import merge_analyst_tournament_context, normalize_tournament
+from tennisAgents.agents.utils.report_utils import sanitize_analyst_report
 from tennisAgents.agents.utils.agent_utils import _record_tool_output
 
 def create_player_analyst(llm, toolkit):
@@ -74,6 +75,8 @@ def create_player_analyst(llm, toolkit):
             f"{surface_report_opponent}\n\n"
             "REGLAS DE FIDELIDAD A LOS DATOS:\n"
             "• Cada herramienta restante se invoca COMO MÁXIMO UNA VEZ; lesiones y superficie ya están precargadas\n"
+            "• PROHIBIDO escribir frases de imposibilidad ('no es posible evaluar', "
+            "'no puedo proporcionar'); sintetiza con los datos parciales disponibles\n"
             "• PROHIBIDO inventar rankings, porcentajes, récords, probabilidades numéricas o estadísticas\n"
             "• PROHIBIDO usar tablas markdown en el reporte final (las tools ya devuelven tablas crudas)\n"
             "• Redacta conclusiones en prosa y bullet points; cita la fuente: (Tennis Abstract), (ATP Tour), (Flashscore) o `No disponible`\n"
@@ -113,6 +116,7 @@ def create_player_analyst(llm, toolkit):
             "Fecha del partido: {match_date}, Torneo: {tournament}, Superficie: "
             f"{tournament_surface}, Jugadores: {{player_name}} vs {{opponent_name}}"
         )
+        additional_context = merge_analyst_tournament_context(state, additional_context)
 
         # Crear prompt estructurado usando la anatomía
         prompt = PromptBuilder.create_structured_prompt(
@@ -140,7 +144,7 @@ def create_player_analyst(llm, toolkit):
 
         output = {STATE.messages: [result]}
         if len(result.tool_calls) == 0:
-            output[REPORTS.players_report] = result.content
+            output[REPORTS.players_report] = sanitize_analyst_report(result.content)
         return output
 
     return player_analyst_node

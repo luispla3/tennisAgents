@@ -4,6 +4,7 @@ from tennisAgents.dataflows.llm_utils import invoke_chat_llm
 from tennisAgents.dataflows.atp_h2h_utils import format_atp_h2h_report
 from tennisAgents.dataflows.tennis_abstract_utils import (
     format_profiles_report,
+    format_player_identity_block,
     format_recent_matches_report,
     format_surface_report,
 )

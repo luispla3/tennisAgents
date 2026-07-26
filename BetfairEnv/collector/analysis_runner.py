@@ -14,13 +14,16 @@ from pathlib import Path
 from typing import Any
 
 from collector.paths import DATA_DIR, ROOT
+from collector.shutdown_utils import void_open_positions_on_shutdown
 from collector.storage import (
     _atomic_write_text,
+    effective_is_live,
     list_snapshot_files,
     load_index,
     load_meta,
     load_snapshot,
     match_dir,
+    save_index,
     save_meta,
 )
 from tennisAgents.default_config import DEFAULT_CONFIG
@@ -29,6 +32,7 @@ from tennisAgents.agents.generalist import (
     _write_context_file,
     format_decision_display,
 )
+from tennisAgents.agents.utils.report_utils import sanitize_analyst_report
 from tennisAgents.dataflows.market_resolve import (
     build_game_winners_from_scores,
     derive_sets_won,
@@ -37,6 +41,7 @@ from tennisAgents.dataflows.market_resolve import (
     resolve_market_selection,
     set_is_complete,
 )
+from tennisAgents.dataflows.tournament_utils import normalize_tournament, resolve_tournament_identity
 from collector.match_status import (
     has_decisive_match_winner,
     match_decided_by_sets,
@@ -483,6 +488,173 @@ class AutomatedAnalysisRunner:
                 timer.cancel()
             self._retry_timers.clear()
         self._executor.shutdown(wait=True, cancel_futures=True)
+        self._void_open_positions_on_shutdown()
+
+    def _void_open_positions_on_shutdown(self) -> None:
+        """Devuelve stakes de posiciones abiertas al apagar el colector."""
+        void_open_positions_on_shutdown(self.config)
+
+    def reconcile_session_on_startup(self) -> dict[str, int]:
+        """
+        Autocuración al reanudar tras paradas largas o bruscas.
+
+        Objetivo: que un defecto puntual (estado a medias, superficie vieja,
+        posiciones abiertas en partidos cerrados) no se propague al siguiente ciclo.
+        """
+        stats = {
+            "stuck_status_reset": 0,
+            "analysts_invalidated": 0,
+            "positions_voided": 0,
+            "index_synced": 0,
+            "events_healed": 0,
+        }
+        index = load_index()
+        matches = index.setdefault("matches", {})
+        index_dirty = False
+
+        for event_id, entry in list(matches.items()):
+            meta = load_meta(event_id)
+            last_at = meta.get("last_snapshot_at")
+            if last_at and entry.get("last_snapshot_at") != last_at:
+                entry["last_snapshot_at"] = last_at
+                index_dirty = True
+                stats["index_synced"] += 1
+        if index_dirty:
+            save_index(index)
+
+        if not DATA_DIR.exists():
+            return stats
+
+        for directory in DATA_DIR.iterdir():
+            if not directory.is_dir() or not directory.name.isdigit():
+                continue
+            event_id = directory.name
+            with self._event_lock(event_id):
+                meta = load_meta(event_id)
+                if not meta:
+                    continue
+                entry = dict(matches.get(event_id) or {})
+                changed = False
+
+                if meta.get("analysis_status") in {"analysts_running", "generalist_running"}:
+                    meta["analysis_status"] = "running"
+                    meta.pop("analysis_current_snapshot_at", None)
+                    meta.pop("analysis_current_started_at", None)
+                    changed = True
+                    stats["stuck_status_reset"] += 1
+
+                if (
+                    meta.get("analysis_status") == "stopped_unsettled"
+                    and entry
+                    and effective_is_live(entry)
+                ):
+                    meta["analysis_status"] = "running"
+                    changed = True
+
+                if (
+                    not meta.get("analysts_completed")
+                    and meta.get("analysis_status") == "error"
+                ):
+                    meta["analysis_status"] = "running"
+                    meta.pop("analysis_error", None)
+                    changed = True
+
+                open_positions = [
+                    position
+                    for position in (meta.get("open_positions") or [])
+                    if isinstance(position, dict)
+                ]
+                if open_positions and self._should_void_positions_on_resume(entry, meta):
+                    history = list(meta.get("position_history") or [])
+                    available_balance = _safe_float(
+                        meta.get(
+                            "available_balance",
+                            meta.get(
+                                "wallet_balance",
+                                self.config.get("automated_wallet_balance", 100.0),
+                            ),
+                        ),
+                        100.0,
+                    )
+                    for position in open_positions:
+                        available_balance = _void_position(
+                            position=position,
+                            available_balance=available_balance,
+                            history=history,
+                            reason=(
+                                "Posición abierta al reanudar sesión; "
+                                "stake devuelto (void) por autocuración de arranque."
+                            ),
+                        )
+                        stats["positions_voided"] += 1
+                    meta["open_positions"] = []
+                    meta["position_history"] = history
+                    meta["available_balance"] = round(available_balance, 8)
+                    if not str(meta.get("analysis_status") or "").startswith("finished"):
+                        meta["settlement_status"] = "voided_on_resume"
+                    changed = True
+
+                snapshots = list_snapshot_files(event_id)
+                if snapshots:
+                    try:
+                        snapshot = load_snapshot(event_id, snapshots[-1]["file"])
+                    except (OSError, json.JSONDecodeError, KeyError, TypeError, ValueError):
+                        snapshot = None
+                    if snapshot:
+                        identity = self._resolve_tournament_identity(
+                            snapshot,
+                            entry,
+                            meta,
+                        )
+                        drift = self._tournament_identity_drift(meta, identity)
+                        sync_changed = self._sync_analysis_tournament(meta, identity)
+                        if sync_changed:
+                            changed = True
+                        if meta.get("analysts_completed") and (drift or sync_changed):
+                            meta["analysts_completed"] = False
+                            meta.pop("analyst_report_errors", None)
+                            changed = True
+                            stats["analysts_invalidated"] += 1
+                        reports = self._load_reports(event_id)
+                        report_errors = self._report_quality_errors(reports)
+                        if meta.get("analysts_completed") and report_errors:
+                            meta["analysts_completed"] = False
+                            meta["analyst_report_errors"] = report_errors
+                            changed = True
+                            stats["analysts_invalidated"] += 1
+
+                if changed:
+                    self._save_analysis_meta(event_id, meta)
+                    stats["events_healed"] += 1
+
+        return stats
+
+    @staticmethod
+    def _entry_is_finished(entry: dict[str, Any], meta: dict[str, Any]) -> bool:
+        status = str(entry.get("status") or "").lower()
+        if entry.get("is_finished") or entry.get("finished_at"):
+            return True
+        if str(meta.get("analysis_status") or "").startswith("finished"):
+            return True
+        return any(
+            token in status
+            for token in ("final", "terminad", "finished", "retirad", "walkover")
+        )
+
+    def _should_void_positions_on_resume(
+        self,
+        entry: dict[str, Any],
+        meta: dict[str, Any],
+    ) -> bool:
+        if meta.get("settlement_status") == "voided_on_shutdown":
+            return True
+        if self._entry_is_finished(entry, meta):
+            return True
+        if entry and not effective_is_live(entry):
+            return True
+        if not entry and str(meta.get("analysis_status") or "").startswith("finished"):
+            return True
+        return False
 
     def resume_pending(self) -> int:
         """Reanuda snapshots no procesados después de un reinicio."""
@@ -746,6 +918,9 @@ class AutomatedAnalysisRunner:
         void_unresolved = bool(
             self.config.get("void_unresolved_markets_on_finish", True)
         )
+        void_indecisive = bool(
+            self.config.get("void_unresolved_on_indecisive_finish", True)
+        )
         decisive = bool(
             settle_entry.get("winner") in {"player1", "player2"}
             or has_decisive_match_winner(
@@ -753,6 +928,9 @@ class AutomatedAnalysisRunner:
                 competition=settle_entry.get("competition") or entry.get("competition"),
             )
         )
+        finished_without_winner = bool(
+            entry.get("finished_at") or entry.get("is_finished")
+        ) and not decisive
         voided_any = False
 
         for position in open_positions:
@@ -771,6 +949,17 @@ class AutomatedAnalysisRunner:
                         history=history,
                         reason=(
                             "Mercado no demostrable al cierre del partido; "
+                            "stake devuelto (void)."
+                        ),
+                    )
+                    voided_any = True
+                elif void_indecisive and finished_without_winner:
+                    available_balance = _void_position(
+                        position=position,
+                        available_balance=available_balance,
+                        history=history,
+                        reason=(
+                            "Partido cerrado sin ganador demostrable; "
                             "stake devuelto (void)."
                         ),
                     )
@@ -1225,7 +1414,7 @@ class AutomatedAnalysisRunner:
             content = result.get(key)
             if not content:
                 continue
-            text = str(content)
+            text = sanitize_analyst_report(str(content))
             _atomic_write_text(reports_dir / f"{key}.md", text)
             reports[key] = text
         return reports
@@ -1248,6 +1437,15 @@ class AutomatedAnalysisRunner:
             text = str(reports.get(key) or "").strip()
             if not text:
                 errors[key] = "Informe ausente."
+                continue
+            if "## Información verificada del torneo" in text:
+                lowered = text.casefold()
+                marker = next(
+                    (item for item in failure_markers if item in lowered),
+                    None,
+                )
+                if marker:
+                    errors[key] = f"Informe contiene señal de fallo: {marker}."
                 continue
             if len(text) < minimum:
                 errors[key] = (
@@ -1299,25 +1497,88 @@ class AutomatedAnalysisRunner:
                 errors.append(output[:500])
         return errors[:5]
 
+    def _resolve_tournament_identity(
+        self,
+        snapshot: dict[str, Any],
+        entry: dict[str, Any],
+        meta: dict[str, Any] | None = None,
+    ):
+        betfair = snapshot.get("betfair") or {}
+        flashscore_match = (snapshot.get("flashscore") or {}).get("match") or {}
+        meta = meta or {}
+        return resolve_tournament_identity(
+            betfair_competition=entry.get("competition") or betfair.get("competition"),
+            flashscore_tournament=flashscore_match.get("tournament"),
+            stored=meta.get("analysis_tournament"),
+        )
+
+    def _tournament_identity_drift(
+        self,
+        meta: dict[str, Any],
+        identity,
+    ) -> bool:
+        """True si los informes completados ya no coinciden con el torneo resuelto."""
+        previous_surface = meta.get("analysis_tournament_surface")
+        previous_label = meta.get("analysis_tournament")
+        if (
+            previous_label
+            and identity.display_name
+            and previous_label != identity.display_name
+        ):
+            return True
+        if not identity.surface:
+            return False
+        if previous_surface and previous_surface != identity.surface:
+            return True
+        if not previous_surface:
+            inferred = normalize_tournament(previous_label or "").surface
+            if inferred and inferred != identity.surface:
+                return True
+            if not inferred:
+                return True
+        return False
+
+    def _sync_analysis_tournament(
+        self,
+        meta: dict[str, Any],
+        identity,
+    ) -> bool:
+        """Actualiza torneo almacenado; devuelve True si cambió superficie o etiqueta."""
+        previous_surface = meta.get("analysis_tournament_surface")
+        previous_label = meta.get("analysis_tournament")
+        changed_surface = bool(
+            identity.surface
+            and (
+                (previous_surface and previous_surface != identity.surface)
+                or (not previous_surface and meta.get("analysts_completed"))
+            )
+        )
+        changed_label = bool(
+            previous_label
+            and identity.display_name
+            and previous_label != identity.display_name
+        )
+        if previous_label != identity.display_name or not meta.get("analysis_tournament"):
+            meta["analysis_tournament"] = identity.display_name
+        if identity.surface:
+            meta["analysis_tournament_surface"] = identity.surface
+        return changed_surface or changed_label
+
     def _match_details(
         self,
         snapshot: dict[str, Any],
         entry: dict[str, Any],
+        meta: dict[str, Any] | None = None,
     ) -> tuple[str, str, str, str]:
         betfair = snapshot.get("betfair") or {}
         flashscore = snapshot.get("flashscore") or {}
         flashscore_match = flashscore.get("match") or {}
         player1 = entry.get("player1") or betfair.get("player1") or flashscore.get("player1") or ""
         player2 = entry.get("player2") or betfair.get("player2") or flashscore.get("player2") or ""
-        tournament = (
-            entry.get("competition")
-            or betfair.get("competition")
-            or flashscore_match.get("tournament")
-            or "Tennis"
-        )
+        identity = self._resolve_tournament_identity(snapshot, entry, meta)
         timestamp = str(snapshot.get("timestamp") or _utc_now_iso())
         match_date = timestamp[:10]
-        return str(player1), str(player2), str(tournament), match_date
+        return str(player1), str(player2), identity.display_name, match_date
 
     def _build_state(
         self,
@@ -1327,10 +1588,13 @@ class AutomatedAnalysisRunner:
         meta: dict[str, Any],
         reports: dict[str, str],
     ) -> dict[str, Any]:
-        player1, player2, tournament, match_date = self._match_details(snapshot, entry)
+        player1, player2, tournament, match_date = self._match_details(snapshot, entry, meta)
         player1 = str(meta.get("analysis_player1") or player1)
         player2 = str(meta.get("analysis_player2") or player2)
-        tournament = str(meta.get("analysis_tournament") or tournament)
+        betfair = snapshot.get("betfair") or {}
+        flashscore_match = (snapshot.get("flashscore") or {}).get("match") or {}
+        identity = self._resolve_tournament_identity(snapshot, entry, meta)
+        tournament = identity.display_name
         match_date = str(meta.get("analysis_match_date") or match_date)
         context_path = self._context_path(event_id)
         turns_path = match_dir(event_id) / "generalist_turns.jsonl"
@@ -1348,6 +1612,8 @@ class AutomatedAnalysisRunner:
                 _safe_float(self.config.get("automated_wallet_balance"), 100.0),
             ),
             context_path=str(context_path),
+            betfair_competition=entry.get("competition") or betfair.get("competition"),
+            flashscore_tournament=flashscore_match.get("tournament"),
         )
 
         betfair = snapshot.get("betfair") or {}
@@ -1790,16 +2056,29 @@ class AutomatedAnalysisRunner:
             player1, player2, tournament, match_date = self._match_details(
                 snapshot,
                 entry,
+                meta,
             )
+            identity = self._resolve_tournament_identity(snapshot, entry, meta)
             meta.update(
                 {
                     "analysis_player1": player1,
                     "analysis_player2": player2,
-                    "analysis_tournament": tournament,
+                    "analysis_tournament": identity.display_name,
+                    "analysis_tournament_surface": identity.surface,
                     "analysis_match_date": match_date,
                 }
             )
             self._save_analysis_meta(event_id, meta)
+        else:
+            identity = self._resolve_tournament_identity(snapshot, entry, meta)
+            drift = self._tournament_identity_drift(meta, identity)
+            sync_changed = self._sync_analysis_tournament(meta, identity)
+            if meta.get("analysts_completed") and (drift or sync_changed):
+                meta["analysts_completed"] = False
+                meta.pop("analyst_report_errors", None)
+                self._save_analysis_meta(event_id, meta)
+            elif sync_changed:
+                self._save_analysis_meta(event_id, meta)
         reports = self._load_reports(event_id)
         existing_report_errors = self._report_quality_errors(reports)
         if meta.get("analysts_completed") and existing_report_errors:

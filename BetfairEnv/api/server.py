@@ -7,7 +7,7 @@ import sys
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from api.collector_control import clear_collector_data, collector_status, start_collector, stop_collector
 from collector.config import API_PORT
@@ -122,7 +122,13 @@ class Handler(SimpleHTTPRequestHandler):
             return
 
         if path == "/api/matches":
-            matches = list_all_matches()
+            query = parse_qs(parsed.query or "")
+            include_inactive = (query.get("include_inactive") or ["0"])[0].lower() in (
+                "1",
+                "true",
+                "yes",
+            )
+            matches = list_all_matches(include_inactive=include_inactive)
             _json(self, {"count": len(matches), "matches": matches})
             return
 

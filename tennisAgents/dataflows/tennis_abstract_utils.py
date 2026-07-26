@@ -668,6 +668,50 @@ def format_profiles_report(player1_name: str, player2_name: str) -> str:
     return "\n".join(line for line in lines if line is not None).strip()
 
 
+def format_player_identity_block(player1_name: str, player2_name: str) -> str:
+    """Bloque compacto de país/perfil verificado para prompts de analistas."""
+    lines = ["## Identidad verificada de jugadores (Tennis Abstract)", ""]
+    found_any = False
+
+    for player_name in (player1_name, player2_name):
+        try:
+            profile = fetch_player_profile(player_name)
+        except Exception as exc:
+            lines.extend([
+                f"### {player_name}",
+                f"- País: N/D (error al consultar Tennis Abstract: {exc})",
+                "",
+            ])
+            continue
+
+        if not profile.get("found"):
+            lines.extend([
+                f"### {player_name}",
+                "- País: N/D (perfil no encontrado en Tennis Abstract)",
+                "",
+            ])
+            continue
+
+        found_any = True
+        lines.extend([
+            f"### {profile['resolved_name']}",
+            f"- País: {profile.get('country') or 'N/D'}",
+            f"- Mano: {profile.get('hand') or 'N/D'}",
+            f"- Ranking ATP: {profile.get('current_rank') or 'N/D'}",
+            f"- Fuente: Tennis Abstract",
+            "",
+        ])
+
+    if not found_any:
+        return ""
+
+    lines.append(
+        "Obligatorio: usa EXCLUSIVAMENTE estos países verificados; "
+        "no infieras nacionalidad por el nombre del jugador."
+    )
+    return "\n".join(lines).strip()
+
+
 def format_recent_matches_report(player1_name: str, player2_name: str, num_matches: int = 30) -> str:
     sections: list[str] = ["## Partidos recientes (Tennis Abstract)", ""]
     found_any = False

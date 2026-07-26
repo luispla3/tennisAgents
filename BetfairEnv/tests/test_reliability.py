@@ -98,14 +98,33 @@ def record(name: str, arguments: dict) -> dict:
     }
 
 
-def runner() -> AutomatedAnalysisRunner:
+def runner(**config_overrides) -> AutomatedAnalysisRunner:
     instance = object.__new__(AutomatedAnalysisRunner)
-    instance.config = {"automated_wallet_balance": 100.0}
+    instance.config = {
+        "automated_wallet_balance": 100.0,
+        "void_unresolved_markets_on_finish": True,
+        "void_unresolved_on_indecisive_finish": True,
+        "void_open_positions_on_shutdown": True,
+        **config_overrides,
+    }
     instance._lock = threading.Lock()
     instance._processing = set()
     instance._event_locks_guard = threading.Lock()
     instance._event_locks = {}
+    instance._shutting_down = False
+    instance._retry_timers = {}
     return instance
+
+
+def _bind_runner_persistence(engine: AutomatedAnalysisRunner) -> None:
+    engine._save_analysis_meta = AutomatedAnalysisRunner._save_analysis_meta.__get__(
+        engine,
+        AutomatedAnalysisRunner,
+    )
+    engine._event_score_history = AutomatedAnalysisRunner._event_score_history.__get__(
+        engine,
+        AutomatedAnalysisRunner,
+    )
 
 
 class ReliabilityTests(unittest.TestCase):
@@ -392,6 +411,59 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(sets_won, {"player1": 3, "player2": 1})
         self.assertEqual(winner, "player1")
 
+    def test_list_all_matches_hides_stale_ghosts(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            original_data_dir = storage.DATA_DIR
+            storage.DATA_DIR = Path(temporary)
+            try:
+                now = datetime.now(timezone.utc).isoformat()
+                old = (datetime.now(timezone.utc) - timedelta(days=24)).isoformat()
+                storage.save_index(
+                    {
+                        "updated_at": now,
+                        "matches": {
+                            "35777012": {
+                                "player1": "A",
+                                "player2": "B",
+                                "competition": "Wimbledon 2026",
+                                "is_stale": True,
+                                "stale_at": now,
+                                "last_snapshot_at": old,
+                                "is_live": False,
+                            },
+                            "35864111": {
+                                "player1": "C",
+                                "player2": "D",
+                                "competition": "Tampere Challenger 2026",
+                                "is_live": True,
+                                "status": "En juego",
+                                "last_snapshot_at": now,
+                            },
+                        },
+                    }
+                )
+                active = storage.list_all_matches()
+                all_matches = storage.list_all_matches(include_inactive=True)
+            finally:
+                storage.DATA_DIR = original_data_dir
+            self.assertEqual(len(active), 1)
+            self.assertEqual(active[0]["event_id"], "35864111")
+            self.assertEqual(len(all_matches), 2)
+
+    def test_historical_ghost_dropped_from_index(self) -> None:
+        from collector.snapshot import _should_drop_entry
+
+        now = datetime.now(timezone.utc)
+        old = (now - timedelta(days=24)).isoformat()
+        stale_at = (now - timedelta(minutes=5)).isoformat()
+        entry = {
+            "is_stale": True,
+            "stale_at": stale_at,
+            "last_snapshot_at": old,
+            "is_live": False,
+        }
+        self.assertTrue(_should_drop_entry(entry, now))
+
     def test_game_winners_from_score_progression(self) -> None:
         winners = build_game_winners_from_scores(
             ["6-3 2-0", "6-3 3-0", "6-3 3-1", "6-3 4-1"]
@@ -458,6 +530,81 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(section["sets_won"], {"player1": 1, "player2": 0})
         self.assertEqual(section["current_points"]["player1"], "15")
         self.assertEqual(section["serving"], "player2")
+
+    def test_flashscore_ag_ignored_when_contradicts_sets_detail(self) -> None:
+        import collector.paths  # noqa: F401
+        from collector.score_merge import build_flashscore_section
+
+        section = build_flashscore_section(
+            {
+                "id": "fs-1",
+                "player1": "A",
+                "player2": "B",
+                "score": "6-4 3-2",
+                "sets_won": {"player1": 2, "player2": 0},
+                "status": "En juego",
+            },
+            None,
+            {
+                "BA": "6",
+                "BB": "4",
+                "BC": "3",
+                "BD": "2",
+                "AG": "2",
+                "AH": "0",
+            },
+        )
+        self.assertEqual(section["score"], "6-4 3-2")
+        self.assertEqual(section["sets_won"], {"player1": 1, "player2": 0})
+
+    def test_save_snapshot_syncs_index_last_snapshot_at(self) -> None:
+        import collector.paths  # noqa: F401
+        from collector.storage import load_index, load_meta, save_snapshot
+
+        event_id = "99999001"
+        ts = "2026-07-26T14:00:00.000000+00:00"
+        save_snapshot(
+            event_id,
+            {
+                "timestamp": ts,
+                "betfair_event_id": event_id,
+                "betfair": {"player1": "A", "player2": "B"},
+            },
+        )
+        meta = load_meta(event_id)
+        self.assertEqual(meta.get("last_snapshot_at"), ts)
+        index = load_index()
+        entry = index.get("matches", {}).get(event_id)
+        if entry is not None:
+            self.assertEqual(entry.get("last_snapshot_at"), ts)
+
+    def test_void_open_positions_on_shutdown_module(self) -> None:
+        import collector.paths  # noqa: F401
+        from collector.shutdown_utils import void_open_positions_on_shutdown
+        from collector.storage import load_meta, match_dir, save_meta
+
+        event_id = "99999002"
+        match_dir(event_id).mkdir(parents=True, exist_ok=True)
+        save_meta(
+            event_id,
+            {
+                "wallet_balance": 100.0,
+                "available_balance": 90.0,
+                "open_positions": [
+                    {
+                        "position_id": "pos-1",
+                        "remaining_stake": 10.0,
+                        "initial_stake": 10.0,
+                    }
+                ],
+                "position_history": [],
+            },
+        )
+        voided = void_open_positions_on_shutdown({"void_open_positions_on_shutdown": True})
+        self.assertGreaterEqual(voided, 1)
+        meta = load_meta(event_id)
+        self.assertEqual(meta.get("open_positions"), [])
+        self.assertEqual(meta.get("available_balance"), 100.0)
 
     def test_snapshot_filename_preserves_microseconds(self) -> None:
         first = _snapshot_filename(
@@ -1011,6 +1158,179 @@ class ReliabilityTests(unittest.TestCase):
                 len(list((event_dir / "analysis_records").glob("*.json"))),
                 1,
             )
+
+    def test_indecisive_finish_voids_unresolved_positions(self) -> None:
+        engine = runner()
+        _bind_runner_persistence(engine)
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            temp_path = Path(temporary)
+            storage.DATA_DIR = temp_path
+            analysis_module.DATA_DIR = temp_path
+            storage.match_dir("999").mkdir(parents=True, exist_ok=True)
+            storage.save_meta(
+                "999",
+                {
+                    "open_positions": [
+                        {
+                            "position_id": "999:test:1",
+                            "market": "SET_BETTING",
+                            "selection": "Player A 2-1",
+                            "remaining_stake": 3.0,
+                            "initial_stake": 3.0,
+                            "entry_odds": 4.5,
+                        }
+                    ],
+                    "available_balance": 97.0,
+                    "wallet_balance": 100.0,
+                    "position_history": [],
+                    "analysis_player1": "Player A",
+                    "analysis_player2": "Player B",
+                },
+            )
+            entry = {
+                "finished_at": "2026-07-26T09:24:22+00:00",
+                "is_finished": True,
+                "score": "6-3 5-5",
+                "player1": "Player A",
+                "player2": "Player B",
+                "competition": "Tampere Challenger 2026",
+            }
+            try:
+                engine._reconcile_finished_match("999", entry)
+                meta = storage.load_meta("999")
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+        self.assertEqual(meta["open_positions"], [])
+        self.assertAlmostEqual(meta["available_balance"], 100.0)
+        self.assertTrue(
+            any(item.get("event") == "voided" for item in meta["position_history"])
+        )
+
+    def test_reconcile_session_on_startup_heals_stuck_and_drift(self) -> None:
+        engine = runner()
+        _bind_runner_persistence(engine)
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            temp_path = Path(temporary)
+            storage.DATA_DIR = temp_path
+            analysis_module.DATA_DIR = temp_path
+            event_id = "777"
+            storage.match_dir(event_id).mkdir(parents=True, exist_ok=True)
+            storage.save_meta(
+                event_id,
+                {
+                    "analysis_status": "generalist_running",
+                    "analysis_current_snapshot_at": "2026-07-26T10:00:00+00:00",
+                    "analysts_completed": True,
+                    "analysis_tournament": "San Marino Challenger 2026",
+                    "analysis_tournament_surface": "grass",
+                    "last_snapshot_at": "2026-07-26T12:00:00+00:00",
+                    "wallet_balance": 100.0,
+                    "available_balance": 100.0,
+                },
+            )
+            reports_dir = storage.match_dir(event_id) / "reports"
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            (reports_dir / "players_report.md").write_text(
+                "x" * 1200,
+                encoding="utf-8",
+            )
+            snapshot_path = storage.match_dir(event_id) / "2026-07-26T12-00-00.000000+00-00.json"
+            snapshot_path.write_text(
+                json.dumps(
+                    {
+                        "timestamp": "2026-07-26T12:00:00+00:00",
+                        "betfair": {
+                            "player1": "A",
+                            "player2": "B",
+                            "competition": "San Marino Challenger 2026",
+                        },
+                        "flashscore": {
+                            "match": {
+                                "tournament": (
+                                    "CHALLENGER MEN - SINGLES: San Marino (San Marino), clay"
+                                )
+                            }
+                        },
+                    },
+                    ensure_ascii=False,
+                ),
+                encoding="utf-8",
+            )
+            index = {
+                "updated_at": "2026-07-26T12:00:00+00:00",
+                "matches": {
+                    event_id: {
+                        "player1": "A",
+                        "player2": "B",
+                        "is_live": True,
+                        "last_snapshot_at": "2026-07-26T10:00:00+00:00",
+                    }
+                },
+            }
+            storage.save_index(index)
+            try:
+                stats = engine.reconcile_session_on_startup()
+                meta = storage.load_meta(event_id)
+                synced_index = storage.load_index()
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+        self.assertGreaterEqual(stats["stuck_status_reset"], 1)
+        self.assertGreaterEqual(stats["analysts_invalidated"], 1)
+        self.assertEqual(meta["analysis_status"], "running")
+        self.assertFalse(meta.get("analysts_completed"))
+        self.assertEqual(meta.get("analysis_tournament_surface"), "clay")
+        self.assertEqual(
+            synced_index["matches"][event_id]["last_snapshot_at"],
+            "2026-07-26T12:00:00+00:00",
+        )
+
+    def test_shutdown_voids_open_positions(self) -> None:
+        engine = runner()
+        _bind_runner_persistence(engine)
+        engine._executor = type("X", (), {"shutdown": lambda *args, **kwargs: None})()
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            temp_path = Path(temporary)
+            storage.DATA_DIR = temp_path
+            analysis_module.DATA_DIR = temp_path
+            storage.match_dir("888").mkdir(parents=True, exist_ok=True)
+            storage.save_meta(
+                "888",
+                {
+                    "open_positions": [
+                        {
+                            "position_id": "888:test:1",
+                            "market": "MATCH_ODDS",
+                            "selection": "Player A",
+                            "remaining_stake": 5.0,
+                            "initial_stake": 5.0,
+                            "entry_odds": 1.5,
+                        }
+                    ],
+                    "available_balance": 95.0,
+                    "wallet_balance": 100.0,
+                    "position_history": [],
+                },
+            )
+            try:
+                engine.shutdown()
+                meta = storage.load_meta("888")
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+        self.assertEqual(meta["open_positions"], [])
+        self.assertAlmostEqual(meta["available_balance"], 100.0)
+        self.assertEqual(meta["settlement_status"], "voided_on_shutdown")
 
 
 if __name__ == "__main__":

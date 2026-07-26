@@ -38,6 +38,43 @@ def sets_won_total(sets_won: dict[str, Any] | None) -> int:
     return int(sets_won.get("player1") or 0) + int(sets_won.get("player2") or 0)
 
 
+def reconcile_sets_won(
+    sets_detail: list[dict[str, int]] | None,
+    raw_sets_won: dict[str, Any] | None = None,
+    existing: dict[str, Any] | None = None,
+) -> dict[str, int] | None:
+    """
+    Prefiere sets ganados derivados del marcador por juegos (sets_detail).
+
+    Los campos AG/AH de Flashscore pueden desincronizarse del scoreboard;
+    cuando hay sets completos en sets_detail, ese conteo es más fiable.
+    """
+    detail = sanitize_sets_detail(sets_detail)
+    derived = derive_sets_won(detail)
+    derived_total = sets_won_total(derived)
+
+    if derived_total > 0:
+        if raw_sets_won and sets_won_total(raw_sets_won) == derived_total:
+            return {
+                "player1": int(raw_sets_won.get("player1") or 0),
+                "player2": int(raw_sets_won.get("player2") or 0),
+            }
+        return derived
+
+    if raw_sets_won and sets_won_total(raw_sets_won) > 0:
+        return {
+            "player1": int(raw_sets_won.get("player1") or 0),
+            "player2": int(raw_sets_won.get("player2") or 0),
+        }
+
+    if existing and sets_won_total(existing) > 0:
+        return {
+            "player1": int(existing.get("player1") or 0),
+            "player2": int(existing.get("player2") or 0),
+        }
+    return None
+
+
 def sets_detail_games(sets_detail: list[dict[str, int]] | None) -> int:
     total = 0
     for item in sets_detail or []:
@@ -81,7 +118,14 @@ def refresh_score_fields(section: dict[str, Any]) -> None:
         section["score"] = score_from_sets_detail(detail)
     derived = derive_sets_won(detail)
     existing = section.get("sets_won")
-    if sets_won_total(derived) > sets_won_total(existing):
+    reconciled = reconcile_sets_won(
+        detail,
+        raw_sets_won=existing,
+        existing=existing,
+    )
+    if reconciled is not None:
+        section["sets_won"] = reconciled
+    elif sets_won_total(derived) > sets_won_total(existing):
         section["sets_won"] = derived
     elif existing is None and sets_won_total(derived) > 0:
         section["sets_won"] = derived
@@ -103,11 +147,9 @@ def apply_scoreboard_raw(section: dict[str, Any], raw: dict[str, str]) -> None:
             "player1": int(raw.get(HOME_SETS_WON, "0") or "0"),
             "player2": int(raw.get(AWAY_SETS_WON, "0") or "0"),
         }
-    derived = derive_sets_won(section.get("sets_detail"))
-    if raw_sets and sets_won_total(raw_sets) >= sets_won_total(derived):
-        section["sets_won"] = raw_sets
-    elif sets_won_total(derived) > 0:
-        section["sets_won"] = derived
+    reconciled = reconcile_sets_won(section.get("sets_detail"), raw_sets_won=raw_sets)
+    if reconciled is not None:
+        section["sets_won"] = reconciled
     refresh_score_fields(section)
 
 
@@ -290,6 +332,8 @@ def build_flashscore_section(
             "id": fs_match.get("id"),
             "status": fs_match.get("status"),
             "tournament": fs_match.get("tournament"),
+            "start_time": fs_match.get("start_time"),
+            "start_timestamp": fs_match.get("start_timestamp"),
         },
     }
     if scoreboard_raw:

@@ -120,6 +120,17 @@ def main() -> int:
                 "Turnos legacy puestos en cuarentena: %s",
                 quarantined,
             )
+        healed = analysis_runner.reconcile_session_on_startup()
+        if any(healed.values()):
+            log.info(
+                "Autocuración de sesión: index_synced=%s stuck_reset=%s "
+                "analysts_invalidated=%s positions_voided=%s events_healed=%s",
+                healed.get("index_synced", 0),
+                healed.get("stuck_status_reset", 0),
+                healed.get("analysts_invalidated", 0),
+                healed.get("positions_voided", 0),
+                healed.get("events_healed", 0),
+            )
         resumed = analysis_runner.resume_pending()
         if resumed:
             log.info("Análisis pendientes reanudados: %s partido(s)", resumed)

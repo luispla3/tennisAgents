@@ -26,6 +26,8 @@ DEFAULT_SPORT = "tennis"
 DEFAULT_LOCALE = "es"
 
 TRACK_GRACE_MINUTES = 45
+# Sin snapshot reciente y fuera del feed live de Betfair → fantasma histórico.
+STALE_SNAPSHOT_HOURS = max(1, _env_int("TENNISAGENTS_STALE_SNAPSHOT_HOURS", 6))
 UNREACHABLE_STALE_MINUTES = max(
     30,
     _env_int("TENNISAGENTS_UNREACHABLE_STALE_MINUTES", 120),

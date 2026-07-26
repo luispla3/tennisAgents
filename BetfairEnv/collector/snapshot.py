@@ -3,15 +3,19 @@
 from __future__ import annotations
 
 import logging
+import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
 import collector.paths  # noqa: F401
 
+from collector.paths import DATA_DIR
+
 from collector.anti_block import pause_between_requests, pause_between_sources
 from collector.config import (
     DEFAULT_LOCALE,
     DEFAULT_SPORT,
+    STALE_SNAPSHOT_HOURS,
     TRACK_GRACE_MINUTES,
     UNREACHABLE_STALE_MINUTES,
 )
@@ -35,6 +39,7 @@ from collector.storage import (
     effective_is_live,
     is_snapshot_due,
     load_index,
+    load_meta,
     save_index,
     save_snapshot,
     schedule_next_snapshot,
@@ -227,6 +232,29 @@ def _reconcile_tracked_match(
 ) -> None:
     fs_id = str(entry.get("flashscore_match_id") or "")
     fs_match = fs_daily.get(fs_id) if fs_id else None
+    now = _parse_iso(now_iso)
+
+    if (
+        not in_betfair_live
+        and not in_flashscore_live
+        and not entry_is_closed(entry)
+        and now is not None
+    ):
+        last_snap = _parse_iso(entry.get("last_snapshot_at"))
+        if last_snap and now - last_snap > timedelta(hours=STALE_SNAPSHOT_HOURS):
+            entry["is_live"] = False
+            entry["is_stale"] = True
+            entry.setdefault("stale_at", now_iso)
+            entry["status"] = entry.get("status") or "No disponible"
+            entry.pop("next_snapshot_at", None)
+            entry.pop("queued_for_snapshot", None)
+            log.warning(
+                "Partido histórico fuera de feeds live event_id=%s (%s vs %s)",
+                event_id,
+                entry.get("player1"),
+                entry.get("player2"),
+            )
+            return
 
     betfair_fixture = None
     betfair_unreachable = False
@@ -264,7 +292,7 @@ def _reconcile_tracked_match(
     ):
         entry["is_live"] = False
         entry["is_stale"] = True
-        entry["stale_at"] = now_iso
+        entry.setdefault("stale_at", now_iso)
         entry["status"] = "No disponible"
         entry.pop("next_snapshot_at", None)
         entry.pop("queued_for_snapshot", None)
@@ -277,6 +305,7 @@ def _update_entry_from_sources(
     fs_match: dict[str, Any] | None,
     *,
     now_iso: str,
+    revive_from_source: bool = True,
 ) -> None:
     if entry_is_closed(entry):
         if fs_match and fs_match.get("score"):
@@ -286,7 +315,7 @@ def _update_entry_from_sources(
         entry["last_seen"] = now_iso
         return
 
-    if betfair_match or fs_match:
+    if revive_from_source and (betfair_match or fs_match):
         entry["last_source_seen_at"] = now_iso
         entry.pop("is_stale", None)
         entry.pop("stale_at", None)
@@ -308,6 +337,10 @@ def _update_entry_from_sources(
     if fs_match:
         entry["flashscore_match_id"] = fs_match.get("id", entry.get("flashscore_match_id"))
         entry["flashscore_url"] = fs_match.get("url", entry.get("flashscore_url"))
+        if fs_match.get("start_time"):
+            entry["match_start_time"] = fs_match.get("start_time")
+        if fs_match.get("start_timestamp"):
+            entry["match_start_timestamp"] = fs_match.get("start_timestamp")
         if fs_match.get("score"):
             entry["score"] = fs_match["score"]
         if fs_match.get("sets_won"):
@@ -322,13 +355,53 @@ def _update_entry_from_sources(
 
 
 def _should_drop_entry(entry: dict[str, Any], now: datetime) -> bool:
-    finished_at = _parse_iso(entry.get("finished_at") or entry.get("stale_at"))
-    if not finished_at:
-        return False
     if effective_is_live(entry):
         return False
-    grace = timedelta(minutes=TRACK_GRACE_MINUTES)
-    return now - finished_at > grace
+
+    stale_at = _parse_iso(entry.get("stale_at"))
+    if entry.get("is_stale") and stale_at:
+        last_snap = _parse_iso(entry.get("last_snapshot_at"))
+        historical = (
+            last_snap is None
+            or now - last_snap > timedelta(hours=STALE_SNAPSHOT_HOURS)
+        )
+        grace = timedelta(minutes=2 if historical else TRACK_GRACE_MINUTES)
+        if now - stale_at > grace:
+            return True
+
+    finished_at = _parse_iso(entry.get("finished_at"))
+    if finished_at:
+        return now - finished_at > timedelta(minutes=TRACK_GRACE_MINUTES)
+
+    return False
+
+
+def _purge_orphan_match_directories(
+    active_event_ids: set[str],
+    now: datetime,
+) -> int:
+    """Elimina directorios de partido que ya no están en el índice activo."""
+    if not DATA_DIR.exists():
+        return 0
+    purged = 0
+    grace = timedelta(hours=STALE_SNAPSHOT_HOURS)
+    for directory in DATA_DIR.iterdir():
+        if not directory.is_dir() or not directory.name.isdigit():
+            continue
+        event_id = directory.name
+        if event_id in active_event_ids:
+            continue
+        meta = load_meta(event_id)
+        last_at = _parse_iso(meta.get("last_snapshot_at"))
+        if last_at and now - last_at < grace:
+            continue
+        try:
+            shutil.rmtree(directory)
+            purged += 1
+            log.info("Directorio huérfano purgado event_id=%s", event_id)
+        except OSError as exc:
+            log.warning("No se pudo purgar directorio huérfano %s: %s", event_id, exc)
+    return purged
 
 
 def collect_once(
@@ -384,7 +457,8 @@ def collect_once(
             fs_match = fs_by_id.get(fs_id) or fs_daily_match
             _update_entry_from_sources(entry, bf_match, fs_match, now_iso=now_iso)
         else:
-            _update_entry_from_sources(entry, None, fs_daily_match, now_iso=now_iso)
+            # El calendario diario de Flashscore no debe revivir partidos fuera de Betfair live.
+            entry["last_seen"] = now_iso
 
         _reconcile_tracked_match(
             entry,
@@ -440,6 +514,7 @@ def collect_once(
 
         pause_between_requests()
 
+    orphans_purged = _purge_orphan_match_directories(set(matches.keys()), now)
     save_index(index)
     return {
         "snapshots": snapshots,
@@ -447,4 +522,5 @@ def collect_once(
         "matches_tracked": len(matches),
         "live_betfair": len(betfair_live),
         "live_flashscore": len(flashscore_live),
+        "orphans_purged": orphans_purged,
     }
