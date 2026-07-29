@@ -274,6 +274,20 @@ def start_collector() -> dict:
 
     RUN_DIR.mkdir(parents=True, exist_ok=True)
     STOP_FILE.unlink(missing_ok=True)
+    project_root = ROOT.parent
+    scraper_path = project_root / "tennisAgents" / "dataflows"
+    pythonpath = os.pathsep.join(
+        [
+            str(ROOT),
+            str(project_root),
+            str(scraper_path),
+            *(
+                part
+                for part in str(os.environ.get("PYTHONPATH", "")).split(os.pathsep)
+                if part and part not in {str(ROOT), str(project_root), str(scraper_path)}
+            ),
+        ]
+    )
     proc = subprocess.Popen(
         [sys.executable, str(RUNNER)],
         cwd=str(ROOT),
@@ -281,7 +295,7 @@ def start_collector() -> dict:
         # abierto aquí impediría rotarlo correctamente en Windows.
         stdout=subprocess.DEVNULL,
         stderr=subprocess.STDOUT,
-        env={**os.environ, "PYTHONPATH": str(ROOT)},
+        env={**os.environ, "PYTHONPATH": pythonpath},
         creationflags=(
             CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP
             if sys.platform == "win32"

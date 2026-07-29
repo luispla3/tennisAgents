@@ -12,7 +12,13 @@ from pathlib import Path
 from typing import Any
 
 from collector.anti_block import _interval_bounds, snapshot_interval
-from collector.config import SNAPSHOT_RETENTION_COUNT, TRACK_GRACE_MINUTES
+from collector.config import (
+    ANALYSTS_MAX_RUNTIME_SEC,
+    SNAPSHOT_KEEP_AFTER_FINISH,
+    SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED,
+    SNAPSHOT_RETENTION_COUNT,
+    TRACK_GRACE_MINUTES,
+)
 from collector.paths import DATA_DIR
 
 FINISHED_STATUS = ("final", "terminad", "finished", "walkover", "retirad", "abandon")
@@ -147,6 +153,133 @@ def save_meta(
         _atomic_write_text(directory / "meta.backup.json", content)
 
 
+def _analysis_finished(meta: dict[str, Any]) -> bool:
+    status = str(meta.get("analysis_status") or "")
+    return status.startswith("finished")
+
+
+def _protected_snapshot_names(paths: list[Path], keep: int) -> set[str]:
+    """First + last + muestra uniforme hasta `keep` nombres protegidos."""
+    if not paths:
+        return set()
+    if len(paths) <= keep:
+        return {path.name for path in paths}
+    protected = {paths[0].name, paths[-1].name}
+    middle = paths[1:-1]
+    slots = max(0, keep - len(protected))
+    if slots <= 0 or not middle:
+        return protected
+    if slots >= len(middle):
+        protected.update(path.name for path in middle)
+        return protected
+    for index in range(slots):
+        # Muestreo uniforme inclusivo en el tramo medio.
+        position = int(round(index * (len(middle) - 1) / max(1, slots - 1)))
+        protected.add(middle[position].name)
+    return protected
+
+
+def prune_match_snapshots(event_id: str | int) -> dict[str, Any]:
+    """
+    Poda snapshots de un partido.
+
+    - Si SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED y el partido no está finished: no poda.
+    - Si finished: deja como máximo SNAPSHOT_KEEP_AFTER_FINISH snapshots clave
+      (primero, último y muestra uniforme), solo entre los ya procesados.
+    - Si la poda temprana está permitida (flag off): respeta
+      SNAPSHOT_RETENTION_COUNT como antes.
+    """
+    directory = match_dir(event_id)
+    if not directory.exists():
+        return {"pruned": 0, "kept": 0, "skipped": True, "reason": "missing_dir"}
+
+    meta = load_meta(event_id)
+    finished = _analysis_finished(meta)
+    if SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED and not finished:
+        return {
+            "pruned": 0,
+            "kept": int(meta.get("snapshots_count") or 0),
+            "skipped": True,
+            "reason": "not_finished",
+        }
+
+    snapshot_items = {
+        item["file"]: str(item.get("timestamp") or "")
+        for item in list_snapshot_files(event_id)
+    }
+    snapshot_paths = sorted(
+        (
+            candidate
+            for candidate in directory.glob("*.json")
+            if candidate.name not in {"meta.json", "meta.backup.json"}
+        ),
+        key=lambda candidate: candidate.name,
+    )
+    if not snapshot_paths:
+        return {"pruned": 0, "kept": 0, "skipped": False}
+
+    last_processed = str(meta.get("last_processed_snapshot_at") or "")
+    if finished:
+        target_keep = SNAPSHOT_KEEP_AFTER_FINISH
+        protected = _protected_snapshot_names(snapshot_paths, target_keep)
+    else:
+        target_keep = SNAPSHOT_RETENTION_COUNT
+        protected = set()
+        if len(snapshot_paths) <= target_keep:
+            return {
+                "pruned": 0,
+                "kept": len(snapshot_paths),
+                "skipped": False,
+            }
+
+    excess = max(0, len(snapshot_paths) - target_keep)
+    pruned = 0
+    for old_path in snapshot_paths:
+        if pruned >= excess:
+            break
+        if old_path.name in protected:
+            continue
+        timestamp = snapshot_items.get(old_path.name, "")
+        # Sin cursor de proceso, en finished se permite podar no protegidos.
+        if not finished:
+            if not last_processed or not timestamp or timestamp > last_processed:
+                continue
+        elif last_processed and timestamp and timestamp > last_processed:
+            continue
+        try:
+            old_path.unlink()
+            pruned += 1
+        except OSError:
+            pass
+
+    kept = len(snapshot_paths) - pruned
+    remaining_excess = max(0, (len(snapshot_paths) - pruned) - target_keep)
+    collector_update: dict[str, Any] = {
+        "snapshots_count": kept,
+    }
+    remove_keys: tuple[str, ...] = ()
+    if remaining_excess > 0:
+        collector_update["snapshot_retention_blocked"] = {
+            "at": _utc_now_iso(),
+            "reason": (
+                "No se eliminan snapshots pendientes de análisis."
+                if not finished
+                else "Quedan snapshots protegidos o pendientes sobre el objetivo."
+            ),
+            "pending_excess": remaining_excess,
+        }
+    else:
+        remove_keys = ("snapshot_retention_blocked",)
+    save_meta(event_id, collector_update, remove_keys=remove_keys)
+    return {
+        "pruned": pruned,
+        "kept": kept,
+        "skipped": False,
+        "finished": finished,
+        "target_keep": target_keep,
+    }
+
+
 def save_snapshot(event_id: str | int, snapshot: dict[str, Any]) -> str:
     directory = match_dir(event_id)
     directory.mkdir(parents=True, exist_ok=True)
@@ -168,44 +301,26 @@ def save_snapshot(event_id: str | int, snapshot: dict[str, Any]) -> str:
     elif not was_existing:
         snapshot_count += 1
 
-    # Se poda en lotes para no ordenar miles de archivos en cada snapshot.
-    prune_threshold = SNAPSHOT_RETENTION_COUNT + max(100, SNAPSHOT_RETENTION_COUNT // 20)
-    if snapshot_count > prune_threshold:
-        last_processed = str(meta.get("last_processed_snapshot_at") or "")
-        snapshot_items = {
-            item["file"]: str(item.get("timestamp") or "")
-            for item in list_snapshot_files(event_id)
-        }
-        snapshot_paths = sorted(
-            (
-                candidate
-                for candidate in directory.glob("*.json")
-                if candidate.name not in {"meta.json", "meta.backup.json"}
-            ),
-            key=lambda candidate: candidate.name,
+    finished = _analysis_finished(meta)
+    should_consider_prune = False
+    if SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED:
+        # Durante el partido no se poda; al estar finished se compacta a clave.
+        if finished and snapshot_count > SNAPSHOT_KEEP_AFTER_FINISH:
+            should_consider_prune = True
+    else:
+        prune_threshold = SNAPSHOT_RETENTION_COUNT + max(
+            100, SNAPSHOT_RETENTION_COUNT // 20
         )
-        excess = len(snapshot_paths) - SNAPSHOT_RETENTION_COUNT
-        pruned = 0
-        for old_path in snapshot_paths:
-            if pruned >= max(0, excess):
-                break
-            timestamp = snapshot_items.get(old_path.name, "")
-            if not last_processed or not timestamp or timestamp > last_processed:
-                continue
-            try:
-                old_path.unlink()
-                snapshot_count -= 1
-                pruned += 1
-            except OSError:
-                pass
-        if pruned < max(0, excess):
-            meta["snapshot_retention_blocked"] = {
-                "at": _utc_now_iso(),
-                "reason": "No se eliminan snapshots pendientes de análisis.",
-                "pending_excess": max(0, excess) - pruned,
-            }
-        else:
-            meta.pop("snapshot_retention_blocked", None)
+        if snapshot_count > prune_threshold:
+            should_consider_prune = True
+
+    if should_consider_prune:
+        result = prune_match_snapshots(event_id)
+        snapshot_count = int(result.get("kept") or snapshot_count)
+        meta = load_meta(event_id)
+    elif SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED and not finished:
+        # Evita degradar health por retención mientras el partido sigue vivo.
+        meta.pop("snapshot_retention_blocked", None)
 
     collector_update = {
         "betfair_event_id": snapshot.get(
@@ -498,16 +613,46 @@ def analysis_health_summary() -> dict[str, Any]:
                     usable = False
                 if not usable:
                     missing_reports.append(report_name)
+        # Mientras los analistas corren, missing_reports no degrada la salud
+        # salvo que se haya superado el timeout de runtime.
+        analysts_running = status == "analysts_running"
+        started_at = _parse_iso(meta.get("analysis_started_at"))
+        runtime_sec = (
+            (_now_utc() - started_at).total_seconds() if started_at else None
+        )
+        analysts_timed_out = bool(
+            analysts_running
+            and runtime_sec is not None
+            and runtime_sec > ANALYSTS_MAX_RUNTIME_SEC
+        )
+        missing_for_health = list(missing_reports)
+        if analysts_running and missing_for_health and not analysts_timed_out:
+            missing_for_health = []
         # "degraded" histórico por policy_rejected ya no se usa; solo errores reales.
-        if error or status in {"error"} or missing_reports or retention_blocked:
+        if (
+            error
+            or status in {"error"}
+            or missing_for_health
+            or analysts_timed_out
+            or retention_blocked
+        ):
             unhealthy.append(
                 {
                     "event_id": event_id,
                     "status": status or None,
-                    "error": error,
-                    "missing_reports": missing_reports,
+                    "error": error
+                    or (
+                        f"Analistas excedieron {ANALYSTS_MAX_RUNTIME_SEC}s"
+                        if analysts_timed_out and not error
+                        else None
+                    ),
+                    "missing_reports": missing_for_health or missing_reports,
                     "has_backlog": has_backlog,
                     "snapshot_retention_blocked": retention_blocked,
+                    "analysts_runtime_sec": (
+                        round(runtime_sec, 1) if runtime_sec is not None else None
+                    ),
+                    "analysts_timed_out": analysts_timed_out,
                 }
             )
 

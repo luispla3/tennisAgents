@@ -108,9 +108,43 @@ DEFAULT_CONFIG = {
         200,
         _env_int("TENNISAGENTS_ANALYST_REPORT_MIN_CHARS", 1000),
     ),
+    "analysts_max_runtime_sec": max(
+        60,
+        _env_int("TENNISAGENTS_ANALYSTS_MAX_RUNTIME_SEC", 600),
+    ),
+    "analysts_in_process_retries": max(
+        1,
+        _env_int("TENNISAGENTS_ANALYSTS_IN_PROCESS_RETRIES", 3),
+    ),
+    "analysts_retry_sleep_sec": max(
+        1,
+        _env_int("TENNISAGENTS_ANALYSTS_RETRY_SLEEP_SEC", 5),
+    ),
     "minimum_bet_edge": max(
         0.0,
         _env_float("TENNISAGENTS_MINIMUM_BET_EDGE", 0.02),
+    ),
+    # Tope suave de diversificación (no anti-pérdida agresivo). 1.0 lo desactiva.
+    "max_stake_fraction": min(
+        1.0,
+        max(0.01, _env_float("TENNISAGENTS_MAX_STAKE_FRACTION", 0.20)),
+    ),
+    "max_total_exposure_fraction": min(
+        1.0,
+        max(0.05, _env_float("TENNISAGENTS_MAX_TOTAL_EXPOSURE_FRACTION", 0.50)),
+    ),
+    "minimum_bet_stake": max(
+        0.01,
+        _env_float("TENNISAGENTS_MINIMUM_BET_STAKE", 1.0),
+    ),
+    # MATCH_ODDS con cuota corta exige más edge (calibración frágil del LLM).
+    "match_odds_short_odds_max": max(
+        1.01,
+        _env_float("TENNISAGENTS_MATCH_ODDS_SHORT_ODDS_MAX", 1.25),
+    ),
+    "match_odds_short_min_edge": max(
+        0.0,
+        _env_float("TENNISAGENTS_MATCH_ODDS_SHORT_MIN_EDGE", 0.05),
     ),
     "void_unresolved_markets_on_finish": _env_bool(
         "TENNISAGENTS_VOID_UNRESOLVED_MARKETS_ON_FINISH",
@@ -123,6 +157,14 @@ DEFAULT_CONFIG = {
     "void_open_positions_on_shutdown": _env_bool(
         "TENNISAGENTS_VOID_OPEN_POSITIONS_ON_SHUTDOWN",
         True,
+    ),
+    "settle_open_positions_on_shutdown": _env_bool(
+        "TENNISAGENTS_SETTLE_OPEN_POSITIONS_ON_SHUTDOWN",
+        True,
+    ),
+    "shutdown_drain_sec": max(
+        0,
+        _env_int("TENNISAGENTS_SHUTDOWN_DRAIN_SEC", 5),
     ),
     "default_match_start_time": os.getenv("TENNISAGENTS_DEFAULT_MATCH_START_TIME", "14:00").strip() or "14:00",
     "audit_log_max_bytes": max(

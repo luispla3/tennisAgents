@@ -32,6 +32,11 @@ from collector.storage import _snapshot_filename  # noqa: E402
 from collector import storage  # noqa: E402
 from langchain_core.messages import AIMessage  # noqa: E402
 from tennisAgents.agents.generalist import (  # noqa: E402
+    _bet_calibration_fields,
+    _diversification_prompt_hint,
+    _market_family,
+    _open_market_lines,
+    _portfolio_capital_brief,
     _save_turn_log,
     _target_call,
     _turn_log,
@@ -105,6 +110,14 @@ def runner(**config_overrides) -> AutomatedAnalysisRunner:
         "void_unresolved_markets_on_finish": True,
         "void_unresolved_on_indecisive_finish": True,
         "void_open_positions_on_shutdown": True,
+        "settle_open_positions_on_shutdown": True,
+        "shutdown_drain_sec": 0,
+        "minimum_bet_edge": 0.02,
+        "minimum_bet_stake": 1.0,
+        "match_odds_short_odds_max": 1.25,
+        "match_odds_short_min_edge": 0.05,
+        "max_stake_fraction": 0.20,
+        "max_total_exposure_fraction": 0.50,
         **config_overrides,
     }
     instance._lock = threading.Lock()
@@ -122,6 +135,36 @@ def _bind_runner_persistence(engine: AutomatedAnalysisRunner) -> None:
         AutomatedAnalysisRunner,
     )
     engine._event_score_history = AutomatedAnalysisRunner._event_score_history.__get__(
+        engine,
+        AutomatedAnalysisRunner,
+    )
+    engine._event_lock = AutomatedAnalysisRunner._event_lock.__get__(
+        engine,
+        AutomatedAnalysisRunner,
+    )
+    engine._latest_snapshot = AutomatedAnalysisRunner._latest_snapshot.__get__(
+        engine,
+        AutomatedAnalysisRunner,
+    )
+    engine._close_or_settle_open_positions_on_shutdown = (
+        AutomatedAnalysisRunner._close_or_settle_open_positions_on_shutdown.__get__(
+            engine,
+            AutomatedAnalysisRunner,
+        )
+    )
+    engine.reconcile_finished_matches = (
+        AutomatedAnalysisRunner.reconcile_finished_matches.__get__(
+            engine,
+            AutomatedAnalysisRunner,
+        )
+    )
+    engine._void_open_positions_on_shutdown = (
+        AutomatedAnalysisRunner._void_open_positions_on_shutdown.__get__(
+            engine,
+            AutomatedAnalysisRunner,
+        )
+    )
+    engine.shutdown = AutomatedAnalysisRunner.shutdown.__get__(
         engine,
         AutomatedAnalysisRunner,
     )
@@ -257,6 +300,196 @@ class ReliabilityTests(unittest.TestCase):
             "Edge insuficiente",
             committed["target"]["tool_call"]["arguments"]["reason"],
         )
+
+    def test_stake_above_diversification_cap_is_rejected(self) -> None:
+        meta, committed = runner()._prepare_commit(
+            "123",
+            "2026-07-22T10:00:00+00:00",
+            snapshot(),
+            {"wallet_balance": 100.0, "available_balance": 100.0},
+            record(
+                "bet",
+                {
+                    "market": "MATCH_ODDS",
+                    "option": "Player A",
+                    "stake": 25.0,
+                    "confidence": 0.7,
+                    "estimated_probability": 0.6,
+                },
+            ),
+        )
+        self.assertEqual(meta["available_balance"], 100.0)
+        self.assertEqual(committed["target"]["tool_call"]["name"], "wait")
+        self.assertIn(
+            "tope de diversificación",
+            committed["target"]["tool_call"]["arguments"]["reason"],
+        )
+
+    def test_total_exposure_cap_is_rejected(self) -> None:
+        meta, committed = runner()._prepare_commit(
+            "123",
+            "2026-07-22T10:00:00+00:00",
+            snapshot(),
+            {
+                "wallet_balance": 100.0,
+                "available_balance": 55.0,
+                "open_positions": [
+                    {
+                        "position_id": "123:old:1",
+                        "market": "MATCH_ODDS",
+                        "selection": "Player B",
+                        "remaining_stake": 45.0,
+                        "initial_stake": 45.0,
+                        "entry_odds": 3.0,
+                    }
+                ],
+            },
+            record(
+                "bet",
+                {
+                    "market": "MATCH_ODDS",
+                    "option": "Player A",
+                    "stake": 10.0,
+                    "confidence": 0.7,
+                    "estimated_probability": 0.6,
+                },
+            ),
+        )
+        self.assertEqual(meta["available_balance"], 55.0)
+        self.assertEqual(len(meta["open_positions"]), 1)
+        self.assertIn(
+            "Exposición total",
+            committed["target"]["tool_call"]["arguments"]["reason"],
+        )
+
+    def test_stake_below_minimum_is_rejected(self) -> None:
+        meta, committed = runner()._prepare_commit(
+            "123",
+            "2026-07-22T10:00:00+00:00",
+            snapshot(),
+            {"wallet_balance": 100.0, "available_balance": 100.0},
+            record(
+                "bet",
+                {
+                    "market": "MATCH_ODDS",
+                    "option": "Player A",
+                    "stake": 0.5,
+                    "confidence": 0.7,
+                    "estimated_probability": 0.6,
+                },
+            ),
+        )
+        self.assertEqual(meta["available_balance"], 100.0)
+        self.assertEqual(committed["target"]["tool_call"]["name"], "wait")
+        self.assertIn(
+            "inferior al mínimo",
+            committed["target"]["tool_call"]["arguments"]["reason"],
+        )
+
+    def test_short_match_odds_requires_higher_edge(self) -> None:
+        meta, committed = runner()._prepare_commit(
+            "123",
+            "2026-07-22T10:00:00+00:00",
+            snapshot(odds=1.20),
+            {"wallet_balance": 100.0, "available_balance": 100.0},
+            record(
+                "bet",
+                {
+                    "market": "MATCH_ODDS",
+                    "option": "Player A",
+                    "stake": 5.0,
+                    "confidence": 0.7,
+                    # implícita ~0.833; edge ~0.027 < 0.05 corto
+                    "estimated_probability": 0.86,
+                },
+            ),
+        )
+        self.assertEqual(committed["target"]["tool_call"]["name"], "wait")
+        self.assertIn(
+            "MATCH_ODDS corto",
+            committed["target"]["tool_call"]["arguments"]["reason"],
+        )
+
+    def test_bet_commit_writes_calibration_fields(self) -> None:
+        meta, committed = runner()._prepare_commit(
+            "123",
+            "2026-07-22T10:00:00+00:00",
+            snapshot(odds=2.0),
+            {"wallet_balance": 100.0, "available_balance": 100.0},
+            record(
+                "bet",
+                {
+                    "market": "MATCH_ODDS",
+                    "option": "Player A",
+                    "stake": 10.0,
+                    "confidence": 0.7,
+                    "estimated_probability": 0.6,
+                },
+            ),
+        )
+        args = committed["target"]["tool_call"]["arguments"]
+        self.assertEqual(args["implied_probability"], 0.5)
+        self.assertAlmostEqual(args["edge"], 0.1)
+        self.assertEqual(args["stake_pct_wallet"], 0.1)
+        self.assertEqual(args["stake_pct_available"], 0.1)
+        self.assertEqual(args["market_family"], "match_odds")
+        self.assertEqual(meta["available_balance"], 90.0)
+
+    def test_market_family_and_diversification_hint(self) -> None:
+        self.assertEqual(_market_family("MATCH_ODDS"), "match_odds")
+        self.assertEqual(_market_family("SET_2_GAME_3_WINNER"), "game")
+        self.assertEqual(_market_family("SET_BETTING"), "set")
+        multi = snapshot()
+        multi["betfair"]["markets"].append(
+            {
+                "market_id": "m-game",
+                "market_type": "SET_1_GAME_1_WINNER",
+                "status": "OPEN",
+                "runners": [
+                    {
+                        "name": "Player A",
+                        "selection_id": 11,
+                        "status": "ACTIVE",
+                        "odds_decimal": 1.8,
+                    }
+                ],
+            }
+        )
+        lines = _open_market_lines(multi)
+        families = {line["market_family"] for line in lines}
+        self.assertIn("game", families)
+        self.assertIn("match_odds", families)
+        hint = _diversification_prompt_hint(lines)
+        self.assertIn("MATCH_ODDS", hint)
+        self.assertIn("candidatas iguales", hint)
+        self.assertNotIn("prioriza set/juego", hint.casefold())
+
+    def test_portfolio_capital_brief_and_market_lines(self) -> None:
+        brief = _portfolio_capital_brief(
+            {
+                "wallet_balance": 100.0,
+                "available_balance": 70.0,
+                "open_positions": [
+                    {
+                        "market": "MATCH_ODDS",
+                        "remaining_stake": 20.0,
+                    },
+                    {
+                        "market": "SET_BETTING",
+                        "remaining_stake": 10.0,
+                    },
+                ],
+            }
+        )
+        self.assertEqual(brief["total_exposure"], 30.0)
+        self.assertEqual(brief["exposure_fraction"], 0.3)
+        self.assertEqual(brief["suggested_max_single_stake"], 10.0)
+        lines = _open_market_lines(snapshot())
+        self.assertGreaterEqual(len(lines), 2)
+        implied = {round(line["implied_probability"], 4) for line in lines}
+        self.assertIn(0.5, implied)
+        self.assertIn(0.3333, implied)
+        self.assertTrue(all(line.get("market_family") for line in lines))
 
     def test_partial_close_releases_stake_and_realizes_pnl(self) -> None:
         engine = runner()
@@ -634,9 +867,26 @@ class ReliabilityTests(unittest.TestCase):
                 },
             },
             market_snapshot,
+            state={
+                "wallet_balance": 100.0,
+                "available_balance": 100.0,
+            },
         )
         self.assertEqual(target["arguments"]["odds"], 2.0)
         self.assertEqual(target["arguments"]["market_id"], "m-1")
+        self.assertEqual(target["arguments"]["implied_probability"], 0.5)
+        self.assertAlmostEqual(target["arguments"]["edge"], 0.1)
+        self.assertEqual(target["arguments"]["stake_pct_wallet"], 0.05)
+        self.assertEqual(target["arguments"]["market_family"], "match_odds")
+        calib = _bet_calibration_fields(
+            stake=5,
+            odds=2.0,
+            estimated_probability=0.6,
+            wallet_balance=100.0,
+            available_balance=100.0,
+            market="MATCH_ODDS",
+        )
+        self.assertEqual(calib["stake_pct_wallet"], 0.05)
 
         state = {
             "player_of_interest": "Player A",
@@ -1331,6 +1581,278 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(meta["open_positions"], [])
         self.assertAlmostEqual(meta["available_balance"], 100.0)
         self.assertEqual(meta["settlement_status"], "voided_on_shutdown")
+
+    def test_shutdown_closes_position_with_live_odds(self) -> None:
+        engine = runner()
+        _bind_runner_persistence(engine)
+        engine._executor = type("X", (), {"shutdown": lambda *args, **kwargs: None})()
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            temp_path = Path(temporary)
+            storage.DATA_DIR = temp_path
+            analysis_module.DATA_DIR = temp_path
+            event_id = "889"
+            storage.match_dir(event_id).mkdir(parents=True, exist_ok=True)
+            snap = snapshot(odds=2.0)
+            snap["timestamp"] = "2026-07-27T16:00:00.000000+00:00"
+            storage.save_snapshot(event_id, snap)
+            storage.save_meta(
+                event_id,
+                {
+                    "open_positions": [
+                        {
+                            "position_id": "889:test:1",
+                            "market": "MATCH_ODDS",
+                            "selection": "Player A",
+                            "selection_id": 1,
+                            "market_id": "m-1",
+                            "remaining_stake": 10.0,
+                            "initial_stake": 10.0,
+                            "entry_odds": 2.0,
+                        }
+                    ],
+                    "available_balance": 90.0,
+                    "wallet_balance": 100.0,
+                    "realized_pnl": 0.0,
+                    "position_history": [],
+                    "analysis_player1": "Player A",
+                    "analysis_player2": "Player B",
+                },
+            )
+            try:
+                engine.shutdown()
+                meta = storage.load_meta(event_id)
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+        self.assertEqual(meta["open_positions"], [])
+        # entry 2.0 / exit 2.0 → pnl 0; saldo vuelve a 100
+        self.assertAlmostEqual(meta["available_balance"], 100.0)
+        self.assertEqual(meta["settlement_status"], "settled_on_shutdown")
+        self.assertTrue(
+            any(
+                item.get("event") == "closed_on_shutdown"
+                for item in (meta.get("position_history") or [])
+            )
+        )
+
+    def test_prune_skips_until_finished_then_keeps_key_samples(self) -> None:
+        from collector import config as collector_config
+        from collector.storage import (
+            _snapshot_filename,
+            list_snapshot_files,
+            prune_match_snapshots,
+            save_meta,
+        )
+
+        with tempfile.TemporaryDirectory() as temporary:
+            original_data_dir = storage.DATA_DIR
+            original_flag = collector_config.SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED
+            original_keep = collector_config.SNAPSHOT_KEEP_AFTER_FINISH
+            storage.DATA_DIR = Path(temporary)
+            collector_config.SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED = True
+            storage.SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED = True
+            collector_config.SNAPSHOT_KEEP_AFTER_FINISH = 5
+            storage.SNAPSHOT_KEEP_AFTER_FINISH = 5
+            event_id = "9001"
+            match_path = storage.match_dir(event_id)
+            match_path.mkdir(parents=True, exist_ok=True)
+            timestamps = []
+            for index in range(12):
+                ts = datetime(2026, 7, 27, 12, 0, index, tzinfo=timezone.utc)
+                timestamps.append(ts.isoformat())
+                filename = _snapshot_filename(ts)
+                payload = snapshot()
+                payload["timestamp"] = ts.isoformat()
+                (match_path / filename).write_text(
+                    json.dumps(payload),
+                    encoding="utf-8",
+                )
+            save_meta(
+                event_id,
+                {
+                    "analysis_status": "running",
+                    "snapshots_count": 12,
+                    "last_processed_snapshot_at": timestamps[-1],
+                },
+            )
+            try:
+                skipped = prune_match_snapshots(event_id)
+                self.assertTrue(skipped.get("skipped"))
+                self.assertEqual(len(list_snapshot_files(event_id)), 12)
+
+                save_meta(
+                    event_id,
+                    {
+                        "analysis_status": "finished",
+                        "snapshots_count": 12,
+                        "last_processed_snapshot_at": timestamps[-1],
+                    },
+                )
+                pruned = prune_match_snapshots(event_id)
+                remaining = list_snapshot_files(event_id)
+            finally:
+                storage.DATA_DIR = original_data_dir
+                collector_config.SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED = original_flag
+                storage.SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED = original_flag
+                collector_config.SNAPSHOT_KEEP_AFTER_FINISH = original_keep
+                storage.SNAPSHOT_KEEP_AFTER_FINISH = original_keep
+
+        self.assertFalse(pruned.get("skipped"))
+        self.assertLessEqual(len(remaining), 5)
+        self.assertGreaterEqual(pruned.get("pruned", 0), 7)
+
+    def test_health_ignores_missing_reports_while_analysts_running(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            original_data_dir = storage.DATA_DIR
+            storage.DATA_DIR = Path(temporary)
+            try:
+                storage.save_index(
+                    {
+                        "matches": {
+                            "1001": {
+                                "player1": "A",
+                                "player2": "B",
+                                "is_live": True,
+                                "last_snapshot_at": "2026-07-27T10:00:00+00:00",
+                            }
+                        }
+                    }
+                )
+                storage.match_dir("1001").mkdir(parents=True, exist_ok=True)
+                storage.save_meta(
+                    "1001",
+                    {
+                        "analysis_status": "analysts_running",
+                        "analysis_started_at": datetime.now(
+                            timezone.utc
+                        ).isoformat(),
+                        "last_snapshot_at": "2026-07-27T10:00:00+00:00",
+                    },
+                )
+                health = storage.analysis_health_summary()
+            finally:
+                storage.DATA_DIR = original_data_dir
+
+        self.assertEqual(health["status"], "ok")
+        self.assertEqual(health["events_unhealthy"], 0)
+
+    def test_health_degrades_when_analysts_timeout(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            original_data_dir = storage.DATA_DIR
+            storage.DATA_DIR = Path(temporary)
+            try:
+                storage.save_index(
+                    {
+                        "matches": {
+                            "1002": {
+                                "player1": "A",
+                                "player2": "B",
+                                "is_live": True,
+                                "last_snapshot_at": "2026-07-27T10:00:00+00:00",
+                            }
+                        }
+                    }
+                )
+                storage.match_dir("1002").mkdir(parents=True, exist_ok=True)
+                started = (
+                    datetime.now(timezone.utc) - timedelta(seconds=900)
+                ).isoformat()
+                storage.save_meta(
+                    "1002",
+                    {
+                        "analysis_status": "analysts_running",
+                        "analysis_started_at": started,
+                        "last_snapshot_at": "2026-07-27T10:00:00+00:00",
+                    },
+                )
+                health = storage.analysis_health_summary()
+            finally:
+                storage.DATA_DIR = original_data_dir
+
+        self.assertEqual(health["status"], "degraded")
+        self.assertEqual(health["events_unhealthy"], 1)
+        self.assertTrue(health["details"][0].get("analysts_timed_out"))
+
+    def test_ensure_terminal_wait_turn_writes_journal(self) -> None:
+        engine = runner()
+        _bind_runner_persistence(engine)
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            temp_path = Path(temporary)
+            storage.DATA_DIR = temp_path
+            analysis_module.DATA_DIR = temp_path
+            storage.match_dir("35871663").mkdir(parents=True, exist_ok=True)
+            storage.save_meta(
+                "35871663",
+                {
+                    "analysis_player1": "Player A",
+                    "analysis_player2": "Player B",
+                    "analysis_tournament": "Test Open",
+                    "analysis_match_date": "2026-07-27",
+                    "wallet_balance": 100.0,
+                    "available_balance": 100.0,
+                },
+            )
+            try:
+                wrote = engine._ensure_terminal_wait_turn(
+                    "35871663",
+                    {"player1": "Player A", "player2": "Player B"},
+                    reason="El partido terminó antes de analizar el backlog.",
+                    snapshot_timestamp="2026-07-27T12:00:00+00:00",
+                    label_source="finished_unanalyzed",
+                )
+                turns_path = (
+                    storage.match_dir("35871663") / "generalist_turns.jsonl"
+                )
+                lines = [
+                    line
+                    for line in turns_path.read_text(encoding="utf-8").splitlines()
+                    if line.strip()
+                ]
+                turn = json.loads(lines[0])
+                wrote_again = engine._ensure_terminal_wait_turn(
+                    "35871663",
+                    {"player1": "Player A", "player2": "Player B"},
+                    reason="duplicado",
+                    snapshot_timestamp="2026-07-27T12:00:00+00:00",
+                    label_source="finished_unanalyzed",
+                )
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+        self.assertTrue(wrote)
+        self.assertFalse(wrote_again)
+        self.assertEqual(len(lines), 1)
+        self.assertEqual(turn["target"]["tool_call"]["name"], "wait")
+        self.assertTrue(turn["target"]["tool_call"].get("synthetic"))
+        self.assertEqual(turn["outcome"]["label_source"], "finished_unanalyzed")
+        self.assertFalse(turn["outcome"]["accepted_for_training"])
+
+    def test_ensure_scraper_paths_purges_foreign_modules(self) -> None:
+        from collector import paths as paths_module
+        import types
+
+        fake = types.ModuleType("betfair_scraper")
+        fake.__file__ = str(
+            Path(sys.prefix) / "Lib" / "site-packages" / "betfair_scraper" / "__init__.py"
+        )
+        previous = sys.modules.get("betfair_scraper")
+        sys.modules["betfair_scraper"] = fake
+        try:
+            removed = paths_module._purge_foreign_scraper_modules()
+            paths_module.ensure_scraper_paths()
+            self.assertIn("betfair_scraper", removed)
+            self.assertNotIn("betfair_scraper", sys.modules)
+        finally:
+            if previous is not None:
+                sys.modules["betfair_scraper"] = previous
+            else:
+                sys.modules.pop("betfair_scraper", None)
 
 
 if __name__ == "__main__":

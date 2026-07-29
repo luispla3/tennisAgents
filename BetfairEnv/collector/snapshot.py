@@ -7,9 +7,9 @@ import shutil
 from datetime import datetime, timedelta, timezone
 from typing import Any, Callable
 
-import collector.paths  # noqa: F401
+from collector.paths import DATA_DIR, ensure_scraper_paths
 
-from collector.paths import DATA_DIR
+ensure_scraper_paths()
 
 from collector.anti_block import pause_between_requests, pause_between_sources
 from collector.config import (
@@ -44,6 +44,8 @@ from collector.storage import (
     save_snapshot,
     schedule_next_snapshot,
 )
+
+ensure_scraper_paths()
 from betfair_scraper.client import BetfairClient, BetfairError
 from betfair_scraper.graphql import GraphQLClient, event_view_urn
 from betfair_scraper.parser import iter_nodes_by_type

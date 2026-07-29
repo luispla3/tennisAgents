@@ -23,11 +23,14 @@ from collector.storage import (
     load_meta,
     load_snapshot,
     match_dir,
+    prune_match_snapshots,
     save_index,
     save_meta,
 )
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.agents.generalist import (
+    _bet_calibration_fields,
+    _market_family,
     _save_turn_log,
     _write_context_file,
     format_decision_display,
@@ -481,18 +484,202 @@ class AutomatedAnalysisRunner:
         self._executor.submit(self._drain_event, event_key)
 
     def shutdown(self) -> None:
-        """Completa la tarea activa y evita perder su estado al apagar."""
+        """Completa la tarea activa, liquida lo posible y evita perder estado."""
         with self._lock:
             self._shutting_down = True
             for timer in self._retry_timers.values():
                 timer.cancel()
             self._retry_timers.clear()
         self._executor.shutdown(wait=True, cancel_futures=True)
+        drain_sec = max(
+            0,
+            int(self.config.get("shutdown_drain_sec", 5) or 0),
+        )
+        if drain_sec > 0:
+            deadline = time.monotonic() + drain_sec
+            while time.monotonic() < deadline:
+                with self._lock:
+                    busy = bool(self._processing)
+                if not busy:
+                    break
+                time.sleep(0.2)
+        try:
+            reconciled = self.reconcile_finished_matches()
+            if reconciled:
+                log.info(
+                    "Drain de shutdown: partidos reconciliados=%s",
+                    reconciled,
+                )
+        except Exception:
+            log.exception("Drain de shutdown: fallo reconciliando partidos")
+        try:
+            settled = self._close_or_settle_open_positions_on_shutdown()
+            if settled:
+                log.info(
+                    "Drain de shutdown: posiciones liquidadas/cerradas=%s",
+                    settled,
+                )
+        except Exception:
+            log.exception("Drain de shutdown: fallo liquidando posiciones")
         self._void_open_positions_on_shutdown()
 
     def _void_open_positions_on_shutdown(self) -> None:
         """Devuelve stakes de posiciones abiertas al apagar el colector."""
         void_open_positions_on_shutdown(self.config)
+
+    def _latest_snapshot(self, event_id: str) -> dict[str, Any] | None:
+        items = list_snapshot_files(event_id)
+        if not items:
+            return None
+        try:
+            return load_snapshot(event_id, items[-1]["file"])
+        except (OSError, json.JSONDecodeError, KeyError):
+            return None
+
+    def _close_or_settle_open_positions_on_shutdown(self) -> int:
+        """
+        Intenta Close (cash-out) o settlement por marcador antes del void.
+
+        Devuelve el número de posiciones resueltas. Las que fallen quedan
+        para void_open_positions_on_shutdown.
+        """
+        if not self.config.get("settle_open_positions_on_shutdown", True):
+            return 0
+        if not DATA_DIR.exists():
+            return 0
+
+        resolved = 0
+        for directory in DATA_DIR.iterdir():
+            if not directory.is_dir() or not directory.name.isdigit():
+                continue
+            event_id = directory.name
+            with self._event_lock(event_id):
+                meta = load_meta(event_id)
+                open_positions = [
+                    position
+                    for position in (meta.get("open_positions") or [])
+                    if isinstance(position, dict)
+                ]
+                if not open_positions:
+                    continue
+                snapshot = self._latest_snapshot(event_id) or {
+                    "betfair": {},
+                    "flashscore": {},
+                }
+                history = list(meta.get("position_history") or [])
+                available_balance = _safe_float(
+                    meta.get(
+                        "available_balance",
+                        meta.get(
+                            "wallet_balance",
+                            self.config.get("automated_wallet_balance", 100.0),
+                        ),
+                    ),
+                    100.0,
+                )
+                realized_pnl = _safe_float(meta.get("realized_pnl"), 0.0)
+                remaining: list[dict[str, Any]] = []
+                scores = self._event_score_history(event_id)
+                flash_score = str(
+                    (snapshot.get("flashscore") or {}).get("score") or ""
+                ).strip()
+                if flash_score and (not scores or scores[-1] != flash_score):
+                    scores = [*scores, flash_score]
+                game_winners = build_game_winners_from_scores(scores)
+                settle_entry = _enrich_entry_from_scores(
+                    {
+                        "player1": meta.get("analysis_player1")
+                        or (snapshot.get("betfair") or {}).get("player1"),
+                        "player2": meta.get("analysis_player2")
+                        or (snapshot.get("betfair") or {}).get("player2"),
+                        "score": flash_score or (scores[-1] if scores else None),
+                        "winner": (snapshot.get("flashscore") or {}).get("winner"),
+                        "sets_won": (snapshot.get("flashscore") or {}).get("sets_won"),
+                    },
+                    scores,
+                )
+
+                for position in open_positions:
+                    market, runner = _market_selection(
+                        snapshot,
+                        str(position.get("market") or ""),
+                        str(position.get("selection") or ""),
+                        market_id=str(position.get("market_id") or "") or None,
+                        selection_id=position.get("selection_id"),
+                    )
+                    stake = _safe_float(
+                        position.get(
+                            "remaining_stake",
+                            position.get("initial_stake"),
+                        ),
+                        0.0,
+                    )
+                    entry_odds = _safe_float(position.get("entry_odds"), 0.0)
+                    closed_at = _utc_now_iso()
+
+                    if (
+                        market
+                        and runner
+                        and str(market.get("status") or "").upper() in {"", "OPEN"}
+                        and str(runner.get("status") or "").upper()
+                        in {"", "ACTIVE"}
+                    ):
+                        exit_odds = _safe_float(runner.get("odds_decimal"), 0.0)
+                        if exit_odds > 1.0 and entry_odds > 0:
+                            pnl = stake * ((entry_odds / exit_odds) - 1.0)
+                            available_balance += stake + pnl
+                            realized_pnl += pnl
+                            history.append(
+                                {
+                                    "event": "closed_on_shutdown",
+                                    "position_id": position.get("position_id"),
+                                    "closed_at": closed_at,
+                                    "closed_stake": stake,
+                                    "entry_odds": entry_odds,
+                                    "exit_odds": exit_odds,
+                                    "realized_pnl": pnl,
+                                    "reason": (
+                                        "Cash-out simulado al apagar el colector."
+                                    ),
+                                }
+                            )
+                            resolved += 1
+                            continue
+
+                    won = _settlement_result(
+                        position,
+                        settle_entry,
+                        game_winners=game_winners,
+                    )
+                    if won is None:
+                        remaining.append(position)
+                        continue
+                    available_balance, realized_pnl = _apply_settled_position(
+                        position=position,
+                        won=won,
+                        available_balance=available_balance,
+                        realized_pnl=realized_pnl,
+                        history=history,
+                        event_name="settled_on_shutdown",
+                    )
+                    history[-1]["reason"] = (
+                        "Liquidación por marcador al apagar el colector."
+                    )
+                    resolved += 1
+
+                meta["open_positions"] = remaining
+                meta["position_history"] = history
+                meta["available_balance"] = round(available_balance, 8)
+                meta["realized_pnl"] = round(realized_pnl, 8)
+                if resolved and not remaining:
+                    meta["settlement_status"] = "settled_on_shutdown"
+                    if meta.get("analysis_status") not in {
+                        "finished",
+                        "finished_unsettled",
+                    }:
+                        meta["analysis_status"] = "stopped_settled"
+                self._save_analysis_meta(event_id, meta)
+        return resolved
 
     def reconcile_session_on_startup(self) -> dict[str, int]:
         """
@@ -872,6 +1059,25 @@ class AutomatedAnalysisRunner:
         ):
             return False
 
+        if not self._has_generalist_turns(event_id):
+            self._ensure_terminal_wait_turn(
+                event_id,
+                entry,
+                reason=(
+                    "Partido finalizado sin turno de generalista; "
+                    "Wait sintético para auditoría."
+                ),
+                snapshot_timestamp=str(
+                    meta.get("last_processed_snapshot_at")
+                    or meta.get("last_snapshot_at")
+                    or entry.get("last_snapshot_at")
+                    or ""
+                )
+                or None,
+                label_source="finished_without_generalist",
+            )
+            meta = load_meta(event_id)
+
         unresolved: list[dict[str, Any]] = []
         history = list(meta.get("position_history") or [])
         available_balance = _safe_float(
@@ -1030,6 +1236,13 @@ class AutomatedAnalysisRunner:
             )
 
         self._save_analysis_meta(event_id, meta)
+        try:
+            prune_match_snapshots(event_id)
+        except Exception:
+            log.exception(
+                "No se pudo podar snapshots tras settlement event_id=%s",
+                event_id,
+            )
         return True
 
     def _schedule_retry(
@@ -1125,6 +1338,125 @@ class AutomatedAnalysisRunner:
                     "analysis_current_started_at",
                 ),
             )
+
+    def _has_generalist_turns(self, event_id: str) -> bool:
+        turns_path = match_dir(event_id) / "generalist_turns.jsonl"
+        try:
+            return turns_path.exists() and turns_path.stat().st_size > 0
+        except OSError:
+            return False
+
+    def _ensure_terminal_wait_turn(
+        self,
+        event_id: str,
+        entry: dict[str, Any],
+        *,
+        reason: str,
+        snapshot_timestamp: str | None,
+        label_source: str,
+    ) -> bool:
+        """Garantiza al menos un Wait en journal cuando el partido cierra sin turn."""
+        if self._has_generalist_turns(event_id):
+            return False
+        meta = load_meta(event_id)
+        player1 = str(
+            meta.get("analysis_player1") or entry.get("player1") or "Player A"
+        )
+        player2 = str(
+            meta.get("analysis_player2") or entry.get("player2") or "Player B"
+        )
+        tournament = str(
+            meta.get("analysis_tournament")
+            or entry.get("competition")
+            or "Unknown"
+        )
+        match_date = str(meta.get("analysis_match_date") or "unknown")
+        ts = datetime.now().astimezone().isoformat(timespec="seconds")
+        slug_a = re.sub(r"[^a-z0-9]+", "_", player1.casefold()).strip("_") or "a"
+        slug_b = re.sub(r"[^a-z0-9]+", "_", player2.casefold()).strip("_") or "b"
+        trajectory_id = f"match_{match_date}_{slug_a}_vs_{slug_b}"
+        record = {
+            "schema_version": "tennis_generalist_turn_v1",
+            "trajectory_id": trajectory_id,
+            "turn_id": f"{trajectory_id}_tick_0000",
+            "step_index": 0,
+            "timestamp": ts,
+            "match": {
+                "player_a": player1,
+                "player_b": player2,
+                "tournament": tournament,
+                "match_date": match_date,
+            },
+            "state": {
+                "wallet_balance": _safe_float(
+                    meta.get(
+                        "wallet_balance",
+                        self.config.get("automated_wallet_balance", 100.0),
+                    ),
+                    100.0,
+                ),
+                "available_balance": _safe_float(
+                    meta.get(
+                        "available_balance",
+                        meta.get(
+                            "wallet_balance",
+                            self.config.get("automated_wallet_balance", 100.0),
+                        ),
+                    ),
+                    100.0,
+                ),
+                "previous_actions": meta.get("previous_actions") or [],
+                "open_positions": meta.get("open_positions") or [],
+            },
+            "input": {
+                "reports": {},
+                "market_snapshot": {
+                    "snapshot_timestamp": snapshot_timestamp,
+                },
+            },
+            "target": {
+                "tool_call": {
+                    "name": "wait",
+                    "technical_fallback": False,
+                    "synthetic": True,
+                    "arguments": {
+                        "reason": reason,
+                        "confidence": 1.0,
+                        "next_trigger": (
+                            "Partido cerrado sin turno de generalista en vivo."
+                        ),
+                        "notes": f"Wait sintético ({label_source}).",
+                    },
+                }
+            },
+            "outcome": {
+                "accepted_for_training": False,
+                "label_source": label_source,
+                "eventual_match_winner": meta.get("match_winner")
+                or entry.get("winner"),
+                "pnl_after_match": None,
+            },
+        }
+        turns_path = match_dir(event_id) / "generalist_turns.jsonl"
+        _save_turn_log(record, str(turns_path))
+        try:
+            decision = format_decision_display(record)
+        except Exception:
+            decision = (
+                f"Wait (sintético): {reason}\n"
+                f"label_source={label_source}"
+            )
+        _atomic_write_text(match_dir(event_id) / "decision.md", str(decision))
+        meta["last_decision"] = decision
+        meta["last_analysis_at"] = _utc_now_iso()
+        meta["last_analysis_step"] = 0
+        self._save_analysis_meta(event_id, meta)
+        log.info(
+            "Wait sintético escrito event_id=%s label=%s",
+            event_id,
+            label_source,
+        )
+        return True
 
     def _drain_event(self, event_id: str) -> None:
         try:
@@ -1232,11 +1564,57 @@ class AutomatedAnalysisRunner:
                             f"máximo={max_age}s."
                         )
                     )
+                    skip_status = (
+                        "finished_unanalyzed" if entry_finished else "stale_skipped"
+                    )
+                    if entry_finished:
+                        # Último intento: analizar el snapshot más reciente
+                        # antes de cerrar sin turno de generalista.
+                        try:
+                            last_snapshot = load_snapshot(
+                                event_id, latest["file"]
+                            )
+                            self._process_snapshot(
+                                event_id,
+                                last_snapshot,
+                                entry,
+                                latest_timestamp,
+                            )
+                            older = [
+                                item
+                                for item in pending
+                                if item.get("timestamp") != latest_timestamp
+                            ]
+                            if older:
+                                self._mark_snapshots_superseded(
+                                    event_id,
+                                    older,
+                                    reason=(
+                                        "Backlog previo al último snapshot "
+                                        "analizado al cierre."
+                                    ),
+                                    status="coalesced",
+                                )
+                            continue
+                        except Exception as exc:
+                            log.warning(
+                                "Último análisis al cierre falló "
+                                "event_id=%s: %s",
+                                event_id,
+                                exc,
+                            )
+                        self._ensure_terminal_wait_turn(
+                            event_id,
+                            entry,
+                            reason=reason,
+                            snapshot_timestamp=latest_timestamp,
+                            label_source=skip_status,
+                        )
                     self._mark_snapshots_superseded(
                         event_id,
                         pending,
                         reason=reason,
-                        status="finished_unanalyzed" if entry_finished else "stale_skipped",
+                        status=skip_status,
                     )
                     continue
                 if len(pending) > 1:
@@ -1748,11 +2126,47 @@ class AutomatedAnalysisRunner:
             stake = _safe_float(args.get("stake"), 0.0)
             if stake <= 0:
                 return reject("El stake debe ser mayor que cero.")
+            minimum_stake = _safe_float(
+                self.config.get("minimum_bet_stake"),
+                1.0,
+            )
+            if stake + 1e-9 < minimum_stake:
+                return reject(
+                    f"Stake {stake:.2f} inferior al mínimo "
+                    f"{minimum_stake:.2f}."
+                )
             if stake > available_balance:
                 return reject(
                     f"Stake {stake:.2f} superior al saldo disponible "
                     f"{available_balance:.2f}."
                 )
+            max_stake_fraction = _safe_float(
+                self.config.get("max_stake_fraction"),
+                0.20,
+            )
+            if 0.0 < max_stake_fraction < 1.0:
+                max_stake = initial_balance * max_stake_fraction
+                if stake > max_stake + 1e-9:
+                    return reject(
+                        f"Stake {stake:.2f} supera el tope de diversificación "
+                        f"({max_stake_fraction:.0%} del wallet = {max_stake:.2f})."
+                    )
+            exposure = sum(
+                _safe_float(position.get("remaining_stake"), 0.0)
+                for position in positions
+            )
+            max_exposure_fraction = _safe_float(
+                self.config.get("max_total_exposure_fraction"),
+                0.50,
+            )
+            if 0.0 < max_exposure_fraction <= 1.0:
+                max_exposure = initial_balance * max_exposure_fraction
+                if exposure + stake > max_exposure + 1e-9:
+                    return reject(
+                        f"Exposición total {exposure + stake:.2f} supera el tope "
+                        f"({max_exposure_fraction:.0%} del wallet = "
+                        f"{max_exposure:.2f})."
+                    )
             market, runner = _market_selection(
                 snapshot,
                 str(args.get("market") or ""),
@@ -1781,16 +2195,45 @@ class AutomatedAnalysisRunner:
                 self.config.get("minimum_bet_edge"),
                 0.02,
             )
+            market_type = str(market.get("market_type") or args.get("market") or "")
+            family = _market_family(market_type)
+            short_odds_max = _safe_float(
+                self.config.get("match_odds_short_odds_max"),
+                1.25,
+            )
+            short_min_edge = _safe_float(
+                self.config.get("match_odds_short_min_edge"),
+                0.05,
+            )
+            if (
+                family == "match_odds"
+                and odds <= short_odds_max
+                and short_min_edge > minimum_edge
+            ):
+                minimum_edge = short_min_edge
             if edge < minimum_edge:
                 return reject(
                     f"Edge insuficiente: estimada={estimated_probability:.4f}, "
                     f"implícita={implied_probability:.4f}, edge={edge:.4f}, "
-                    f"mínimo={minimum_edge:.4f}."
+                    f"mínimo={minimum_edge:.4f}"
+                    + (
+                        f" (MATCH_ODDS corto <= {short_odds_max:.2f})."
+                        if family == "match_odds" and odds <= short_odds_max
+                        else "."
+                    )
                 )
 
             position_id = (
                 f"{event_id}:{cursor_timestamp}:"
                 f"{runner.get('selection_id') or len(positions) + 1}"
+            )
+            calibration = _bet_calibration_fields(
+                stake=stake,
+                odds=odds,
+                estimated_probability=estimated_probability,
+                wallet_balance=initial_balance,
+                available_balance=available_balance,
+                market=market_type,
             )
             args.update(
                 {
@@ -1803,6 +2246,9 @@ class AutomatedAnalysisRunner:
                     "edge": edge,
                     "stake": stake,
                     "position_id": position_id,
+                    "stake_pct_wallet": calibration.get("stake_pct_wallet"),
+                    "stake_pct_available": calibration.get("stake_pct_available"),
+                    "market_family": family,
                 }
             )
             position = {
@@ -2089,26 +2535,66 @@ class AutomatedAnalysisRunner:
 
         if not meta.get("analysts_completed"):
             meta["analysis_status"] = "analysts_running"
-            meta["analysis_started_at"] = _utc_now_iso()
+            meta["analysis_started_at"] = meta.get("analysis_started_at") or _utc_now_iso()
             self._save_analysis_meta(event_id, meta)
-            initial_state = self._build_state(event_id, snapshot, entry, meta, reports)
-            tool_log_offset = self._tool_log_offset()
-            analyst_result = graph.run_analysts_once(initial_state)
-            reports = self._save_reports(event_id, analyst_result)
-            report_errors = self._report_quality_errors(reports)
-            missing_reports = list(report_errors)
-            analyst_errors = analyst_result.get("analyst_errors") or {}
-            infrastructure_errors = self._tool_infrastructure_errors_since(
-                tool_log_offset
+            max_runtime = max(
+                60,
+                int(self.config.get("analysts_max_runtime_sec", 600)),
             )
-            if infrastructure_errors:
-                analyst_errors["tool_infrastructure"] = " | ".join(
-                    infrastructure_errors
+            max_attempts = max(
+                1,
+                int(self.config.get("analysts_in_process_retries", 3)),
+            )
+            retry_sleep = max(
+                1,
+                int(self.config.get("analysts_retry_sleep_sec", 5)),
+            )
+            started_monotonic = time.monotonic()
+            missing_reports: list[str] = []
+            analyst_errors: dict[str, Any] = {}
+            report_errors: dict[str, str] = {}
+            reports = self._load_reports(event_id)
+            for attempt in range(1, max_attempts + 1):
+                initial_state = self._build_state(
+                    event_id, snapshot, entry, meta, reports
                 )
-            meta["analyst_errors"] = analyst_errors
-            meta["analyst_report_errors"] = report_errors
-            meta["analysts_completed_count"] = len(REPORT_KEYS) - len(missing_reports)
-            meta["analysts_expected_count"] = len(REPORT_KEYS)
+                tool_log_offset = self._tool_log_offset()
+                analyst_result = graph.run_analysts_once(initial_state)
+                reports = self._save_reports(event_id, analyst_result)
+                report_errors = self._report_quality_errors(reports)
+                missing_reports = list(report_errors)
+                analyst_errors = analyst_result.get("analyst_errors") or {}
+                infrastructure_errors = self._tool_infrastructure_errors_since(
+                    tool_log_offset
+                )
+                if infrastructure_errors:
+                    analyst_errors["tool_infrastructure"] = " | ".join(
+                        infrastructure_errors
+                    )
+                meta["analyst_errors"] = analyst_errors
+                meta["analyst_report_errors"] = report_errors
+                meta["analysts_completed_count"] = (
+                    len(REPORT_KEYS) - len(missing_reports)
+                )
+                meta["analysts_expected_count"] = len(REPORT_KEYS)
+                meta["analysts_attempt"] = attempt
+                self._save_analysis_meta(event_id, meta)
+                if not missing_reports:
+                    break
+                elapsed = time.monotonic() - started_monotonic
+                if attempt >= max_attempts or elapsed >= max_runtime:
+                    break
+                sleep_for = min(retry_sleep * (2 ** (attempt - 1)), 60)
+                log.warning(
+                    "Analistas incompletos event_id=%s intento=%s/%s "
+                    "faltan=%s; reintento en %ss",
+                    event_id,
+                    attempt,
+                    max_attempts,
+                    ",".join(missing_reports),
+                    sleep_for,
+                )
+                time.sleep(sleep_for)
             if missing_reports:
                 meta["analysts_completed"] = False
                 meta["analysis_status"] = "error"

@@ -37,4 +37,39 @@ SNAPSHOT_RETENTION_COUNT = max(
     _env_int("TENNISAGENTS_SNAPSHOT_RETENTION_COUNT", 20000),
 )
 
+
+def _env_bool(name: str, default: bool) -> bool:
+    raw = os.getenv(name)
+    if raw is None:
+        return default
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+# Mientras el partido no esté finished, no podar (auditoría post-mortem).
+SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED = _env_bool(
+    "TENNISAGENTS_SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED",
+    True,
+)
+# Tras finished, conservar como máximo este número de snapshots clave.
+SNAPSHOT_KEEP_AFTER_FINISH = max(
+    5,
+    _env_int("TENNISAGENTS_SNAPSHOT_KEEP_AFTER_FINISH", 100),
+)
+
+# Hueco entre ciclos completados (p. ej. PC dormido / crash) → aviso en log.
+CAPTURE_GAP_WARN_SEC = max(
+    60,
+    _env_int("TENNISAGENTS_CAPTURE_GAP_WARN_SEC", 300),
+)
+# Sin snapshots nuevos con partidos activos → alerta operativa.
+NO_SNAPSHOT_ALERT_SEC = max(
+    120,
+    _env_int("TENNISAGENTS_NO_SNAPSHOT_ALERT_SEC", 900),
+)
+# Tiempo máximo en analysts_running antes de contar missing_reports en health.
+ANALYSTS_MAX_RUNTIME_SEC = max(
+    60,
+    _env_int("TENNISAGENTS_ANALYSTS_MAX_RUNTIME_SEC", 600),
+)
+
 API_PORT = 8770

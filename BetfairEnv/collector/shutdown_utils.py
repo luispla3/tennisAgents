@@ -50,10 +50,10 @@ def _void_position(
 
 def void_open_positions_on_shutdown(config: dict[str, Any] | None = None) -> int:
     """
-    Devuelve stakes de posiciones abiertas al detener el colector.
+    Devuelve stakes de posiciones que sigan abiertas al detener el colector.
 
-    Se invoca tanto en shutdown graceful del runner como desde la API stop
-    (incluido taskkill forzado en Windows).
+    El runner intenta antes Close/settlement (`settle_open_positions_on_shutdown`);
+    esta función es el fallback (también tras taskkill desde la API).
     """
     cfg = config or DEFAULT_CONFIG
     if not cfg.get("void_open_positions_on_shutdown", True):
@@ -99,8 +99,14 @@ def void_open_positions_on_shutdown(config: dict[str, Any] | None = None) -> int
         meta["open_positions"] = []
         meta["position_history"] = history
         meta["available_balance"] = round(available_balance, 8)
-        meta["settlement_status"] = "voided_on_shutdown"
-        if meta.get("analysis_status") not in {"finished", "finished_unsettled"}:
+        # No pisar un settlement previo del drain si no quedaban posiciones.
+        if meta.get("settlement_status") != "settled_on_shutdown":
+            meta["settlement_status"] = "voided_on_shutdown"
+        if meta.get("analysis_status") not in {
+            "finished",
+            "finished_unsettled",
+            "stopped_settled",
+        }:
             meta["analysis_status"] = "stopped_unsettled"
         storage_module.save_meta(event_id, meta)
 

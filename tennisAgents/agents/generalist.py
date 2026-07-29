@@ -29,14 +29,21 @@ def Bet(
         "market_type exacto del snapshot (p.ej. MATCH_ODDS) o name visible del mercado",
     ],
     selection: Annotated[str, "Selección apostada"],
-    stake: Annotated[float, "Importe de la apuesta"],
+    stake: Annotated[
+        float,
+        "Importe de la apuesta; debe ser > 0 y no superar el saldo disponible",
+    ],
     rationale: Annotated[str, "Motivo breve de la apuesta"],
     confidence: Annotated[float, "Confianza entre 0 y 1"],
     estimated_probability: Annotated[
         float,
         "Probabilidad estimada de la selección, entre 0 y 1",
     ],
-    notes: Annotated[str, "Notas para revisar en el siguiente timestep"] = "",
+    notes: Annotated[
+        str,
+        "Notas para el siguiente timestep; incluye edge, % del wallet y por qué "
+        "esta línea supera a las alternativas",
+    ] = "",
 ) -> str:
     """Registra una apuesta."""
     return _tool_log(
@@ -190,29 +197,50 @@ def _match_live_state(state: dict) -> dict:
     }
 
 
-def _target_call(tool_call, snapshot: dict) -> dict:
+def _target_call(tool_call, snapshot: dict, *, state: dict | None = None) -> dict:
     call = _call_data(tool_call)
     args = call.get("args", {})
     name = call["name"].lower()
     reason = args.get("reason") or args.get("rationale") or ""
+    state = state or {}
+    wallet = _num(state.get(STATE.wallet_balance), 0.0)
+    available = _num(state.get("available_balance"), wallet)
     if name == "bet":
         option, market = args.get("option") or args.get("selection", ""), args.get("market", "")
         matched_market, runner = _market_selection(snapshot, market, option)
+        stake = _num(args.get("stake"), 0.0)
+        odds = _num((runner or {}).get("odds_decimal"))
+        estimated_probability = _num(args.get("estimated_probability"))
+        calibration = _bet_calibration_fields(
+            stake=stake,
+            odds=odds,
+            estimated_probability=estimated_probability,
+            wallet_balance=wallet,
+            available_balance=available,
+            market=str(
+                (matched_market or {}).get("market_type")
+                or market
+                or ""
+            ),
+        )
         return {
             "name": "bet",
             "technical_fallback": False,
             "arguments": {
                 "market": market,
                 "option": option,
-                "stake": _num(args.get("stake"), 0.0),
-                "odds": _num((runner or {}).get("odds_decimal")),
+                "stake": stake,
+                "odds": calibration.get("odds"),
                 "market_id": (matched_market or {}).get("market_id"),
                 "selection_id": (runner or {}).get("selection_id"),
                 "reason": reason,
                 "confidence": _num(args.get("confidence")),
-                "estimated_probability": _num(
-                    args.get("estimated_probability")
-                ),
+                "estimated_probability": calibration.get("estimated_probability"),
+                "implied_probability": calibration.get("implied_probability"),
+                "edge": calibration.get("edge"),
+                "stake_pct_wallet": calibration.get("stake_pct_wallet"),
+                "stake_pct_available": calibration.get("stake_pct_available"),
+                "market_family": calibration.get("market_family"),
                 "notes": args.get("notes") or "",
             },
         }
@@ -249,7 +277,7 @@ def _turn_log(state: dict, tool_call) -> dict:
     trajectory_id = f"match_{date}_{_slug(player)}_vs_{_slug(opponent)}"
     wallet = _num(state.get(STATE.wallet_balance), 0.0)
     snapshot = _market_snapshot(state, ts)
-    target_call = _target_call(tool_call, snapshot)
+    target_call = _target_call(tool_call, snapshot, state=state)
     technical_fallback = bool(target_call.get("technical_fallback"))
     return {
         "schema_version": "tennis_generalist_turn_v1",
@@ -339,6 +367,184 @@ def _scraper_context(state: dict) -> str:
     if not snapshot:
         return "No hay snapshot de BetfairEnv; se usarán los fallbacks configurados."
     return json.dumps(snapshot, ensure_ascii=False, indent=2)
+
+
+def _market_family(market_key: str) -> str:
+    """Clasifica un mercado para diversificación y calibración."""
+    token = str(market_key or "").casefold().replace(" ", "_")
+    if not token:
+        return "unknown"
+    if "match_odds" in token or token in {"match_winner", "winner", "moneyline"}:
+        return "match_odds"
+    if "correct_score" in token or "set_betting" in token:
+        return "set"
+    if "set_" in token and "game" not in token:
+        return "set"
+    if "game" in token or "juego" in token:
+        return "game"
+    if "total" in token or "over" in token or "under" in token:
+        return "totals"
+    if "both" in token or "to_win_a_set" in token:
+        return "props"
+    return "other"
+
+
+def _bet_calibration_fields(
+    *,
+    stake: float,
+    odds: float | None,
+    estimated_probability: float | None,
+    wallet_balance: float,
+    available_balance: float,
+    market: str,
+) -> dict:
+    """Campos homogéneos de calibración para training y auditoría."""
+    implied = None
+    edge = None
+    if odds is not None and odds > 1.0:
+        implied = 1.0 / odds
+        if estimated_probability is not None and 0.0 < estimated_probability < 1.0:
+            edge = estimated_probability - implied
+    wallet_safe = wallet_balance if wallet_balance > 0 else 0.0
+    available_safe = available_balance if available_balance > 0 else 0.0
+    return {
+        "implied_probability": (
+            round(implied, 6) if implied is not None else None
+        ),
+        "edge": round(edge, 6) if edge is not None else None,
+        "stake_pct_wallet": (
+            round(stake / wallet_safe, 6) if wallet_safe else None
+        ),
+        "stake_pct_available": (
+            round(stake / available_safe, 6) if available_safe else None
+        ),
+        "market_family": _market_family(market),
+        "odds": round(odds, 6) if odds is not None and odds > 0 else odds,
+        "estimated_probability": (
+            round(estimated_probability, 6)
+            if estimated_probability is not None
+            else None
+        ),
+        "stake": round(stake, 6) if stake is not None else stake,
+    }
+
+
+def _portfolio_capital_brief(state: dict) -> dict:
+    """Resumen de exposición para razonar diversificación de capital."""
+    wallet = _num(
+        state.get(STATE.wallet_balance),
+        _num(state.get("available_balance"), 0.0),
+    )
+    available = _num(state.get("available_balance"), wallet)
+    positions = [
+        position
+        for position in (state.get("open_positions") or [])
+        if isinstance(position, dict)
+    ]
+    exposure = sum(_num(position.get("remaining_stake"), 0.0) for position in positions)
+    by_market: dict[str, float] = {}
+    for position in positions:
+        market = str(position.get("market") or position.get("market_type") or "unknown")
+        by_market[market] = by_market.get(market, 0.0) + _num(
+            position.get("remaining_stake"),
+            0.0,
+        )
+    wallet_safe = wallet if wallet > 0 else 0.0
+    return {
+        "wallet_balance": round(wallet_safe, 4),
+        "available_balance": round(available, 4),
+        "total_exposure": round(exposure, 4),
+        "exposure_fraction": (
+            round(exposure / wallet_safe, 4) if wallet_safe else None
+        ),
+        "available_fraction": (
+            round(available / wallet_safe, 4) if wallet_safe else None
+        ),
+        "open_positions_count": len(positions),
+        "exposure_by_market": {
+            key: round(value, 4) for key, value in sorted(by_market.items())
+        },
+        "suggested_max_single_stake": (
+            round(wallet_safe * 0.10, 4) if wallet_safe else 0.0
+        ),
+        "suggested_max_total_exposure": (
+            round(wallet_safe * 0.35, 4) if wallet_safe else 0.0
+        ),
+        "sizing_hint": (
+            "Quarter-Kelly aproximado: stake ≈ available * 0.25 * "
+            "edge / (odds - 1), con edge = p_estimada - 1/odds. "
+            "Si edge <= 0 o odds <= 1, no apostar."
+        ),
+    }
+
+
+def _open_market_lines(snapshot: dict | None, *, limit: int = 40) -> list[dict]:
+    """Líneas abiertas con probabilidad implícita para comparar valor relativo."""
+    if not isinstance(snapshot, dict):
+        return []
+    betfair = snapshot.get("betfair") or {}
+    markets = list(betfair.get("markets") or [])
+    if not markets and snapshot.get("markets"):
+        markets = list(snapshot.get("markets") or [])
+    lines: list[dict] = []
+    for market in markets:
+        if not isinstance(market, dict):
+            continue
+        if str(market.get("status") or "").upper() not in {"", "OPEN"}:
+            continue
+        market_key = str(
+            market.get("market_type") or market.get("name") or market.get("market_id") or ""
+        )
+        family = _market_family(market_key)
+        for runner in market.get("runners") or []:
+            if not isinstance(runner, dict):
+                continue
+            if str(runner.get("status") or "").upper() not in {"", "ACTIVE"}:
+                continue
+            odds = _num(runner.get("odds_decimal"), 0.0)
+            if odds <= 1.0:
+                continue
+            lines.append(
+                {
+                    "market": market_key,
+                    "market_family": family,
+                    "selection": str(runner.get("name") or ""),
+                    "odds": round(odds, 4),
+                    "implied_probability": round(1.0 / odds, 4),
+                }
+            )
+    # Orden neutro: por familia y luego implícita (sin penalizar MATCH_ODDS).
+    lines.sort(
+        key=lambda item: (
+            str(item.get("market_family") or "unknown"),
+            str(item.get("market") or ""),
+            _num(item.get("implied_probability"), 1.0),
+        )
+    )
+    return lines[:limit]
+
+
+def _diversification_prompt_hint(market_lines: list[dict]) -> str:
+    families = sorted(
+        {
+            str(line.get("market_family") or "unknown")
+            for line in market_lines
+            if str(line.get("market_family") or "unknown") != "unknown"
+        }
+    )
+    if not families:
+        return (
+            "Compara todas las líneas abiertas por edge (p_estimada - 1/cuota) "
+            "y elige la de mejor EV ajustado a riesgo; Wait si ninguna es clara."
+        )
+    return (
+        "Familias disponibles: "
+        + ", ".join(families)
+        + ". Trátalas como candidatas iguales: elige la línea con mejor EV "
+        "(edge × stake admisible), sea MATCH_ODDS, set, juego u otra. "
+        "No descartes MATCH_ODDS por principio ni apuestes fuera de MATCH_ODDS "
+        "solo por diversificar."
+    )
 
 
 def _write_context_file(
@@ -459,7 +665,9 @@ def format_decision_display(record: dict) -> str:
                 f"- **Mercado:** {args.get('market') or 'N/A'}",
                 f"- **Selección:** {args.get('option') or 'N/A'}",
                 f"- **Stake:** {args.get('stake') if args.get('stake') is not None else 'N/A'}",
+                f"- **Stake % wallet:** {args.get('stake_pct_wallet') if args.get('stake_pct_wallet') is not None else 'N/A'}",
                 f"- **Cuota:** {args.get('odds') if args.get('odds') is not None else 'N/A'}",
+                f"- **Familia de mercado:** {args.get('market_family') or 'N/A'}",
                 f"- **Probabilidad estimada:** {args.get('estimated_probability') if args.get('estimated_probability') is not None else 'N/A'}",
                 f"- **Probabilidad implícita:** {args.get('implied_probability') if args.get('implied_probability') is not None else 'N/A'}",
                 f"- **Edge:** {args.get('edge') if args.get('edge') is not None else 'N/A'}",
@@ -516,6 +724,9 @@ def create_generalist_llm(deep_thinking_llm):
         match_id = f"{player} vs {opponent} | {tournament} | {match_date}"
         context_text, context_path = _read_context_file(state)
         scraper_snapshot = state.get("scraper_snapshot") or {}
+        capital_brief = _portfolio_capital_brief(state)
+        market_lines = _open_market_lines(scraper_snapshot)
+        diversification_hint = _diversification_prompt_hint(market_lines)
 
         if scraper_snapshot:
             odds_report = json.dumps(
@@ -546,7 +757,8 @@ def create_generalist_llm(deep_thinking_llm):
             "para el siguiente timestep en 'notes' (Wait también puede usar 'next_trigger').\n"
             "No escribas texto fuera de la tool call. Si no hay valor claro o faltan cuotas fiables, usa Wait.\n"
             "No inventes marcador, cuotas, estadísticas ni eventos que no aparezcan en los datos.\n"
-            "Nunca uses Bet con stake <= 0 o superior al saldo disponible.\n"
+            "Nunca uses Bet con stake <= 0 ni con stake superior al saldo disponible. "
+            "Si no puedes fijar un stake positivo concreto, usa Wait (no Bet con 0).\n"
             "Bet debe incluir estimated_probability entre 0 y 1; comprueba que sea "
             "mayor que 1/cuota y explica el edge sin errores aritméticos.\n"
             "En Bet.market usa el market_type exacto del snapshot (p.ej. MATCH_ODDS, "
@@ -554,11 +766,40 @@ def create_generalist_llm(deep_thinking_llm):
             "usa el name exacto del runner.\n"
             "Para Close usa el position_id exacto mostrado en Posiciones abiertas.\n"
             "Si marcador, set, servidor o mercado no son coherentes entre fuentes, usa Wait.\n\n"
+            "Estrategia de capital (objetivo: EV y supervivencia a largo plazo, no "
+            "recuperar pérdidas del partido):\n"
+            "- Considera TODOS los mercados abiertos (MATCH_ODDS, set, juegos, "
+            "totales, props, etc.) como candidatas a la misma estrategia. "
+            "No prohíbas ni penalices MATCH_ODDS; tampoco apuestes otro mercado "
+            "solo por 'diversificar'.\n"
+            "- Compara líneas por edge real (p_estimada - 1/cuota) y liquidez/"
+            "fiabilidad de la señal; elige la de mejor EV ajustado a riesgo "
+            "(o Wait si ninguna supera el umbral).\n"
+            f"- Hint de mercado: {diversification_hint}\n"
+            "- Diversifica exposición de capital: evita concentrar todo el "
+            "bankroll en una sola selección; si ya hay posiciones correlacionadas "
+            "(p.ej. mismo jugador en MATCH_ODDS + set/juegos), exige más edge "
+            "conjunto o usa Wait/Close.\n"
+            "- Dimensiona el stake con el hint de Quarter-Kelly del resumen de "
+            "cartera; por defecto no superes ~10% del wallet en una sola apuesta ni "
+            "~35% de exposición total, salvo edge excepcional muy bien justificado.\n"
+            "- No aumentes stake por tilt ni para 'compensar' un Wait/Close previo; "
+            "cada timestep se evalúa solo con el edge actual.\n"
+            "- Preferible Wait a forzar Bet con edge marginal (<~3-5%). En cuotas "
+            "muy cortas (<~1.25) de cualquier mercado, el edge del LLM es frágil: "
+            "exige más convicción o Wait.\n"
+            "- En rationale/notes deja explícito: p_estimada, implícita (1/cuota), "
+            "edge, stake, stake% del wallet, market_family y por qué esa línea "
+            "bate a las alternativas consideradas (incluidas MATCH_ODDS y el resto).\n\n"
             f"match_id: {match_id}\n"
             f"Partido: {player} vs {opponent}\n"
             f"Torneo: {tournament}\n"
             f"Fecha: {match_date}\n"
             f"Saldo disponible: {wallet_balance}\n\n"
+            f"Resumen de cartera / capital:\n"
+            f"{json.dumps(capital_brief, ensure_ascii=False, indent=2)}\n\n"
+            f"Líneas abiertas (cuota e implícita; todas las familias):\n"
+            f"{json.dumps(market_lines, ensure_ascii=False, indent=2)}\n\n"
             f"Acciones anteriores:\n{json.dumps(state.get('previous_actions') or [], ensure_ascii=False, indent=2)}\n\n"
             f"Posiciones abiertas:\n{json.dumps(state.get('open_positions') or [], ensure_ascii=False, indent=2)}\n\n"
             f"Cuotas Betfair:\n{odds_report}\n\n"
@@ -588,6 +829,37 @@ def create_generalist_llm(deep_thinking_llm):
                 )
                 technical_fallback = True
             tool_call = response.tool_calls[0]
+            call_data = _call_data(tool_call)
+            if str(call_data.get("name") or "").lower() == "bet":
+                stake_value = _num((call_data.get("args") or {}).get("stake"), 0.0)
+                if stake_value is None or stake_value <= 0:
+                    tool_call = {
+                        "name": "Wait",
+                        "args": {
+                            "match_id": match_id,
+                            "rationale": (
+                                "Bet inválido: stake debe ser > 0. Se espera "
+                                "en lugar de apostar con stake nulo o negativo."
+                            ),
+                            "confidence": _num(
+                                (call_data.get("args") or {}).get("confidence"),
+                                0.5,
+                            )
+                            or 0.5,
+                            "next_trigger": (
+                                "Reformular Bet con stake positivo acotado "
+                                "al saldo y al sizing de cartera."
+                            ),
+                            "notes": (
+                                "Corrección automática: stake<=0 no está permitido."
+                            ),
+                        },
+                        "id": call_data.get("id") or "stake_guard_wait",
+                    }
+                    generalist_error = (
+                        (generalist_error + " | " if generalist_error else "")
+                        + "Bet con stake<=0 convertido a Wait."
+                    )
             response = AIMessage(content="", tool_calls=[tool_call])
             _execute_tool_call(tool_call)
         except Exception as exc:

@@ -34,7 +34,8 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8770/api/collector/stop
 - Si se acumulan varios snapshots, solo el más reciente y todavía fresco puede
   mutar el ledger. Los anteriores se registran en
   `analysis_superseded_batches`; un snapshot antiguo o de un partido terminado
-  se marca `stale_skipped`/`finished_unanalyzed`.
+  se marca `stale_skipped`/`finished_unanalyzed`. En `finished_unanalyzed` se
+  intenta un último análisis; si no hay turno, se escribe un Wait sintético.
 - Un snapshot con error se reintenta tres veces y después se reprograma con
   backoff persistente. **No** avanza `last_processed_snapshot_at`, por lo que
   no se pierde silenciosamente. Los pendientes se reanudan al reiniciar. Los
@@ -44,11 +45,21 @@ Invoke-RestMethod -Method Post http://127.0.0.1:8770/api/collector/stop
   `context.md`, `decision.md`, saldo y cursor se confirman de forma idempotente.
 - Un fallback técnico del LLM no se registra como `Wait` válido ni se acepta
   para entrenamiento.
-- Los JSONL de auditoría rotan al alcanzar 100 MB. Los snapshots tienen una
-  retención configurable de 20 000 por partido:
-  `TENNISAGENTS_SNAPSHOT_RETENTION_COUNT`. La poda solo elimina snapshots ya
-  analizados; si hay backlog se conserva el exceso y se marca
+- Los JSONL de auditoría rotan al alcanzar 100 MB. Los snapshots **no se podan
+  mientras el partido no esté `finished`**
+  (`TENNISAGENTS_SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED=true` por defecto). Al
+  liquidar, se compactan a como máximo
+  `TENNISAGENTS_SNAPSHOT_KEEP_AFTER_FINISH` (100) snapshots clave (primero,
+  último y muestra uniforme) para auditoría post-mortem. Si
+  `TENNISAGENTS_SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED=false`, vuelve el comportamiento
+  clásico con tope `TENNISAGENTS_SNAPSHOT_RETENTION_COUNT` (20 000) solo sobre
+  snapshots ya procesados; el exceso no procesable marca
   `snapshot_retention_blocked`.
+- Al detener el colector: drain breve (`TENNISAGENTS_SHUTDOWN_DRAIN_SEC`, 5s),
+  reconcile de partidos acabados, intento de Close/cash-out o liquidación por
+  marcador (`TENNISAGENTS_SETTLE_OPEN_POSITIONS_ON_SHUTDOWN=true`) y, si queda
+  algo abierto, void del stake
+  (`TENNISAGENTS_VOID_OPEN_POSITIONS_ON_SHUTDOWN`).
 
 ## Ejecución automática 24/7 en Windows
 
@@ -120,17 +131,55 @@ Los parámetros de análisis se pueden ajustar con:
 - `TENNISAGENTS_ANALYSIS_MAX_FAILURES_PER_SNAPSHOT` (por defecto `12`);
 - `TENNISAGENTS_PROVIDER_CIRCUIT_BREAKER_SEC` (por defecto `900`);
 - `TENNISAGENTS_ANALYST_REPORT_MIN_CHARS` (por defecto `1000`);
+- `TENNISAGENTS_ANALYSTS_MAX_RUNTIME_SEC` (por defecto `600`): no degrada
+  health por `missing_reports` mientras `analysts_running` dentro de este
+  límite; también acota reintentos in-process de analistas;
+- `TENNISAGENTS_ANALYSTS_IN_PROCESS_RETRIES` (por defecto `3`);
+- `TENNISAGENTS_ANALYSTS_RETRY_SLEEP_SEC` (por defecto `5`);
+- `TENNISAGENTS_CAPTURE_GAP_WARN_SEC` (por defecto `300`): log de gap si el
+  hueco entre ciclos supera el umbral (sleep/crash);
+- `TENNISAGENTS_NO_SNAPSHOT_ALERT_SEC` (por defecto `900`): alerta si hay
+  partidos activos y no llegan snapshots nuevos;
 - `TENNISAGENTS_MINIMUM_BET_EDGE` (por defecto `0.02`);
+- `TENNISAGENTS_MINIMUM_BET_STAKE` (por defecto `1.0`);
+- `TENNISAGENTS_MATCH_ODDS_SHORT_ODDS_MAX` (por defecto `1.25`);
+- `TENNISAGENTS_MATCH_ODDS_SHORT_MIN_EDGE` (por defecto `0.05`);
+- `TENNISAGENTS_MAX_STAKE_FRACTION` (por defecto `0.20`);
+- `TENNISAGENTS_MAX_TOTAL_EXPOSURE_FRACTION` (por defecto `0.50`);
+- `TENNISAGENTS_SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED` (por defecto `true`);
+- `TENNISAGENTS_SNAPSHOT_KEEP_AFTER_FINISH` (por defecto `100`);
+- `TENNISAGENTS_SETTLE_OPEN_POSITIONS_ON_SHUTDOWN` (por defecto `true`);
+- `TENNISAGENTS_SHUTDOWN_DRAIN_SEC` (por defecto `5`);
 - `TENNISAGENTS_AUDIT_LOG_MAX_BYTES` (por defecto `104857600`).
+
+Si un partido termina sin turno de generalista, el colector intenta un último
+análisis del snapshot más reciente; si falla, escribe un **Wait sintético**
+(`label_source=finished_unanalyzed` / `finished_without_generalist`) antes de
+avanzar el cursor, para no dejar partidos `finished` sin journal.
 
 ## Contabilidad simulada y políticas
 
 - El bankroll es una simulación aislada por partido, pensada para comparar
   trayectorias con el mismo saldo inicial; no representa una caja global real.
 - `Bet` se rechaza si falta Flashscore, no hay mercados abiertos, el mercado no
-  está abierto, la selección no existe, el stake supera el saldo o el edge
-  calculado es inferior al mínimo. Un marcador Flashscore retrasado (p.ej. 0-0
-  con mercados de set 2/3) ya no bloquea por sí solo.
+  está abierto, la selección no existe, el stake es ≤ 0 o inferior a
+  `TENNISAGENTS_MINIMUM_BET_STAKE` (por defecto 1), el stake supera el saldo, el
+  stake supera `TENNISAGENTS_MAX_STAKE_FRACTION` del wallet (por defecto 20%), la
+  exposición total supera `TENNISAGENTS_MAX_TOTAL_EXPOSURE_FRACTION` (por
+  defecto 50%), o el edge calculado es inferior al mínimo. En `MATCH_ODDS` con
+  cuota ≤ `TENNISAGENTS_MATCH_ODDS_SHORT_ODDS_MAX` (1.25) se exige edge ≥
+  `TENNISAGENTS_MATCH_ODDS_SHORT_MIN_EDGE` (5%). Un marcador Flashscore
+  retrasado (p.ej. 0-0 con mercados de set 2/3) ya no bloquea por sí solo.
+- El generalista convierte a Wait cualquier Bet con stake ≤ 0 antes de
+  persistir. Las líneas abiertas de **todas** las familias (incluido
+  MATCH_ODDS) se presentan como candidatas iguales; el prompt pide elegir la
+  de mejor EV, no prohibir ni forzar un tipo de mercado. El journal guarda
+  calibración homogénea: implícita, edge, stake% wallet/available y
+  `market_family`.
+- El generalista recibe un resumen de cartera y las líneas abiertas con
+  probabilidad implícita; debe comparar edges entre mercados, dimensionar con
+  quarter-Kelly aproximado y evitar concentración correlacionada de capital.
+  Las pérdidas de trayectoria son esperables hasta entrenar el modelo.
 - El matching de mercados acepta `market_type`, alias (`match_winner` →
   `MATCH_ODDS`) y el name visible en español del snapshot.
 - La cuota, probabilidad implícita, probabilidad estimada, edge, market ID,

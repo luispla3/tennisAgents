@@ -17,11 +17,22 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from collector.anti_block import cycle_interval
-from collector.config import DEFAULT_SPORT
+from collector.config import (
+    CAPTURE_GAP_WARN_SEC,
+    DEFAULT_SPORT,
+    NO_SNAPSHOT_ALERT_SEC,
+)
 from collector.control_signals import watch_stop_file
-from collector.paths import RUN_DIR
+from collector.paths import RUN_DIR, ensure_scraper_paths
+
+ensure_scraper_paths()
 from collector.snapshot import collect_once
-from collector.storage import _atomic_write_text, seconds_until_earliest_due
+from collector.storage import (
+    _atomic_write_text,
+    effective_is_live,
+    load_index,
+    seconds_until_earliest_due,
+)
 
 LAST_CYCLE_FILE = RUN_DIR / "collector.last_cycle"
 LOG_FILE = RUN_DIR / "collector.log"
@@ -49,6 +60,69 @@ def setup_logging() -> None:
 
 def _utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _parse_iso(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    try:
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt
+
+
+def _detect_capture_gap(log: logging.Logger) -> float | None:
+    """Devuelve el hueco en segundos si supera el umbral de aviso."""
+    if not LAST_CYCLE_FILE.exists():
+        return None
+    try:
+        previous = json.loads(LAST_CYCLE_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    last_at = _parse_iso(previous.get("last_cycle_at"))
+    if last_at is None:
+        return None
+    gap_sec = (datetime.now(timezone.utc) - last_at).total_seconds()
+    if gap_sec <= CAPTURE_GAP_WARN_SEC:
+        return None
+    log.warning(
+        "Gap de captura detectado: %.0fs desde el último ciclo completado "
+        "(umbral=%ss). Posible sleep/crash; se reconciliará al reanudar.",
+        gap_sec,
+        CAPTURE_GAP_WARN_SEC,
+    )
+    return round(gap_sec, 1)
+
+
+def _alert_stale_snapshots(log: logging.Logger, previous: dict) -> None:
+    """Alerta si hay partidos activos y no llegan snapshots nuevos."""
+    last_success = _parse_iso(previous.get("last_snapshot_success_at"))
+    if last_success is None:
+        return
+    quiet_sec = (datetime.now(timezone.utc) - last_success).total_seconds()
+    if quiet_sec <= NO_SNAPSHOT_ALERT_SEC:
+        return
+    try:
+        matches = load_index().get("matches") or {}
+    except Exception:
+        return
+    live_count = sum(
+        1
+        for entry in matches.values()
+        if isinstance(entry, dict) and effective_is_live(entry)
+    )
+    if live_count <= 0:
+        return
+    log.warning(
+        "Alerta: sin snapshots nuevos en %.0fs con %s partido(s) activo(s) "
+        "(umbral=%ss).",
+        quiet_sec,
+        live_count,
+        NO_SNAPSHOT_ALERT_SEC,
+    )
 
 
 class CycleHeartbeat:
@@ -86,6 +160,16 @@ class CycleHeartbeat:
         self.stop_event.set()
         self.thread.join(timeout=2)
         now = _utc_now_iso()
+        previous = {}
+        if LAST_CYCLE_FILE.exists():
+            try:
+                previous = json.loads(LAST_CYCLE_FILE.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                previous = {}
+        snaps = int(summary.get("snapshots", 0) or 0)
+        last_snapshot_success_at = previous.get("last_snapshot_success_at")
+        if snaps > 0:
+            last_snapshot_success_at = now
         payload = {
             "last_cycle_at": now,
             "heartbeat_at": now,
@@ -95,6 +179,7 @@ class CycleHeartbeat:
                 3,
             ),
             "cycle_state": state,
+            "last_snapshot_success_at": last_snapshot_success_at,
             **summary,
         }
         _atomic_write_text(LAST_CYCLE_FILE, json.dumps(payload, ensure_ascii=False))
@@ -160,6 +245,17 @@ def main() -> int:
 
     try:
         while not stop_event.is_set():
+            ensure_scraper_paths()
+            capture_gap_sec = _detect_capture_gap(log)
+            previous_cycle: dict = {}
+            if LAST_CYCLE_FILE.exists():
+                try:
+                    previous_cycle = json.loads(
+                        LAST_CYCLE_FILE.read_text(encoding="utf-8")
+                    )
+                except (OSError, json.JSONDecodeError):
+                    previous_cycle = {}
+            _alert_stale_snapshots(log, previous_cycle)
             heartbeat = CycleHeartbeat()
             heartbeat.start()
             try:
@@ -171,6 +267,8 @@ def main() -> int:
                         else None
                     ),
                 )
+                if capture_gap_sec is not None:
+                    summary["capture_gap_sec"] = capture_gap_sec
                 if analysis_runner is not None:
                     reconciled = analysis_runner.reconcile_finished_matches()
                     if reconciled:
@@ -206,6 +304,11 @@ def main() -> int:
                         "snapshots": 0,
                         "errors": 1,
                         "message": f"{type(exc).__name__}: {exc}",
+                        **(
+                            {"capture_gap_sec": capture_gap_sec}
+                            if capture_gap_sec is not None
+                            else {}
+                        ),
                     },
                     state="failed",
                 )
