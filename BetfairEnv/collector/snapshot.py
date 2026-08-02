@@ -15,6 +15,7 @@ from collector.anti_block import pause_between_requests, pause_between_sources
 from collector.config import (
     DEFAULT_LOCALE,
     DEFAULT_SPORT,
+    PURGE_ORPHAN_MATCH_DIRS,
     STALE_SNAPSHOT_HOURS,
     TRACK_GRACE_MINUTES,
     UNREACHABLE_STALE_MINUTES,
@@ -378,20 +379,47 @@ def _should_drop_entry(entry: dict[str, Any], now: datetime) -> bool:
     return False
 
 
+def _match_dir_has_training_artifacts(directory) -> bool:
+    """True si el dir guarda trayectoria/informes útiles para SFT o auditoría."""
+    if (directory / "generalist_turns.jsonl").exists():
+        return True
+    reports = directory / "reports"
+    if reports.is_dir() and any(reports.iterdir()):
+        return True
+    records = directory / "analysis_records"
+    if records.is_dir() and any(records.iterdir()):
+        return True
+    if (directory / "decision.md").exists() or (directory / "context.md").exists():
+        return True
+    return False
+
+
 def _purge_orphan_match_directories(
     active_event_ids: set[str],
     now: datetime,
 ) -> int:
-    """Elimina directorios de partido que ya no están en el índice activo."""
+    """
+    Elimina directorios de partido fuera del índice activo.
+
+    Desactivado por defecto (PURGE_ORPHAN_MATCH_DIRS=false): el dataset de
+    training vive en esos directorios tras salir del índice live. Aunque el
+    flag esté on, nunca borra dirs con turns/reports/analysis_records.
+    """
+    if not PURGE_ORPHAN_MATCH_DIRS:
+        return 0
     if not DATA_DIR.exists():
         return 0
     purged = 0
+    skipped_training = 0
     grace = timedelta(hours=STALE_SNAPSHOT_HOURS)
     for directory in DATA_DIR.iterdir():
         if not directory.is_dir() or not directory.name.isdigit():
             continue
         event_id = directory.name
         if event_id in active_event_ids:
+            continue
+        if _match_dir_has_training_artifacts(directory):
+            skipped_training += 1
             continue
         meta = load_meta(event_id)
         last_at = _parse_iso(meta.get("last_snapshot_at"))
@@ -403,6 +431,11 @@ def _purge_orphan_match_directories(
             log.info("Directorio huérfano purgado event_id=%s", event_id)
         except OSError as exc:
             log.warning("No se pudo purgar directorio huérfano %s: %s", event_id, exc)
+    if skipped_training:
+        log.info(
+            "Purga huérfanos: %s dir(s) conservados por artefactos de training",
+            skipped_training,
+        )
     return purged
 
 

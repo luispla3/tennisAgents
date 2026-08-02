@@ -55,6 +55,12 @@ SNAPSHOT_KEEP_AFTER_FINISH = max(
     5,
     _env_int("TENNISAGENTS_SNAPSHOT_KEEP_AFTER_FINISH", 100),
 )
+# Borrar directorios de partido fuera del índice activo. OFF por defecto:
+# esos dirs son el dataset de training (turns/reports) y no deben purgarse.
+PURGE_ORPHAN_MATCH_DIRS = _env_bool(
+    "TENNISAGENTS_PURGE_ORPHAN_MATCH_DIRS",
+    False,
+)
 
 # Hueco entre ciclos completados (p. ej. PC dormido / crash) → aviso en log.
 CAPTURE_GAP_WARN_SEC = max(

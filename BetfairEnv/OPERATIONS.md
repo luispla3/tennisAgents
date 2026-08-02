@@ -111,7 +111,8 @@ LLM por defecto (colector automático incluido):
 
 - Proveedor: `openrouter`
 - Backend: `https://openrouter.ai/api/v1`
-- Modelo: `deepseek/deepseek-v4-flash`
+- Analistas (`quick_think_llm`): `deepseek/deepseek-v4-flash-0731`
+- Generalista (`deep_think_llm`): `deepseek/deepseek-v4-flash`
 - Clave requerida: `OPENROUTER_API_KEY` en `.env`
 
 Sobrescribibles con:
@@ -148,6 +149,11 @@ Los parámetros de análisis se pueden ajustar con:
 - `TENNISAGENTS_MAX_TOTAL_EXPOSURE_FRACTION` (por defecto `0.50`);
 - `TENNISAGENTS_SNAPSHOT_PRUNE_ONLY_WHEN_FINISHED` (por defecto `true`);
 - `TENNISAGENTS_SNAPSHOT_KEEP_AFTER_FINISH` (por defecto `100`);
+- `TENNISAGENTS_PURGE_ORPHAN_MATCH_DIRS` (por defecto `false`): si `true`,
+  borra directorios de partido fuera del índice live tras
+  `TENNISAGENTS_STALE_SNAPSHOT_HOURS` (6 h). **Nunca** borra dirs con
+  `generalist_turns.jsonl`, reports o analysis_records. El clear manual de la
+  UI/API sigue siendo la única forma de vaciar el dataset a propósito;
 - `TENNISAGENTS_SETTLE_OPEN_POSITIONS_ON_SHUTDOWN` (por defecto `true`);
 - `TENNISAGENTS_SHUTDOWN_DRAIN_SEC` (por defecto `5`);
 - `TENNISAGENTS_AUDIT_LOG_MAX_BYTES` (por defecto `104857600`).

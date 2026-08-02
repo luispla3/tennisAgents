@@ -154,7 +154,8 @@ def select_shallow_thinking_agent(provider) -> str:
             ("Gemini 2.5 Flash - Adaptive thinking, cost efficiency", "gemini-2.5-flash-preview-05-20"),
         ],
         "openrouter": [
-            ("DeepSeek V4 Flash - Fast agentic model (RECOMMENDED)", "deepseek/deepseek-v4-flash"),
+            ("DeepSeek V4 Flash 0731 - Fast agentic model (RECOMMENDED)", "deepseek/deepseek-v4-flash-0731"),
+            ("DeepSeek V4 Flash - Fast agentic model", "deepseek/deepseek-v4-flash"),
             ("Nex AGI: Nex N2 Pro (free)", "nex-agi/nex-n2-pro:free"),
             ("Nvidia: Nemotron 3 Nano Omni 30B A3B Reasoning (free)", "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"),
             ("Meta: Llama 4 Scout", "meta-llama/llama-4-scout:free"),

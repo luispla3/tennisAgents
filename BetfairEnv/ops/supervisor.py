@@ -412,7 +412,7 @@ def _validate(*, network: bool = False, llm: bool = False) -> int:
         llm_backend = str(DEFAULT_CONFIG.get("backend_url") or "")
     except Exception:
         llm_provider = "openrouter"
-        llm_model = "deepseek/deepseek-v4-flash"
+        llm_model = "deepseek/deepseek-v4-flash-0731"
         llm_backend = "https://openrouter.ai/api/v1"
 
     credential_by_provider = {

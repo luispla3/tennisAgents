@@ -1833,6 +1833,62 @@ class ReliabilityTests(unittest.TestCase):
         self.assertEqual(turn["outcome"]["label_source"], "finished_unanalyzed")
         self.assertFalse(turn["outcome"]["accepted_for_training"])
 
+    def test_orphan_purge_disabled_by_default_keeps_training_dirs(self) -> None:
+        import collector.config as config_module
+        import collector.snapshot as snapshot_module
+        from datetime import datetime, timezone
+
+        with tempfile.TemporaryDirectory() as tmp:
+            data_dir = Path(tmp) / "data"
+            keep_dir = data_dir / "111"
+            empty_dir = data_dir / "222"
+            keep_dir.mkdir(parents=True)
+            empty_dir.mkdir(parents=True)
+            (keep_dir / "generalist_turns.jsonl").write_text(
+                "{}\n", encoding="utf-8"
+            )
+            (keep_dir / "meta.json").write_text("{}", encoding="utf-8")
+            (empty_dir / "meta.json").write_text(
+                json.dumps(
+                    {
+                        "last_snapshot_at": "2026-07-01T00:00:00+00:00",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            original_data = snapshot_module.DATA_DIR
+            original_storage_data = storage.DATA_DIR
+            original_flag = config_module.PURGE_ORPHAN_MATCH_DIRS
+            original_snap_flag = snapshot_module.PURGE_ORPHAN_MATCH_DIRS
+            snapshot_module.DATA_DIR = data_dir
+            storage.DATA_DIR = data_dir
+            try:
+                config_module.PURGE_ORPHAN_MATCH_DIRS = False
+                snapshot_module.PURGE_ORPHAN_MATCH_DIRS = False
+                purged = snapshot_module._purge_orphan_match_directories(
+                    set(),
+                    datetime(2026, 7, 30, tzinfo=timezone.utc),
+                )
+                self.assertEqual(purged, 0)
+                self.assertTrue(keep_dir.exists())
+                self.assertTrue(empty_dir.exists())
+
+                config_module.PURGE_ORPHAN_MATCH_DIRS = True
+                snapshot_module.PURGE_ORPHAN_MATCH_DIRS = True
+                purged = snapshot_module._purge_orphan_match_directories(
+                    set(),
+                    datetime(2026, 7, 30, tzinfo=timezone.utc),
+                )
+                self.assertEqual(purged, 1)
+                self.assertTrue(keep_dir.exists())
+                self.assertFalse(empty_dir.exists())
+            finally:
+                snapshot_module.DATA_DIR = original_data
+                storage.DATA_DIR = original_storage_data
+                config_module.PURGE_ORPHAN_MATCH_DIRS = original_flag
+                snapshot_module.PURGE_ORPHAN_MATCH_DIRS = original_snap_flag
+
     def test_ensure_scraper_paths_purges_foreign_modules(self) -> None:
         from collector import paths as paths_module
         import types

@@ -21,7 +21,7 @@ DEFAULT_DEEP_THINK_LLM = os.getenv(
 )
 DEFAULT_QUICK_THINK_LLM = os.getenv(
     "TENNISAGENTS_QUICK_THINK_LLM",
-    "deepseek/deepseek-v4-flash",
+    "deepseek/deepseek-v4-flash-0731",
 )
 
 
