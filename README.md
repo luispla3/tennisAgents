@@ -80,6 +80,33 @@ Or create a:
 .env
 ```
 
+### Optional: additional live-match source
+
+The Match Live analyst uses Sportradar by default. You can optionally give it a
+second source, the Live Tennis API, by setting one variable:
+
+```bash
+export LIVETENNISAPI_KEY=$YOUR_LIVETENNISAPI_KEY
+```
+
+If the variable is not set, nothing changes: no extra tool is registered, no
+extra request is made, and the analyst behaves exactly as before. When it is
+set, the analyst gains `get_match_live_data_livetennis` **in addition to**
+`get_match_live_data`, and is told to treat it as a complement rather than a
+replacement, to attribute every figure to its source, and to flag disagreements
+instead of averaging them. No new package is required (`requests` is already a
+dependency).
+
+That source covers ATP, WTA, Challenger, ITF and the junior Grand Slam draws.
+It provides the match, the live score and, on its higher tiers, in-play
+statistics. It does **not** provide head-to-head, bookmaker odds, career-level
+per-player serve/return splits, or tournament/venue records, so those parts of
+the analysis continue to come from where they come from today. Fields it cannot
+supply are reported as "no disponible" and are never zero-filled.
+
+Disclosure: livetennisapi.com is maintained by the author of this addition.
+Docs: <https://livetennisapi.com> · spec: <https://github.com/livetennisapi/openapi>
+
 ### CLI Usage
 
 You can try out the CLI directly by running:

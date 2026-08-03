@@ -9,6 +9,7 @@ from .interface import (
     get_injury_reports,
     get_weather_forecast,
     get_match_live_data,
+    get_match_live_data_livetennis,
 )
 
 __all__ = [
@@ -22,4 +23,5 @@ __all__ = [
     "get_injury_reports",
     "get_weather_forecast",
     "get_match_live_data",
+    "get_match_live_data_livetennis",
 ]

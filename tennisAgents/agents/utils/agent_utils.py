@@ -197,3 +197,51 @@ class Toolkit:
             - Los datos vienen formateados y listos para que el agente los analice
         """
         return interface.get_match_live_data(player_a, player_b, tournament)
+
+
+    @tool
+    def get_match_live_data_livetennis(
+        player_a: Annotated[str, "Nombre del primer jugador (puede ser parcial, ej: 'Alcaraz')"],
+        player_b: Annotated[str, "Nombre del segundo jugador (puede ser parcial, ej: 'Sinner')"],
+        tournament: Annotated[str, "Nombre del torneo (opcional, ej: 'Australian Open')"]
+    ) -> str:
+        """
+        Fuente ADICIONAL y OPCIONAL de datos en vivo: Live Tennis API.
+
+        Es un complemento de get_match_live_data (Sportradar), NO un sustituto.
+        Úsala cuando la fuente por defecto no encuentre el partido, o cuando
+        quieras una segunda lectura del marcador y de las estadísticas.
+        Solo está registrada si LIVETENNISAPI_KEY está configurada.
+
+        Qué devuelve:
+        1. Información básica (jugadores, torneo como texto libre, superficie,
+           ronda, formato, estado)
+        2. Marcador actual: sets, desglose por juegos, puntos del juego, quién saca
+        3. Estadísticas en juego en DOS familias separadas a propósito:
+           - DERIVADA: reconstruida del registro punto a punto (juegos de
+             servicio/resto, % de hold y break, break points, puntos)
+           - MEDIDA: contada aguas arriba (aces, dobles faltas, split de primer y
+             segundo servicio, ganadores y errores no forzados)
+           Ambas nombran algunas magnitudes iguales calculadas de dos maneras
+           distintas: es una comprobación cruzada, no una duplicación.
+
+        Cobertura: ATP, WTA, Challenger, ITF y cuadros junior de Grand Slam.
+
+        Returns:
+            Reporte estructurado en texto listo para analizar.
+
+        Note:
+            LÍMITES QUE DEBES RESPETAR AL LEER EL REPORTE:
+            - Esta fuente NO tiene head-to-head, ni cuotas de casa de apuestas, ni
+              estadísticas de saque/resto por jugador a nivel de carrera, ni datos
+              de torneo o sede. No los pidas aquí.
+            - Un campo marcado como "no disponible" significa exactamente eso: no
+              vale cero y no debes estimarlo ni deducirlo del marcador.
+            - Un partido finalizado puede venir sin desglose de juegos; el reporte
+              lo dirá en lugar de reconstruirlo.
+            - Las estadísticas en juego requieren un nivel de suscripción alto; si
+              la clave no llega, el reporte lo dice y el resto sigue siendo válido.
+            - Las dos antigüedades ("derivada" y "medida") usan relojes distintos y
+              no deben compararse entre sí.
+        """
+        return interface.get_match_live_data_livetennis(player_a, player_b, tournament)

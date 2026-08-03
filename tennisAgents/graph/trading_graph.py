@@ -11,6 +11,8 @@ from langchain_google_genai import ChatGoogleGenerativeAI
 
 from langgraph.prebuilt import ToolNode
 
+from tennisAgents.dataflows.livetennis_utils import livetennis_is_configured
+
 from tennisAgents.agents import *
 from tennisAgents.default_config import DEFAULT_CONFIG
 from tennisAgents.agents.utils.memory import TennisSituationMemory
@@ -249,6 +251,12 @@ class TennisAgentsGraph:
                 [
                     self.toolkit.get_match_live_data,
                 ]
+                # Fuente adicional opcional: solo si LIVETENNISAPI_KEY está definida.
+                + (
+                    [self.toolkit.get_match_live_data_livetennis]
+                    if livetennis_is_configured()
+                    else []
+                )
             ),
         }
 

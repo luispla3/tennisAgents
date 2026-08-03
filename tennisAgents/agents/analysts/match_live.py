@@ -1,5 +1,6 @@
 from tennisAgents.utils.enumerations import *
 from tennisAgents.agents.utils.prompt_anatomy import PromptBuilder, TennisAnalystAnatomies
+from tennisAgents.dataflows.livetennis_utils import livetennis_is_configured
 
 def create_match_live_analyst(llm, toolkit):
     def match_live_analyst_node(state):
@@ -23,6 +24,13 @@ def create_match_live_analyst(llm, toolkit):
         # Herramienta para obtener datos reales del partido en vivo desde Sportradar API
         tools = [toolkit.get_match_live_data]
 
+        # Fuente adicional OPCIONAL: solo se añade si LIVETENNISAPI_KEY está
+        # configurada. Sin esa variable la lista de herramientas y el prompt son
+        # exactamente los de siempre.
+        use_livetennis = livetennis_is_configured()
+        if use_livetennis:
+            tools.append(toolkit.get_match_live_data_livetennis)
+
         # Obtener la anatomía del prompt para analista de partidos en vivo
         anatomy = TennisAnalystAnatomies.match_live_analyst()
 
@@ -31,6 +39,12 @@ def create_match_live_analyst(llm, toolkit):
             "• get_match_live_data(player_a, player_b, tournament) - Obtiene información en tiempo real del partido desde Sportradar API, "
             "incluyendo marcador actual, estadísticas detalladas y análisis del partido"
         )
+
+        if use_livetennis:
+            tools_info += (
+                "\n• get_match_live_data_livetennis(player_a, player_b, tournament) - Fuente ADICIONAL "
+                "y opcional (Live Tennis API). Complementa a la anterior; no la sustituye"
+            )
 
         # Contexto adicional específico para la obtención de datos en vivo
         additional_context = (
@@ -150,6 +164,22 @@ def create_match_live_analyst(llm, toolkit):
             "- Usa tablas markdown para comparar estadísticas cuando sea apropiado\n"
             "- Interpreta los datos y proporciona análisis, no solo repitas los números\n"
         )
+
+        if use_livetennis:
+            additional_context += (
+                "\n\nFUENTE ADICIONAL OPCIONAL (Live Tennis API):\n"
+                "   Además de Sportradar tienes 'get_match_live_data_livetennis'. Es un\n"
+                "   COMPLEMENTO, no un reemplazo. Úsala si Sportradar no encuentra el\n"
+                "   partido, o para contrastar marcador y estadísticas.\n"
+                "   REGLAS AL USARLA:\n"
+                "   - No mezcles cifras de las dos fuentes en la misma fila de la tabla. Si\n"
+                "     usas la fuente adicional, di de dónde sale cada número.\n"
+                "   - Si las dos fuentes discrepan, dilo explícitamente; no promedies.\n"
+                "   - Un campo que venga como 'no disponible' NO vale cero: déjalo como no\n"
+                "     disponible en la tabla en lugar de estimarlo o deducirlo del marcador.\n"
+                "   - Esta fuente no ofrece head-to-head, cuotas de casa de apuestas, ni\n"
+                "     estadísticas de carrera por jugador. No se las pidas.\n"
+            )
 
         # Crear prompt estructurado usando la anatomía
         prompt = PromptBuilder.create_structured_prompt(

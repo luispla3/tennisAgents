@@ -1,5 +1,10 @@
 from .odds_utils import fetch_betfair_odds
 from .match_live_utils import fetch_match_live_data, format_match_live_report
+from .livetennis_utils import (
+    fetch_livetennis_match_data,
+    format_livetennis_match_report,
+    livetennis_is_configured,
+)
 from .news_utils import fetch_news
 from .player_utils import fetch_atp_rankings, fetch_recent_matches, fetch_surface_winrate, fetch_head_to_head, fetch_injury_reports
 from .weather_utils import fetch_weather_forecast, format_weather_report
@@ -278,3 +283,45 @@ def get_match_live_data(player_a: str, player_b: str, tournament: str) -> str:
     except Exception as e:
         return f"Error al obtener datos del partido en vivo: {str(e)}\n\n" \
                f"Verifica que la API key de Sportradar (SPORTRADAR_API_KEY) esté configurada correctamente en el archivo .env"
+
+def get_match_live_data_livetennis(player_a: str, player_b: str, tournament: str = "") -> str:
+    """
+    Fuente ADICIONAL y OPCIONAL de datos de partido en vivo: Live Tennis API.
+
+    No sustituye a `get_match_live_data` (Sportradar), que sigue siendo la fuente
+    por defecto. Esta función solo hace algo si la variable de entorno
+    `LIVETENNISAPI_KEY` está definida; si no lo está, devuelve un aviso y no
+    realiza ninguna llamada de red.
+
+    Cobertura: ATP, WTA, Challenger, ITF y los cuadros junior de Grand Slam.
+
+    Args:
+        player_a (str): Nombre del primer jugador (puede ser parcial)
+        player_b (str): Nombre del segundo jugador (puede ser parcial)
+        tournament (str): Nombre del torneo (opcional, solo sirve para desempatar)
+
+    Returns:
+        str: Reporte estructurado con la información del partido, el marcador y,
+             si el nivel de la suscripción lo permite, las estadísticas en juego.
+
+    Note:
+        Lo que esta fuente NO tiene, y por tanto nunca aparecerá en el reporte:
+        head-to-head, cuotas de casa de apuestas, estadísticas de saque/resto por
+        jugador a nivel de carrera, y datos de torneo o sede (el torneo es texto
+        libre, sin id). Un campo marcado como "no disponible" no vale cero.
+    """
+    if not livetennis_is_configured():
+        return (
+            "La fuente opcional Live Tennis API no está configurada "
+            "(falta LIVETENNISAPI_KEY). Usa la herramienta get_match_live_data "
+            "de Sportradar, que es la fuente por defecto."
+        )
+
+    try:
+        match_data = fetch_livetennis_match_data(player_a, player_b, tournament or None)
+        return format_livetennis_match_report(match_data)
+    except Exception as e:
+        return (
+            f"Error al obtener datos del partido desde Live Tennis API: {str(e)}\n\n"
+            "Esta fuente es opcional: puedes continuar con get_match_live_data (Sportradar)."
+        )

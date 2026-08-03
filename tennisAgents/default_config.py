@@ -47,5 +47,13 @@ DEFAULT_CONFIG = {
     "sportradar_language": "en",  # idioma por defecto
     "sportradar_request_delay": 1.0,  # delay entre solicitudes (segundos) - TTL de 1 segundo
     "sportradar_max_retries": 3,  # número máximo de reintentos en caso de error
-    "sportradar_retry_delay": 5  # delay inicial para reintentos (segundos)
+    "sportradar_retry_delay": 5,  # delay inicial para reintentos (segundos)
+
+    # Live Tennis API settings (fuente OPCIONAL y adicional de partido en vivo).
+    # Solo se activa si LIVETENNISAPI_KEY está definida. Sin esa variable el
+    # comportamiento del framework es exactamente el de siempre (Sportradar).
+    "livetennis_base_url": "https://api.livetennisapi.com/api/public/v1",
+    "livetennis_api_timeout": 30,  # segundos
+    "livetennis_max_retries": 1,  # reintentos solo ante 429, respetando Retry-After
+    "livetennis_max_retry_wait": 10  # tope de espera del reintento (segundos)
 }
