@@ -12,6 +12,11 @@ from collector.paths import DATA_DIR, ensure_scraper_paths
 ensure_scraper_paths()
 
 from collector.anti_block import pause_between_requests, pause_between_sources
+from collector.betfair_exchange import (
+    build_exchange_section,
+    fetch_exchange_match_odds_by_event,
+    tag_sportsbook_section,
+)
 from collector.config import (
     DEFAULT_LOCALE,
     DEFAULT_SPORT,
@@ -150,6 +155,8 @@ def _capture_snapshot(
     *,
     sport: str,
     locale: str,
+    exchange_odds_by_event: dict[str, dict[str, Any]] | None = None,
+    exchange_fetch_error: str | None = None,
 ) -> dict[str, Any]:
     event_id_int = int(entry.get("betfair_event_id") or event_id)
     pause_between_requests()
@@ -177,8 +184,15 @@ def _capture_snapshot(
         )
 
     bf_match = betfair_match or {"player1": entry.get("player1"), "player2": entry.get("player2")}
-    betfair_section = _build_betfair_section(event_data, bf_match)
+    betfair_section = tag_sportsbook_section(
+        _build_betfair_section(event_data, bf_match)
+    )
     live_score = betfair_section.get("live_score")
+    exchange_section = build_exchange_section(
+        event_id_int,
+        exchange_odds_by_event or {},
+        fetch_error=exchange_fetch_error,
+    )
 
     timestamp = _utc_now_iso()
     return {
@@ -186,6 +200,7 @@ def _capture_snapshot(
         "betfair_event_id": event_id_int,
         "flashscore_match_id": (fs_data or {}).get("id") or entry.get("flashscore_match_id"),
         "betfair": betfair_section,
+        "betfair_exchange": exchange_section,
         "flashscore": _build_flashscore_section(
             fs_data or {},
             stats,
@@ -508,10 +523,29 @@ def collect_once(
         if _should_drop_entry(matches[event_id], now):
             del matches[event_id]
 
-    for event_id, entry in list(matches.items()):
-        if not is_snapshot_due(entry, now):
-            continue
+    due_entries = [
+        (event_id, entry)
+        for event_id, entry in list(matches.items())
+        if is_snapshot_due(entry, now)
+    ]
+    exchange_odds_by_event: dict[str, dict[str, Any]] = {}
+    exchange_fetch_error: str | None = None
+    if due_entries:
+        exchange_odds_by_event, exchange_fetch_error = (
+            fetch_exchange_match_odds_by_event()
+        )
+        if exchange_fetch_error:
+            log.warning(
+                "Exchange no disponible este ciclo; snapshots seguirán con Sportsbook (%s)",
+                exchange_fetch_error,
+            )
+        else:
+            log.info(
+                "Exchange MATCH_ODDS cargados para %s evento(s) in-play",
+                len(exchange_odds_by_event),
+            )
 
+    for event_id, entry in due_entries:
         bf_match = betfair_by_id.get(event_id)
         fs_match = None
         fs_id = entry.get("flashscore_match_id")
@@ -531,6 +565,8 @@ def collect_once(
                 fs_match,
                 sport=sport,
                 locale=locale,
+                exchange_odds_by_event=exchange_odds_by_event,
+                exchange_fetch_error=exchange_fetch_error,
             )
             save_snapshot(event_id, snapshot)
             schedule_next_snapshot(entry)

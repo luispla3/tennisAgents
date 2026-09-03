@@ -399,7 +399,8 @@ class AutomatedAnalysisRunner:
     Ejecuta el análisis automático asociado a los snapshots del colector.
 
     Los analistas se ejecutan una sola vez por event_id. El generalista se
-    ejecuta una vez por cada snapshot y conserva su contexto en context.md.
+    ejecuta una vez por cada snapshot y conserva su contexto en context.md,
+    salvo con skip_generalist=True (recolección RL: solo reports + snapshots).
     """
 
     def __init__(self) -> None:
@@ -430,9 +431,12 @@ class AutomatedAnalysisRunner:
             thread_name_prefix="tennis-analysis",
         )
         log.info(
-            "LLM automático: provider=%s model=%s backend=%s",
+            "LLM automático: provider=%s analysts=%s generalist=%s "
+            "skip_generalist=%s backend=%s",
             self.config.get("llm_provider"),
+            self.config.get("quick_think_llm"),
             self.config.get("deep_think_llm"),
+            bool(self.config.get("skip_generalist")),
             self.config.get("backend_url"),
         )
 
@@ -1059,7 +1063,7 @@ class AutomatedAnalysisRunner:
         ):
             return False
 
-        if not self._has_generalist_turns(event_id):
+        if not self._skip_generalist() and not self._has_generalist_turns(event_id):
             self._ensure_terminal_wait_turn(
                 event_id,
                 entry,
@@ -1346,6 +1350,40 @@ class AutomatedAnalysisRunner:
         except OSError:
             return False
 
+    def _skip_generalist(self) -> bool:
+        return bool(self.config.get("skip_generalist"))
+
+    def _commit_snapshot_without_generalist(
+        self,
+        event_id: str,
+        meta: dict[str, Any],
+        cursor_timestamp: str,
+    ) -> None:
+        """Avanza el cursor tras analistas (o snaps posteriores) sin generalista."""
+        meta["analysis_status"] = "running"
+        meta["last_processed_snapshot_at"] = cursor_timestamp
+        meta["last_analysis_at"] = _utc_now_iso()
+        for key in (
+            "analysis_current_snapshot_at",
+            "analysis_current_started_at",
+            "analysis_error",
+            "analysis_error_at",
+            "analysis_failure_snapshot_at",
+            "analysis_failure_count",
+            "analysis_next_retry_at",
+            "analysis_degraded_reason",
+            "last_policy_rejection_reason",
+        ):
+            meta.pop(key, None)
+        self._save_analysis_meta(event_id, meta)
+        log.info(
+            "Snapshot procesado sin generalista event_id=%s cursor=%s "
+            "analysts_completed=%s",
+            event_id,
+            cursor_timestamp,
+            bool(meta.get("analysts_completed")),
+        )
+
     def _ensure_terminal_wait_turn(
         self,
         event_id: str,
@@ -1603,13 +1641,14 @@ class AutomatedAnalysisRunner:
                                 event_id,
                                 exc,
                             )
-                        self._ensure_terminal_wait_turn(
-                            event_id,
-                            entry,
-                            reason=reason,
-                            snapshot_timestamp=latest_timestamp,
-                            label_source=skip_status,
-                        )
+                        if not self._skip_generalist():
+                            self._ensure_terminal_wait_turn(
+                                event_id,
+                                entry,
+                                reason=reason,
+                                snapshot_timestamp=latest_timestamp,
+                                label_source=skip_status,
+                            )
                     self._mark_snapshots_superseded(
                         event_id,
                         pending,
@@ -2612,8 +2651,16 @@ class AutomatedAnalysisRunner:
             meta["analysts_completed"] = True
             meta.pop("analyst_report_errors", None)
             meta["analysts_completed_at"] = _utc_now_iso()
-            meta["analysis_status"] = "generalist_running"
+            meta["analysis_status"] = (
+                "running" if self._skip_generalist() else "generalist_running"
+            )
             self._save_analysis_meta(event_id, meta)
+
+        if self._skip_generalist():
+            self._commit_snapshot_without_generalist(
+                event_id, meta, cursor_timestamp
+            )
+            return
 
         state = self._build_state(event_id, snapshot, entry, meta, reports)
         meta["analysis_status"] = "generalist_running"

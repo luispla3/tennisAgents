@@ -115,12 +115,21 @@ LLM por defecto (colector automático incluido):
 - Generalista (`deep_think_llm`): `deepseek/deepseek-v4-flash`
 - Clave requerida: `OPENROUTER_API_KEY` en `.env`
 
+Modo recolección RL (por defecto en esta rama):
+
+- `TENNISAGENTS_SKIP_GENERALIST=true`: captura snapshots y ejecuta los 4
+  analistas una vez por partido; **no** llama al generalista ni escribe
+  `generalist_turns.jsonl` / apuestas. Los snapshots posteriores solo
+  avanzan el cursor. Para volver al trading simulado:
+  `TENNISAGENTS_SKIP_GENERALIST=false`.
+
 Sobrescribibles con:
 
 - `TENNISAGENTS_LLM_PROVIDER`
 - `TENNISAGENTS_LLM_BASE_URL`
 - `TENNISAGENTS_DEEP_THINK_LLM`
 - `TENNISAGENTS_QUICK_THINK_LLM`
+- `TENNISAGENTS_SKIP_GENERALIST`
 
 Los parámetros de análisis se pueden ajustar con:
 
@@ -137,10 +146,34 @@ Los parámetros de análisis se pueden ajustar con:
   límite; también acota reintentos in-process de analistas;
 - `TENNISAGENTS_ANALYSTS_IN_PROCESS_RETRIES` (por defecto `3`);
 - `TENNISAGENTS_ANALYSTS_RETRY_SLEEP_SEC` (por defecto `5`);
+- `TENNISAGENTS_SKIP_GENERALIST` (por defecto `true`): solo analistas +
+  snapshots; sin generalista ni Wait sintético al cierre;
 - `TENNISAGENTS_CAPTURE_GAP_WARN_SEC` (por defecto `300`): log de gap si el
   hueco entre ciclos supera el umbral (sleep/crash);
 - `TENNISAGENTS_NO_SNAPSHOT_ALERT_SEC` (por defecto `900`): alerta si hay
   partidos activos y no llegan snapshots nuevos;
+
+### Betfair Sportsbook + Exchange
+
+Cada snapshot guarda:
+
+- `betfair` → cuotas **Sportsbook** (scraping web). Campos marcados con
+  `"book": "SPORTSBOOK"` (sección, mercados y runners).
+- `betfair_exchange` → **MATCH_ODDS** del **Exchange** API oficial. Marcado con
+  `"book": "EXCHANGE"`. Incluye `match_odds.runners[].best_back` /
+  `best_lay` / `last_price_traded`. Si no hay mercado o falla auth, el snapshot
+  Sportsbook sigue igual y `betfair_exchange.error` describe el problema.
+
+Credenciales Exchange en `betfairAPI/.env` (`BETFAIR_USERNAME`,
+`BETFAIR_PASSWORD`; con 2FA: contraseña+código). El token se cachea en
+`betfairAPI/.session_token`. Login manual de prueba:
+
+```powershell
+cd ..\betfairAPI
+python login.py
+python test_inplay_tennis.py
+```
+
 - `TENNISAGENTS_MINIMUM_BET_EDGE` (por defecto `0.02`);
 - `TENNISAGENTS_MINIMUM_BET_STAKE` (por defecto `1.0`);
 - `TENNISAGENTS_MATCH_ODDS_SHORT_ODDS_MAX` (por defecto `1.25`);
@@ -158,10 +191,11 @@ Los parámetros de análisis se pueden ajustar con:
 - `TENNISAGENTS_SHUTDOWN_DRAIN_SEC` (por defecto `5`);
 - `TENNISAGENTS_AUDIT_LOG_MAX_BYTES` (por defecto `104857600`).
 
-Si un partido termina sin turno de generalista, el colector intenta un último
-análisis del snapshot más reciente; si falla, escribe un **Wait sintético**
+Si un partido termina sin turno de generalista y
+`TENNISAGENTS_SKIP_GENERALIST=false`, el colector intenta un último análisis
+del snapshot más reciente; si falla, escribe un **Wait sintético**
 (`label_source=finished_unanalyzed` / `finished_without_generalist`) antes de
-avanzar el cursor, para no dejar partidos `finished` sin journal.
+avanzar el cursor. Con `skip_generalist=true` no se escribe ese Wait.
 
 ## Contabilidad simulada y políticas
 
@@ -237,9 +271,31 @@ informes o hay backlog creciente.
   apagado o instalando actualizaciones. Después del arranque se recupera solo,
   pero habrá un hueco en los snapshots durante esa interrupción. Para cero
   interrupciones hace falta ejecutar el proyecto en un servidor siempre activo.
-- En este equipo la suspensión conectado a corriente está desactivada. En
-  batería Windows puede suspenderse; para operación continua debe permanecer
-  conectado a corriente.
+- Perfil always-on (recomendado en este PC):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\ops\configure_always_on.ps1
+powershell -ExecutionPolicy Bypass -File .\ops\configure_always_on.ps1 -Action status
+```
+
+  Activa **Equilibrado**, pone suspensión/hibernación en **nunca** (AC y
+  batería), desactiva suspensión híbrida y deja la tapa en “no hacer nada” si
+  aplica. Además el supervisor llama a `SetThreadExecutionState` mientras corre
+  para que Windows no suspenda el equipo. Sigue haciendo falta no apagar el PC
+  manualmente y, si es portátil, preferible enchufado.
+
+- Ventana de descanso programada (hibernar/sleep + despertar), p. ej. mañana
+  08:00 → 15:30:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\ops\schedule_power_nap.ps1 -Action schedule -OffTime 08:00 -OnTime 15:30 -Date 2026-08-06
+powershell -ExecutionPolicy Bypass -File .\ops\schedule_power_nap.ps1 -Action status
+powershell -ExecutionPolicy Bypass -File .\ops\schedule_power_nap.ps1 -Action cancel
+```
+
+  No usa apagado total: desde `shutdown` el PC casi nunca se enciende solo.
+  Hiberna (o sleep S3) y una tarea con `WakeToRun` lo despierta y relanza el
+  supervisor.
 - Hay que verificar límites, saldo y disponibilidad de Betfair, Flashscore,
   proveedores meteorológicos y del LLM. Un proveedor caído no debe interpretarse
   como una señal de apuesta válida.

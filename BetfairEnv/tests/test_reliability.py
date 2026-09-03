@@ -1319,6 +1319,138 @@ class ReliabilityTests(unittest.TestCase):
             watcher.join(timeout=2)
             self.assertFalse(watcher.is_alive())
 
+    def test_skip_generalist_advances_cursor_without_turns(self) -> None:
+        class FakeGraph:
+            propagator = Propagator()
+            generalist_calls = 0
+
+            def run_analysts_once(self, _state):
+                reports = {
+                    key: f"# {key}\n" + ("evidencia " * 150)
+                    for key in analysis_module.REPORT_KEYS
+                }
+                return {
+                    **reports,
+                    "analyst_errors": {},
+                    "analysts_completed_count": 4,
+                    "analysts_expected_count": 4,
+                }
+
+            def run_generalist_timestep(self, _state):
+                FakeGraph.generalist_calls += 1
+                raise AssertionError("El generalista no debe ejecutarse")
+
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            storage.DATA_DIR = Path(temporary)
+            analysis_module.DATA_DIR = Path(temporary)
+            try:
+                FakeGraph.generalist_calls = 0
+                engine = runner(skip_generalist=True)
+                engine.config.update(
+                    {
+                        "project_dir": str(PROJECT_ROOT),
+                        "results_dir": temporary,
+                        "analyst_report_min_chars": 1000,
+                        "tool_outputs_log": str(
+                            Path(temporary) / "tool_outputs.jsonl"
+                        ),
+                    }
+                )
+                engine._get_graph = lambda: FakeGraph()
+                current_snapshot = snapshot()
+                entry = {
+                    "player1": "Player A",
+                    "player2": "Player B",
+                    "competition": "Test",
+                    "is_live": True,
+                }
+                cursor_1 = "2026-08-02T10:00:00.000000+00:00"
+                cursor_2 = "2026-08-02T10:02:00.000000+00:00"
+                engine._process_snapshot(
+                    "555",
+                    current_snapshot,
+                    entry,
+                    cursor_1,
+                )
+                second_snapshot = snapshot()
+                second_snapshot["timestamp"] = cursor_2
+                engine._process_snapshot(
+                    "555",
+                    second_snapshot,
+                    entry,
+                    cursor_2,
+                )
+                committed_meta = storage.load_meta("555")
+                event_dir = storage.match_dir("555")
+                turns_path = event_dir / "generalist_turns.jsonl"
+                reports_dir = event_dir / "reports"
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+            self.assertEqual(FakeGraph.generalist_calls, 0)
+            self.assertEqual(
+                committed_meta["last_processed_snapshot_at"],
+                cursor_2,
+            )
+            self.assertTrue(committed_meta.get("analysts_completed"))
+            self.assertEqual(committed_meta.get("analysis_status"), "running")
+            self.assertFalse(turns_path.exists())
+            for key in analysis_module.REPORT_KEYS:
+                self.assertTrue((reports_dir / f"{key}.md").exists())
+            self.assertFalse(
+                list((event_dir / "analysis_records").glob("*.json"))
+                if (event_dir / "analysis_records").exists()
+                else []
+            )
+
+    def test_skip_generalist_finished_skips_synthetic_wait(self) -> None:
+        engine = runner(skip_generalist=True)
+        _bind_runner_persistence(engine)
+        with tempfile.TemporaryDirectory() as temporary:
+            original_storage_data_dir = storage.DATA_DIR
+            original_analysis_data_dir = analysis_module.DATA_DIR
+            storage.DATA_DIR = Path(temporary)
+            analysis_module.DATA_DIR = Path(temporary)
+            try:
+                storage.match_dir("556").mkdir(parents=True, exist_ok=True)
+                storage.save_meta(
+                    "556",
+                    {
+                        "analysts_completed": True,
+                        "analysis_status": "running",
+                        "last_snapshot_at": "2026-08-02T11:00:00+00:00",
+                        "last_processed_snapshot_at": "2026-08-02T11:00:00+00:00",
+                        "wallet_balance": 100.0,
+                        "available_balance": 100.0,
+                        "open_positions": [],
+                        "previous_actions": [],
+                        "position_history": [],
+                    },
+                )
+                engine._reconcile_finished_match(
+                    "556",
+                    {
+                        "player1": "A",
+                        "player2": "B",
+                        "finished_at": "2026-08-02T12:00:00+00:00",
+                        "is_finished": True,
+                        "winner": "A",
+                        "score": "6-4 6-4",
+                    },
+                )
+                turns_path = storage.match_dir("556") / "generalist_turns.jsonl"
+                turns_after = (
+                    turns_path.exists() and turns_path.stat().st_size > 0
+                )
+            finally:
+                storage.DATA_DIR = original_storage_data_dir
+                analysis_module.DATA_DIR = original_analysis_data_dir
+
+            self.assertFalse(turns_after)
+
     def test_snapshot_commit_is_end_to_end_idempotent(self) -> None:
         class FakeGraph:
             propagator = Propagator()
@@ -1355,7 +1487,7 @@ class ReliabilityTests(unittest.TestCase):
             storage.DATA_DIR = Path(temporary)
             analysis_module.DATA_DIR = Path(temporary)
             try:
-                engine = runner()
+                engine = runner(skip_generalist=False)
                 engine.config.update(
                     {
                         "project_dir": str(PROJECT_ROOT),

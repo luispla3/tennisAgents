@@ -120,6 +120,9 @@ DEFAULT_CONFIG = {
         1,
         _env_int("TENNISAGENTS_ANALYSTS_RETRY_SLEEP_SEC", 5),
     ),
+    # Rama RL / recolección: snapshots + 4 informes; sin generalista ni apuestas.
+    # Para trading simulado: TENNISAGENTS_SKIP_GENERALIST=false.
+    "skip_generalist": _env_bool("TENNISAGENTS_SKIP_GENERALIST", True),
     "minimum_bet_edge": max(
         0.0,
         _env_float("TENNISAGENTS_MINIMUM_BET_EDGE", 0.02),

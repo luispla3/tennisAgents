@@ -47,7 +47,34 @@ STALE_AFTER_SEC = _env_int("TENNISAGENTS_COLLECTOR_STALE_SEC", 180, 90)
 API_START_TIMEOUT_SEC = _env_int("TENNISAGENTS_API_START_TIMEOUT_SEC", 30, 5)
 CREATE_NO_WINDOW = getattr(subprocess, "CREATE_NO_WINDOW", 0)
 
+# Win32: impedir suspensión/hibernación mientras el supervisor corre.
+_ES_CONTINUOUS = 0x80000000
+_ES_SYSTEM_REQUIRED = 0x00000001
+_ES_AWAYMODE_REQUIRED = 0x00000040
+
 log = logging.getLogger("betfairenv.supervisor")
+
+
+def _set_execution_state(flags: int) -> None:
+    if sys.platform != "win32":
+        return
+    try:
+        import ctypes
+
+        ctypes.windll.kernel32.SetThreadExecutionState(flags)
+    except Exception:
+        log.exception("No se pudo actualizar SetThreadExecutionState")
+
+
+def _prevent_system_sleep() -> None:
+    """Mantiene el equipo despierto (AC/DC) mientras corre el supervisor."""
+    _set_execution_state(
+        _ES_CONTINUOUS | _ES_SYSTEM_REQUIRED | _ES_AWAYMODE_REQUIRED
+    )
+
+
+def _allow_system_sleep() -> None:
+    _set_execution_state(_ES_CONTINUOUS)
 
 
 def _setup_logging() -> None:
@@ -321,8 +348,9 @@ class Supervisor:
     def run(self) -> int:
         STOP_FILE.unlink(missing_ok=True)
         _atomic_write(PID_FILE, str(os.getpid()))
+        _prevent_system_sleep()
         log.info(
-            "Supervisor iniciado pid=%s check=%ss stale=%ss",
+            "Supervisor iniciado pid=%s check=%ss stale=%ss keep_awake=1",
             os.getpid(),
             CHECK_INTERVAL_SEC,
             STALE_AFTER_SEC,
@@ -338,6 +366,7 @@ class Supervisor:
         stop_watcher.start()
         try:
             while not self.stop_event.is_set():
+                _prevent_system_sleep()
                 status = self._ensure_api()
                 if status is not None:
                     self._ensure_collector(status)
@@ -347,6 +376,7 @@ class Supervisor:
             return 1
         finally:
             self._shutdown()
+            _allow_system_sleep()
             STOP_FILE.unlink(missing_ok=True)
             PID_FILE.unlink(missing_ok=True)
             stop_watcher.join(timeout=2)
